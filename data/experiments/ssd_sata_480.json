@@ -1,0 +1,54 @@
+{
+  "experiment_id": "EXP-001",
+  "category": "storage",
+  "product": {
+    "name": "SSD SATA 480GB",
+    "brand": "Kingston",
+    "model": "A400",
+    "sku": "SA400S37/480G",
+    "interface": "SATA III",
+    "capacity_gb": 480
+  },
+  "market": {
+    "demand_status": "confirmed",
+    "demand_signal": "high_sales",
+    "visible_sales": 10000,
+    "market_price_clp": 99990,
+    "minimum_price_clp": 102990,
+    "marketplace_commission_pct": 13.0,
+    "shipping_cost_clp": 0,
+    "other_costs_clp": 0
+  },
+  "suppliers": {
+    "candidates": 8,
+    "priority_a": 5,
+    "commercial_quotes": 0,
+    "test_supplier_price_clp": 4384
+  },
+  "supply": {
+    "status": "research",
+    "stock_confirmed": false,
+    "wholesale_price_confirmed": false,
+    "shipping_confirmed": false,
+    "warranty_confirmed": false,
+    "ordering_method_confirmed": false
+  },
+  "publication": {
+    "status": "blocked",
+    "reason": "Falta confirmar condiciones comerciales del proveedor"
+  },
+  "experiment_status": "SUPPLY_RESEARCH",
+  "decision_rules": {
+  "minimum_net_margin_pct": 25.0,
+  "excellent_net_margin_pct": 40.0,
+  "minimum_visible_sales": 100,
+  "require_confirmed_stock": true,
+  "require_confirmed_wholesale_price": true,
+  "require_confirmed_shipping": true,
+  "require_confirmed_warranty": true,
+  "require_confirmed_ordering_method": true
+},
+"supplier_candidates": [
+  "SUP-001"
+]
+}
