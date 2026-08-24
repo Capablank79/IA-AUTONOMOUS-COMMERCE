@@ -1,0 +1,318 @@
+# AI-AUTONOMOUS-COMMERCE Project Rules
+
+## 01 - Architectural Principles
+### 3.1 Separación de responsabilidades
+La lógica de negocio debe estar separada de agentes, prompts, modelos LLM, MCP, APIs externas, bases de datos e interfaces de usuario.
+### 3.2 Domain First
+Las reglas esenciales del negocio deben residir en el Domain Core.
+### 3.3 Agnosticismo tecnológico
+El dominio no debe depender de OpenAI, Anthropic, Google, GitHub Copilot, TRAE, OpenCode, Ollama, ni proveedores específicos de LLM. Debe ser posible cambiar el proveedor de IA sin modificar la lógica central del negocio.
+### 3.4 Agnosticismo de canales
+El dominio tampoco debe depender directamente de Mercado Libre, WhatsApp, proveedores, APIs externas, REST, MCP, ni interfaz gráfica.
+### 3.5 Bajo acoplamiento
+Los módulos deben depender de abstracciones/contratos cuando exista una razón arquitectónica real.
+### 3.6 Alta cohesión
+Cada módulo debe tener una responsabilidad clara.
+### 3.7 Testabilidad
+La lógica crítica debe poder probarse sin servicios externos.
+### 3.8 Evolución incremental
+No introducir complejidad arquitectónica antes de que exista una necesidad real.
+
+## 02 - AI and Business Separation
+Los agentes son responsables de:
+- interpretar objetivos;
+- interpretar información no estructurada;
+- planificar;
+- razonar;
+- seleccionar herramientas;
+- coordinar tareas;
+- interpretar resultados;
+- decidir qué herramienta utilizar.
+
+Los agentes NO son responsables de implementar:
+- fórmulas financieras críticas;
+- reglas de rentabilidad;
+- reglas de riesgo;
+- reglas de inventario;
+- reglas de asignación de capital;
+- reglas deterministas del negocio.
+
+Estas deben vivir en código determinista, testeable y auditable. Un LLM puede proponer una decisión. El sistema debe determinar mediante código si la decisión cumple las reglas de negocio.
+
+## 03 - Deterministic Financial Logic
+Toda lógica relacionada con costos, precio, margen, utilidad, ROI, comisiones, impuestos, envío, capital, inventario y riesgo financiero debe ser implementada de forma determinista.
+Los cálculos monetarios no deben depender de una respuesta generativa de un LLM.
+No utilizar floating point para cálculos monetarios cuando pueda introducir errores de precisión. Utilizar una representación monetaria adecuada, normalmente Decimal, cuando corresponda.
+Todo motor financiero debe tener pruebas para valores normales, valores límite, valores cero, valores negativos cuando sean posibles, divisiones por cero, costos superiores al precio, márgenes negativos y datos inválidos.
+
+## 04 - Domain Core
+El Domain Core debe permanecer independiente de HTTP, REST, MCP, SQL, PostgreSQL, SQLAlchemy, Mercado Libre, proveedores, modelos LLM, filesystem, credenciales y servicios externos.
+El dominio debe contener entidades, value objects, reglas de negocio, domain services, decision engines y contratos necesarios para desacoplamiento.
+No colocar lógica de infraestructura dentro del dominio.
+Los motores de decisión deben poder ejecutarse sin conexión a internet.
+
+## 05 - Application Layer
+La Application Layer debe:
+- coordinar casos de uso;
+- coordinar repositorios;
+- coordinar adaptadores;
+- preparar datos para el dominio;
+- ejecutar motores de decisión;
+- coordinar transacciones;
+- devolver resultados.
+
+No debe convertirse en un segundo Domain. Las reglas fundamentales de negocio deben permanecer en Domain.
+
+## 06 - MCP Interface
+MCP es una interfaz para exponer capacidades del sistema a agentes. Una MCP Tool debe:
+1. recibir inputs;
+2. validar inputs;
+3. invocar un Application Use Case;
+4. devolver un resultado estructurado.
+
+Una MCP Tool NO debe contener lógica empresarial compleja.
+Flujo esperado:
+LLM / Agent -> MCP Tool -> Input Validation -> Application Use Case -> Domain / Decision Engine -> Infrastructure cuando corresponda -> resultado -> MCP Tool -> Agent.
+
+No colocar cálculos financieros directamente dentro de las MCP Tools.
+
+## 07 - Agent Architecture
+Los agentes deben considerarse consumidores/orquestadores de capacidades.
+Un agente debe tener una responsabilidad definida, herramientas explícitas, permisos mínimos, utilizar Skills cuando corresponda, delegar tareas cuando corresponda e interpretar resultados.
+Un agente NO debe duplicar lógica de dominio.
+Un agente NO debe tener acceso indiscriminado a todas las herramientas.
+Aplicar Principle of Least Privilege. Ejemplo: Supplier Hunter Agent puede tener acceso a búsqueda, fuentes externas, extracción de información y evaluación inicial. No debe tener acceso automáticamente a publicación, modificación de listings, órdenes u operaciones financieras.
+
+## 08 - Skills
+Distingue claramente:
+- Agent = quién ejecuta.
+- Skill = cómo realiza una tarea especializada.
+- Tool = capacidad ejecutable.
+- MCP = protocolo/interfaz de herramientas.
+- Rule = restricción permanente.
+- Memory = conocimiento/contexto persistente.
+
+Una Skill debe representar un procedimiento o capacidad reutilizable. No convertir Skills en depósitos de lógica empresarial crítica. La lógica financiera y de negocio permanece en código.
+
+## 09 - Ports and Adapters
+Las integraciones externas deben utilizar Ports and Adapters cuando el desacoplamiento aporte valor.
+Ejemplo:
+Domain Port -> MarketplacePort -> MercadoLibreAdapter.
+
+El dominio no debe conocer la implementación concreta. Las integraciones deben poder reemplazarse sin reescribir la lógica de negocio. Aplicar especialmente a marketplaces, proveedores, pagos, mensajería, scraping, servicios externos y proveedores de IA.
+
+## 10 - Marketplace Isolation
+Mercado Libre debe tratarse como una integración externa.
+No introducir objetos, respuestas o modelos específicos de Mercado Libre directamente en el Domain Core.
+Utilizar modelos/adaptadores que traduzcan:
+External API Model -> Internal Model.
+
+El sistema debe poder soportar posteriormente otros marketplaces sin modificar el núcleo.
+
+## 11 - Persistence
+La persistencia objetivo de producción será PostgreSQL. Pero NO introducir PostgreSQL prematuramente. Primero debe definirse suficientemente el modelo de dominio.
+Los datos transaccionales críticos deben utilizar modelos estructurados.
+JSON/JSONB puede utilizarse para datos externos variables cuando esté justificado.
+JSONB NO debe utilizarse como sustituto de un modelo relacional correctamente definido.
+La persistencia no debe contaminar el Domain Core.
+
+## 12 - Security
+Nunca: hardcodear API keys, passwords, tokens; almacenar secretos en Git; mostrar secretos en logs; incluir credenciales en respuestas de agentes.
+Las credenciales deben utilizar configuración segura.
+Toda entrada proveniente de agentes, LLMs, MCP, APIs externas o usuarios debe considerarse no confiable hasta ser validada.
+Los agentes deben operar con permisos mínimos.
+
+## 13 - Input Validation
+Todo input externo debe validarse antes de llegar al Domain Core.
+Esto incluye MCP, REST, webhooks, APIs externas, archivos externos, agentes y LLMs.
+Utilizar modelos de validación apropiados. No confiar en que un LLM haya generado un JSON correcto.
+
+## 14 - Decision Auditability
+Toda decisión autónoma relevante debe poder reconstruirse.
+El sistema deberá poder determinar inputs utilizados, fuentes, reglas aplicadas, motor utilizado, versión del motor, agente que inició el proceso, herramientas utilizadas, resultado, timestamp e identificador de trazabilidad.
+Las decisiones comerciales importantes no deben convertirse en una "caja negra".
+
+## 15 - Observability
+Las operaciones importantes deben permitir logging, debugging, tracing, auditoría, medición e identificación de errores.
+Los logs no deben contener passwords, tokens, API keys ni información secreta.
+La observabilidad debe ser especialmente rigurosa alrededor de decisiones financieras, órdenes, inventario, acciones autónomas e integraciones externas.
+
+## 16 - Testing
+Utilizar una estrategia de testing por capas:
+- Domain: Tests unitarios para reglas, entidades, motores, cálculos.
+- Application: Tests de casos de uso.
+- Infrastructure: Tests de adaptadores.
+- MCP: Tests de herramientas y contratos.
+- Integration: Tests de integración.
+- E2E: Tests de flujos completos cuando corresponda.
+
+Prioridad máxima para Profit Engine, Risk Engine, Obsolescence Engine, Inventory Engine, Opportunity Engine y Decision Engine.
+No perseguir una cifra artificial de cobertura global. La cobertura debe enfocarse en las reglas críticas del negocio.
+
+## 17 - Code Quality
+Priorizar: legibilidad, simplicidad, tipado, responsabilidades claras, funciones pequeñas, clases cohesivas, manejo explícito de errores, tests y documentación cuando sea necesaria.
+Evitar: duplicación, acoplamiento innecesario, abstracciones prematuras, código muerto, funciones gigantes y clases con múltiples responsabilidades.
+
+## 18 - Progressive Complexity
+No introducir automáticamente microservicios, Kafka, Celery, Redis, Kubernetes, arquitecturas distribuidas, event buses complejos, frameworks de agentes o librerías innecesarias.
+Una tecnología debe introducirse cuando exista una necesidad concreta. La arquitectura debe evolucionar con el sistema.
+
+## 19 - Dependency Management
+Antes de agregar una dependencia:
+1. comprobar si realmente es necesaria;
+2. comprobar si existe una solución estándar;
+3. evaluar mantenimiento;
+4. evaluar seguridad;
+5. evaluar licencia;
+6. evaluar impacto arquitectónico;
+7. evaluar acoplamiento.
+No agregar dependencias por comodidad cuando una solución simple sea suficiente.
+
+## 20 - Configuration
+Separar configuración, código y secretos.
+Utilizar variables de entorno/configuración segura.
+Debe existir separación conceptual entre development, test y production.
+Nunca colocar secretos directamente en código.
+
+## 21 - Business Memory
+La futura memoria del sistema debe distinguir datos operacionales, historial de decisiones, conocimiento, reglas, resultados y aprendizajes.
+La memoria de agentes NO sustituye base de datos transaccional, logs, auditoría o modelos de dominio.
+
+## 22 - Progressive Autonomy
+La autonomía debe evolucionar progresivamente:
+Observe -> Analyze -> Evaluate -> Decide -> Act -> Measure -> Learn.
+Durante las primeras fases, las acciones de alto impacto deberán poder requerir aprobación humana.
+No permitir autonomía financiera irrestricta por defecto.
+
+## 23 - Architectural Changes
+Antes de realizar un cambio arquitectónico significativo, el agente debe explicar:
+1. problema;
+2. solución propuesta;
+3. componentes afectados;
+4. dependencias;
+5. riesgos;
+6. alternativas;
+7. estrategia de validación.
+No realizar cambios arquitectónicos importantes silenciosamente.
+
+## 24 - Development Workflow
+Para funcionalidades nuevas utilizar:
+REQUISITO -> ANÁLISIS -> DISEÑO -> CRITERIOS DE ACEPTACIÓN -> IMPLEMENTACIÓN -> TESTS -> VALIDACIÓN -> DOCUMENTACIÓN.
+
+Para cambios pequeños se puede simplificar el proceso cuando no exista impacto arquitectónico.
+Para cambios estructurales, seguir el proceso completo.
+
+## 25 - Minimal Changes
+Establece que cuando una tarea requiera modificar código:
+- modificar únicamente lo necesario;
+- no reescribir módulos sin necesidad;
+- no cambiar arquitectura sin autorización;
+- no modificar código no relacionado;
+- preservar el comportamiento existente salvo que el requisito indique lo contrario.
+
+Antes de eliminar comportamiento existente, explicar por qué.
+
+## 26 - Git Discipline
+Establece que:
+- los cambios deben mantenerse pequeños y trazables;
+- antes de cambios importantes debe identificarse el estado actual;
+- deben conocerse los archivos afectados;
+- los cambios deben mantenerse reversibles cuando sea posible;
+- no realizar commits automáticamente salvo que la tarea lo solicite explícitamente;
+- no hacer push automáticamente;
+- no eliminar historial;
+- no realizar operaciones destructivas de Git sin autorización explícita.
+
+## 27 - Documentation
+Establece que las decisiones arquitectónicas importantes deben documentarse.
+Cuando una decisión tenga impacto futuro significativo, se debe proponer un ADR.
+La documentación de decisiones debe explicar:
+- qué se decidió;
+- por qué;
+- alternativas consideradas;
+- consecuencias.
+
+No documentar obviedades innecesariamente.
+
+## 28 - Product Vision
+Establece que la arquitectura debe permanecer alineada con la visión de AI Autonomous Commerce.
+La visión futura incluye:
+- Product Hunter;
+- Demand Intelligence;
+- Market Intelligence;
+- Supplier Hunter;
+- Supplier Evaluation;
+- Profit Engine;
+- Risk Engine;
+- Obsolescence Engine;
+- Inventory / Capital Allocation;
+- Opportunity Engine;
+- Decision Engine;
+- Mercado Libre;
+- Listing;
+- Orders;
+- Fulfillment;
+- Billing;
+- WhatsApp;
+- Dashboard;
+- Business Memory;
+- Continuous Learning.
+
+IMPORTANTE:
+La existencia de esta visión NO autoriza a implementar funcionalidades automáticamente.
+Un agente solo debe implementar funcionalidades expresamente solicitadas.
+
+## 29 - Requirement Discipline
+Establece que los agentes NO deben inventar requisitos.
+Cuando una decisión importante no esté definida:
+- identificar la incertidumbre;
+- presentar alternativas;
+- explicar el impacto;
+- solicitar confirmación cuando sea necesario.
+
+No asumir silenciosamente decisiones que puedan afectar:
+- arquitectura;
+- seguridad;
+- dinero;
+- datos;
+- integraciones;
+- comportamiento autónomo.
+
+## 30 - Evidence Based Development
+Establece que ningún agente debe afirmar que algo está:
+- implementado;
+- probado;
+- funcionando;
+- integrado;
+- seguro;
+sin evidencia.
+
+Debe distinguir claramente entre:
+- implementado;
+- parcialmente implementado;
+- propuesto;
+- pendiente;
+- probado;
+- no probado.
+
+## 31 - Development Agent Boundaries
+Establece que TRAE y sus agentes pueden utilizar sus capacidades para:
+- analizar;
+- planificar;
+- implementar;
+- ejecutar tests;
+- depurar;
+- revisar;
+- refactorizar;
+cuando la tarea lo autorice.
+
+Pero una instrucción general NO debe interpretarse como autorización para:
+- cambiar la arquitectura completa;
+- agregar infraestructura innecesaria;
+- instalar servicios;
+- agregar servicios externos de pago;
+- realizar operaciones destructivas;
+- modificar credenciales;
+- cambiar configuraciones críticas.
+
+Cuando una acción exceda el alcance explícito de la tarea, el agente debe detenerse y solicitar autorización.

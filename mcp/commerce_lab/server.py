@@ -2,13 +2,35 @@ import json
 from pathlib import Path
 
 from mcp.server import MCPServer
-
+from src.application.use_cases.analyze_profit import AnalyzeProfitUseCase
+from src.application.use_cases.discover_market_opportunities import DiscoverMarketOpportunitiesUseCase
+from src.domain.market_intelligence.models import SearchCriteria, Marketplace
+from src.domain.market_intelligence.services import MarketAnalysisService
+from src.infrastructure.market_intelligence.mercadolibre.client import MercadoLibreClient
+from src.infrastructure.market_intelligence.mercadolibre.adapter import MercadoLibreAdapter
+from src.infrastructure.persistence.data.json.profit_repository import JsonProfitDataRepository
+from src.infrastructure.persistence.data.json.market_snapshot_repository import JsonMarketSnapshotRepository
+from src.domain.profit.models import ProfitAnalysis, FinancialData, DecisionRules
 
 mcp = MCPServer("commerce_lab")
 
-
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "experiments"
 SUPPLIER_DIR = Path(__file__).resolve().parents[2] / "data" / "suppliers"
+SNAPSHOTS_DIR = Path(__file__).resolve().parents[2] / "data" / "market_snapshots"
+
+# Dependency Injection Manual
+profit_repository = JsonProfitDataRepository(DATA_DIR)
+analyze_profit_use_case = AnalyzeProfitUseCase(profit_repository)
+
+ml_client = MercadoLibreClient()
+ml_adapter = MercadoLibreAdapter(ml_client)
+market_snapshot_repository = JsonMarketSnapshotRepository(SNAPSHOTS_DIR)
+market_analysis_service = MarketAnalysisService()
+discover_products_use_case = DiscoverMarketOpportunitiesUseCase(
+    data_source=ml_adapter,
+    repository=market_snapshot_repository,
+    analysis_service=market_analysis_service
+)
 
 
 def load_experiment(experiment_file: str) -> dict:
@@ -99,70 +121,42 @@ Estado: {data["experiment_status"]}
 @mcp.tool()
 def calculate_profit() -> str:
     """Calcula la utilidad, margen y decisión comercial del experimento."""
+    experiment_id = "EXP-001"
+    
+    financial_data = profit_repository.get_financial_data(experiment_id)
+    decision_rules = profit_repository.get_decision_rules(experiment_id)
+    
+    analysis = analyze_profit_use_case.execute(experiment_id)
+    
+    return format_profit_analysis_report(experiment_id, financial_data, decision_rules, analysis)
 
-    data = load_experiment("ssd_sata_480.json")
 
-    price = data["market"]["market_price_clp"]
-    commission_pct = data["market"]["marketplace_commission_pct"]
-    shipping = data["market"]["shipping_cost_clp"]
-    other_costs = data["market"]["other_costs_clp"]
-
-    supplier_price = data["suppliers"]["test_supplier_price_clp"]
-
-    rules = data["decision_rules"]
-
-    minimum_margin = rules["minimum_net_margin_pct"]
-    excellent_margin = rules["excellent_net_margin_pct"]
-    minimum_sales = rules["minimum_visible_sales"]
-
-    market_demand_ok = (
-        data["market"]["visible_sales"] >= minimum_sales
-    )
-
-    commission = price * (commission_pct / 100)
-
-    net_profit = (
-        price
-        - commission
-        - supplier_price
-        - shipping
-        - other_costs
-    )
-
-    net_margin = (net_profit / price) * 100
-
-    if net_margin >= excellent_margin and market_demand_ok:
-        decision = "STRONG_BUY"
-    elif net_margin >= minimum_margin and market_demand_ok:
-        decision = "BUY"
-    else:
-        decision = "REJECT"
-
+def format_profit_analysis_report(experiment_id: str, data: FinancialData, rules: DecisionRules, analysis: ProfitAnalysis) -> str:
+    """Transforma los modelos de dominio al formato de reporte original."""
     return f"""
-PROFIT ENGINE — {data["experiment_id"]}
+PROFIT ENGINE — {experiment_id}
 
-Precio de venta: ${price:,.0f}
-Costo proveedor: ${supplier_price:,.0f}
+Precio de venta: ${data.price.amount:,.0f}
+Costo proveedor: ${data.supplier_price.amount:,.0f}
 
-Comisión marketplace ({commission_pct}%): ${commission:,.0f}
-Despacho: ${shipping:,.0f}
-Otros costos: ${other_costs:,.0f}
+Comisión marketplace ({data.commission_pct}%): ${analysis.commission.amount:,.0f}
+Despacho: ${data.shipping.amount:,.0f}
+Otros costos: ${data.other_costs.amount:,.0f}
 
-UTILIDAD NETA: ${net_profit:,.0f}
-MARGEN NETO: {net_margin:.2f}%
+UTILIDAD NETA: ${analysis.net_profit.amount:,.0f}
+MARGEN NETO: {analysis.net_margin_pct:.2f}%
 
 DEMANDA:
-Ventas visibles: {data["market"]["visible_sales"]:,}
-Mínimo requerido: {minimum_sales:,}
-Demanda suficiente: {market_demand_ok}
+Ventas visibles: {data.visible_sales:,}
+Mínimo requerido: {rules.minimum_sales:,}
+Demanda suficiente: {analysis.market_demand_ok}
 
 REGLAS:
-Margen mínimo: {minimum_margin:.2f}%
-Margen excelente: {excellent_margin:.2f}%
+Margen mínimo: {rules.minimum_margin_pct:.2f}%
+Margen excelente: {rules.excellent_margin_pct:.2f}%
 
-DECISIÓN: {decision}
+DECISIÓN: {analysis.decision.value}
 """
-
 
 @mcp.tool()
 def get_supplier(supplier_id: str) -> str:
@@ -219,6 +213,55 @@ Puntuación: {verification["verification_score"]}
 
 ESTADO PROVEEDOR: {supplier["supplier_status"]}
 """
+
+
+@mcp.tool()
+def discover_products(
+    query: str,
+    marketplace: str = "MERCADO_LIBRE",
+    category: str | None = None,
+    limit: int | None = 20
+) -> str:
+    """Busca y descubre oportunidades de mercado basadas en una intención de búsqueda."""
+    
+    try:
+        mp = Marketplace(marketplace.upper())
+    except ValueError:
+        return f"Error: Marketplace no soportado: {marketplace}"
+        
+    criteria = SearchCriteria(
+        query=query,
+        marketplace=mp,
+        category=category,
+        limit=limit
+    )
+    
+    try:
+        opportunities = discover_products_use_case.execute(criteria)
+        
+        if not opportunities:
+            return f"No se encontraron oportunidades para la búsqueda: '{query}'"
+            
+        result = [
+            f"PRODUCT HUNTER RESULTS: '{query}' (Marketplace: {mp.value})",
+            f"Oportunidades encontradas: {len(opportunities)}",
+            "-" * 50
+        ]
+        
+        for idx, opp in enumerate(opportunities, 1):
+            result.append(f"#{idx} [Score: {opp.opportunity_score}]")
+            result.append(f"Title: {opp.listing.title}")
+            result.append(f"ID: {opp.listing.external_id} | Seller: {opp.listing.seller_id}")
+            result.append(f"Price: ${opp.listing.price.amount:,.0f} {opp.listing.price.currency}")
+            result.append(f"Sold: {opp.listing.sold_quantity} | Available: {opp.listing.available_quantity}")
+            result.append(f"Demand Signal: {opp.demand_signal.label} (Score: {opp.demand_signal.score})")
+            result.append(f"Price Signal: {opp.price_signal.position} (Ratio: {opp.price_signal.ratio:.2f})")
+            result.append(f"Snapshot ID: {opp.snapshot_id}")
+            result.append("-" * 50)
+            
+        return "\n".join(result)
+    except Exception as e:
+        return f"Error al ejecutar Product Hunter: {e}"
 
 
 if __name__ == "__main__":
