@@ -6,6 +6,7 @@ authors = [{ name = "AI", email = "ai@example.com" }]
 requires-python = ">=3.10"
 dependencies = [
     "mcp==2.1.0",
+    "python-dotenv==1.2.3",
     "starlette==1.6.0",
     "uvicorn==0.35.0",
 ]
