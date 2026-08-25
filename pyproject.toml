@@ -4,6 +4,14 @@ version = "0.1.0"
 description = "AI Autonomous Commerce Lab"
 authors = [{ name = "AI", email = "ai@example.com" }]
 requires-python = ">=3.10"
+dependencies = [
+    "mcp==2.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
