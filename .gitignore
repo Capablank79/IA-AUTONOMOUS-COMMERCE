@@ -8,3 +8,5 @@ __pycache__/
 .idea/
 
 *.egg-info/
+
+data/oauth/
