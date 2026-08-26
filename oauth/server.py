@@ -13,6 +13,7 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse, RedirectResponse
 from starlette.routing import Route
 
+from src.application.oauth.dependencies import oauth_service
 from src.domain.oauth.models import OAuthConnection
 from src.infrastructure.persistence.data.json.oauth_connection_repository import (
     JsonOAuthConnectionRepository,
@@ -28,9 +29,7 @@ TOKEN_URL = "https://api.mercadolibre.com/oauth/token"
 
 oauth_sessions = {}
 
-oauth_repository = JsonOAuthConnectionRepository(
-    "data/oauth"
-)
+oauth_repository = JsonOAuthConnectionRepository("data/oauth")
 
 
 async def health(request):
@@ -89,9 +88,7 @@ async def oauth_callback(request):
 
     if not code or not state:
         return JSONResponse(
-            {
-                "error": "missing_code_or_state",
-            },
+            {"error": "missing_code_or_state"},
             status_code=400,
         )
 
@@ -99,17 +96,13 @@ async def oauth_callback(request):
 
     if not session:
         return JSONResponse(
-            {
-                "error": "invalid_or_expired_state",
-            },
+            {"error": "invalid_or_expired_state"},
             status_code=400,
         )
 
     if not CLIENT_ID or not CLIENT_SECRET:
         return JSONResponse(
-            {
-                "error": "mercadolibre_credentials_not_configured",
-            },
+            {"error": "mercadolibre_credentials_not_configured"},
             status_code=500,
         )
 
@@ -147,9 +140,7 @@ async def oauth_callback(request):
         )
     except URLError:
         return JSONResponse(
-            {
-                "error": "mercadolibre_token_service_unavailable",
-            },
+            {"error": "mercadolibre_token_service_unavailable"},
             status_code=502,
         )
 
@@ -157,9 +148,7 @@ async def oauth_callback(request):
         token_payload = json.loads(token_data)
     except json.JSONDecodeError:
         return JSONResponse(
-            {
-                "error": "mercadolibre_invalid_token_response",
-            },
+            {"error": "mercadolibre_invalid_token_response"},
             status_code=502,
         )
 
@@ -170,9 +159,7 @@ async def oauth_callback(request):
 
     if not access_token or not refresh_token or not user_id or not expires_in:
         return JSONResponse(
-            {
-                "error": "mercadolibre_invalid_token_response",
-            },
+            {"error": "mercadolibre_invalid_token_response"},
             status_code=502,
         )
 
@@ -202,6 +189,34 @@ async def oauth_callback(request):
     })
 
 
+async def oauth_connection(request):
+    provider = request.path_params["provider"]
+    user_id = request.path_params["user_id"]
+
+    try:
+        connection = oauth_service.get_valid_connection(
+            provider=provider,
+            user_id=user_id,
+        )
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "error": "oauth_connection_failed",
+                "detail": str(exc),
+            },
+            status_code=502,
+        )
+
+    return JSONResponse({
+        "status": "connected",
+        "provider": connection.provider,
+        "user_id": connection.user_id,
+        "expires_at": connection.expires_at.isoformat(),
+        "scope": connection.scope,
+        "token_type": connection.token_type,
+    })
+
+
 app = Starlette(
     debug=False,
     routes=[
@@ -210,6 +225,11 @@ app = Starlette(
         Route(
             "/oauth/mercadolibre/callback",
             oauth_callback,
+            methods=["GET"],
+        ),
+        Route(
+            "/oauth/connection/{provider}/{user_id}",
+            oauth_connection,
             methods=["GET"],
         ),
     ],
