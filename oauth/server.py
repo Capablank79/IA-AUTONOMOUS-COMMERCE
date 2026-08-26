@@ -13,7 +13,7 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse, RedirectResponse
 from starlette.routing import Route
 
-from src.application.oauth.dependencies import oauth_service, mercadolibre_service, mercadolibre_market_service
+from src.application.oauth.dependencies import oauth_service, mercadolibre_service, mercadolibre_market_service, product_hunter_service
 from src.domain.oauth.models import OAuthConnection
 from src.domain.market_intelligence.models import Marketplace, SearchCriteria
 from src.infrastructure.persistence.data.json.oauth_connection_repository import (
@@ -238,6 +238,53 @@ async def mercadolibre_me(request):
         "user": data,
     })
 
+async def mercadolibre_product_search(request):
+    user_id = request.path_params["user_id"]
+    query = request.query_params.get("q", "")
+    limit = int(request.query_params.get("limit", "20"))
+
+    if not query:
+        return JSONResponse(
+            {"error": "query_required"},
+            status_code=400,
+        )
+
+    try:
+        products = product_hunter_service.search(
+            user_id=user_id,
+            query=query,
+            limit=limit,
+        )
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "error": "mercadolibre_product_search_failed",
+                "detail": str(exc),
+            },
+            status_code=502,
+        )
+
+    return JSONResponse({
+        "status": "ok",
+        "provider": "mercadolibre",
+        "query": query,
+        "total_results": len(products),
+        "products": [
+            {
+                "product_id": product.product_id,
+                "title": product.title,
+                "domain_id": product.domain_id,
+                "brand": product.brand,
+                "model": product.model,
+                "attributes": product.attributes,
+                "thumbnail": product.thumbnail,
+                "status": product.status,
+            }
+            for product in products
+        ],
+    })
+
+
 async def mercadolibre_search(request):
     user_id = request.path_params["user_id"]
     query = request.query_params.get("q", "")
@@ -307,8 +354,10 @@ app = Starlette(
         ),
         Route("/mercadolibre/me/{user_id}", mercadolibre_me, methods=["GET"]),
         Route("/mercadolibre/search/{user_id}", mercadolibre_search, methods=["GET"]),
+        Route("/mercadolibre/products/search/{user_id}", mercadolibre_product_search, methods=["GET"]),
     ],
 )
+
 
 
 

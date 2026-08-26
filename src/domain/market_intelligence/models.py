@@ -76,3 +76,23 @@ class MarketOpportunity:
     price_signal: PriceSignal
     opportunity_score: Decimal
     detected_at: datetime
+
+@dataclass(frozen=True)
+class CatalogProduct:
+    product_id: str
+    marketplace: Marketplace
+    title: str
+    domain_id: str
+    brand: Optional[str]
+    model: Optional[str]
+    attributes: dict
+    thumbnail: Optional[str]
+    status: str
+
+    def __post_init__(self):
+        if not self.product_id:
+            raise ValueError("product_id must be valid")
+        if not self.title:
+            raise ValueError("title must be valid")
+        if not self.domain_id:
+            raise ValueError("domain_id must be valid")
