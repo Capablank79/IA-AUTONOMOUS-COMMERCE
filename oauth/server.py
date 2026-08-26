@@ -13,8 +13,9 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse, RedirectResponse
 from starlette.routing import Route
 
-from src.application.oauth.dependencies import oauth_service
+from src.application.oauth.dependencies import oauth_service, mercadolibre_service, mercadolibre_market_service
 from src.domain.oauth.models import OAuthConnection
+from src.domain.market_intelligence.models import Marketplace, SearchCriteria
 from src.infrastructure.persistence.data.json.oauth_connection_repository import (
     JsonOAuthConnectionRepository,
 )
@@ -217,6 +218,78 @@ async def oauth_connection(request):
     })
 
 
+async def mercadolibre_me(request):
+    user_id = request.path_params["user_id"]
+
+    try:
+        data = mercadolibre_service.get_current_user(user_id)
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "error": "mercadolibre_api_failed",
+                "detail": str(exc),
+            },
+            status_code=502,
+        )
+
+    return JSONResponse({
+        "status": "ok",
+        "provider": "mercadolibre",
+        "user": data,
+    })
+
+async def mercadolibre_search(request):
+    user_id = request.path_params["user_id"]
+    query = request.query_params.get("q", "")
+    limit = int(request.query_params.get("limit", "20"))
+
+    if not query:
+        return JSONResponse(
+            {"error": "query_required"},
+            status_code=400,
+        )
+
+    criteria = SearchCriteria(
+        query=query,
+        marketplace=Marketplace.MERCADO_LIBRE,
+        limit=limit,
+    )
+
+    try:
+        snapshot = mercadolibre_market_service.search(
+            user_id=user_id,
+            criteria=criteria,
+        )
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "error": "mercadolibre_search_failed",
+                "detail": str(exc),
+            },
+            status_code=502,
+        )
+
+    return JSONResponse({
+        "status": "ok",
+        "provider": "mercadolibre",
+        "snapshot_id": snapshot.snapshot_id,
+        "total_results": snapshot.total_results,
+        "listings": [
+            {
+                "external_id": listing.external_id,
+                "title": listing.title,
+                "price": str(listing.price.amount),
+                "currency": listing.price.currency,
+                "sold_quantity": listing.sold_quantity,
+                "available_quantity": listing.available_quantity,
+                "seller_id": listing.seller_id,
+                "condition": listing.condition,
+                "category": listing.category,
+            }
+            for listing in snapshot.listings
+        ],
+    })
+
 app = Starlette(
     debug=False,
     routes=[
@@ -232,5 +305,13 @@ app = Starlette(
             oauth_connection,
             methods=["GET"],
         ),
+        Route("/mercadolibre/me/{user_id}", mercadolibre_me, methods=["GET"]),
+        Route("/mercadolibre/search/{user_id}", mercadolibre_search, methods=["GET"]),
     ],
 )
+
+
+
+
+
+
