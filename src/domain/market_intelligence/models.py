@@ -57,6 +57,7 @@ class MarketSnapshot:
     marketplace: Marketplace
     listings: List[MarketListing]
     total_results: int
+    trends: List[dict] = field(default_factory=list)
 
 @dataclass(frozen=True)
 class DemandSignal:
@@ -68,12 +69,27 @@ class PriceSignal:
     ratio: Decimal
     position: str
 
+
+@dataclass(frozen=True)
+class TrendSignal:
+    keyword: str
+    rank: int
+    matched: bool
+    trend_score: Decimal
+
+    def __post_init__(self):
+        if self.rank < 0:
+            raise ValueError("rank cannot be negative")
+        if self.trend_score < Decimal("0") or self.trend_score > Decimal("1"):
+            raise ValueError("trend_score must be between 0 and 1")
+
 @dataclass(frozen=True)
 class MarketOpportunity:
     snapshot_id: str
     listing: MarketListing
     demand_signal: DemandSignal
     price_signal: PriceSignal
+    trend_signal: TrendSignal
     opportunity_score: Decimal
     detected_at: datetime
 

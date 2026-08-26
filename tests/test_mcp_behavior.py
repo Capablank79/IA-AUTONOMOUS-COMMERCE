@@ -52,7 +52,7 @@ def test_discover_products_behavior(monkeypatch):
     mock_use_case = MagicMock()
     monkeypatch.setattr("commerce_lab.server.discover_products_use_case", mock_use_case)
     
-    from src.domain.market_intelligence.models import MarketOpportunity, MarketListing, Marketplace, Money, DemandSignal, PriceSignal
+    from src.domain.market_intelligence.models import MarketOpportunity, MarketListing, Marketplace, Money, DemandSignal, PriceSignal, TrendSignal
     from datetime import datetime
     from decimal import Decimal
     
@@ -72,6 +72,12 @@ def test_discover_products_behavior(monkeypatch):
         ),
         demand_signal=DemandSignal(score=Decimal("1.0"), label="HIGH"),
         price_signal=PriceSignal(ratio=Decimal("0.9"), position="UNDER_MARKET"),
+        trend_signal=TrendSignal(
+            keyword="ssd",
+            rank=1,
+            matched=True,
+            trend_score=Decimal("1.0"),
+        ),
         opportunity_score=Decimal("111.11"),
         detected_at=datetime.utcnow()
     )

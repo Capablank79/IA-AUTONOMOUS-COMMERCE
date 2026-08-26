@@ -6,7 +6,8 @@ from src.domain.market_intelligence.models import (
     Marketplace,
     Money,
     MarketSnapshot,
-    SearchCriteria
+    SearchCriteria,
+    TrendSignal
 )
 
 def test_money_valid():
@@ -61,3 +62,27 @@ def test_market_snapshot_valid():
     )
     assert snapshot.snapshot_id == "snap-001"
     assert snapshot.total_results == 0
+
+
+def test_trend_signal_valid():
+    signal = TrendSignal(
+        keyword="aspiradora",
+        rank=2,
+        matched=True,
+        trend_score=Decimal("0.98"),
+    )
+
+    assert signal.keyword == "aspiradora"
+    assert signal.rank == 2
+    assert signal.matched is True
+    assert signal.trend_score == Decimal("0.98")
+
+
+def test_trend_signal_rejects_invalid_score():
+    with pytest.raises(ValueError):
+        TrendSignal(
+            keyword="aspiradora",
+            rank=2,
+            matched=True,
+            trend_score=Decimal("1.5"),
+        )

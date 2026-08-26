@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 
 from src.application.oauth.connection_service import OAuthConnectionService
 from src.application.market_intelligence.product_hunter_service import ProductHunterService
+from src.application.market_intelligence.trend_intelligence_service import (
+    TrendIntelligenceService,
+)
 from src.application.oauth.mercadolibre_market_service import (
     MercadoLibreMarketService,
 )
@@ -43,5 +46,10 @@ mercadolibre_market_service = MercadoLibreMarketService(
 
 
 product_hunter_service = ProductHunterService(
+    oauth_service=oauth_service,
+)
+
+
+trend_intelligence_service = TrendIntelligenceService(
     oauth_service=oauth_service,
 )

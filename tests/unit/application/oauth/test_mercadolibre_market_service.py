@@ -35,6 +35,20 @@ def test_search_uses_valid_oauth_connection(monkeypatch):
         def __init__(self, access_token):
             captured["access_token"] = access_token
 
+    class FakeTrendsDataSource:
+        def __init__(self, api_client):
+            captured["trends_api_client"] = api_client
+
+        def get_trends(self):
+            captured["trends_called"] = True
+            return [
+                {
+                    "keyword": "aspiradora",
+                    "url": "https://example.com/aspiradora",
+                    "rank": 1,
+                }
+            ]
+
     class FakeDataSource:
         def __init__(self, api_client):
             captured["api_client"] = api_client
@@ -57,6 +71,10 @@ def test_search_uses_valid_oauth_connection(monkeypatch):
     monkeypatch.setattr(
         "src.application.oauth.mercadolibre_market_service.MercadoLibreMarketplaceDataSource",
         FakeDataSource,
+    )
+    monkeypatch.setattr(
+        "src.application.oauth.mercadolibre_market_service.MercadoLibreTrendsDataSource",
+        FakeTrendsDataSource,
     )
 
     criteria = SearchCriteria(
