@@ -53,11 +53,11 @@ def test_analyze_with_listings(analysis_service):
         shipping_info={},
         category="CAT"
     )
-    
+
     # Median is 150
     # L1: 100/150 = 0.66 (UNDER_MARKET)
     # L2: 200/150 = 1.33 (OVER_MARKET)
-    
+
     snapshot = MarketSnapshot(
         snapshot_id="snap-001",
         timestamp=datetime.utcnow(),
@@ -66,15 +66,15 @@ def test_analyze_with_listings(analysis_service):
         listings=[listing1, listing2],
         total_results=2
     )
-    
+
     opportunities = analysis_service.analyze(snapshot)
-    
+
     assert len(opportunities) == 2
-    
+
     opp1 = next(o for o in opportunities if o.listing.external_id == "L1")
     assert opp1.demand_signal.label == "MEDIUM"
     assert opp1.price_signal.position == "UNDER_MARKET"
-    
+
     opp2 = next(o for o in opportunities if o.listing.external_id == "L2")
     assert opp2.demand_signal.label == "NONE"
     assert opp2.price_signal.position == "OVER_MARKET"
@@ -272,6 +272,43 @@ def test_opportunity_score_increases_with_demand():
     }
 
     assert scores[5] < scores[60] < scores[200]
+
+
+def test_opportunity_score_with_unknown_demand():
+    criteria = SearchCriteria(
+        query="producto",
+        marketplace=Marketplace.MERCADO_LIBRE,
+    )
+
+    listing = MarketListing(
+        external_id="L-UNKNOWN",
+        marketplace=Marketplace.MERCADO_LIBRE,
+        title="Producto",
+        price=Money(amount=Decimal("100.0"), currency="CLP"),
+        sold_quantity=None,
+        available_quantity=0,
+        seller_id="S1",
+        condition="new",
+        shipping_info={},
+        category="CAT",
+    )
+
+    snapshot = MarketSnapshot(
+        snapshot_id="unknown-demand-test",
+        timestamp=datetime.utcnow(),
+        search_criteria=criteria,
+        marketplace=Marketplace.MERCADO_LIBRE,
+        listings=[listing],
+        total_results=1,
+        trends=[],
+    )
+
+    opportunities = MarketAnalysisService().analyze(snapshot)
+
+    assert len(opportunities) == 1
+    opp = opportunities[0]
+    assert opp.demand_signal.label == "UNKNOWN"
+    assert opp.demand_signal.score == Decimal("0.0")
 
 
 def test_opportunity_score_increases_with_better_price():

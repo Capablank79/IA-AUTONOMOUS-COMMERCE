@@ -40,4 +40,4 @@ def test_mapper_missing_fields():
     listing = MercadoLibreMapper.to_domain(ml_item)
     assert listing.title == "No title"
     assert listing.condition == "new"
-    assert listing.sold_quantity == 0
+    assert listing.sold_quantity is None

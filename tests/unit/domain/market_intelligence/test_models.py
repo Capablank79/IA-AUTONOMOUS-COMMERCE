@@ -35,6 +35,37 @@ def test_market_listing_valid():
     assert listing.external_id == "ML-123"
     assert listing.price.amount == Decimal("500.0")
 
+def test_market_listing_none_quantities():
+    listing = MarketListing(
+        external_id="ML-123",
+        marketplace=Marketplace.MERCADO_LIBRE,
+        title="Test Product",
+        price=Money(amount=Decimal("500.0"), currency="ARS"),
+        sold_quantity=None,
+        available_quantity=0,
+        seller_id="SELLER-1",
+        condition="new",
+        shipping_info={"free": True},
+        category="CAT-1"
+    )
+    assert listing.sold_quantity is None
+    assert listing.available_quantity == 0
+
+def test_market_listing_zero_sold_quantity():
+    listing = MarketListing(
+        external_id="ML-123",
+        marketplace=Marketplace.MERCADO_LIBRE,
+        title="Test Product",
+        price=Money(amount=Decimal("500.0"), currency="ARS"),
+        sold_quantity=0,
+        available_quantity=5,
+        seller_id="SELLER-1",
+        condition="new",
+        shipping_info={"free": True},
+        category="CAT-1"
+    )
+    assert listing.sold_quantity == 0
+
 def test_market_listing_invalid_quantities():
     with pytest.raises(ValueError, match="sold_quantity cannot be negative"):
         MarketListing(

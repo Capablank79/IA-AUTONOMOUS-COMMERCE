@@ -33,7 +33,7 @@ class MarketAnalysisService:
                 snapshot.search_criteria.query,
                 snapshot.trends,
             )
-            
+
             # Composite opportunity score:
             # - Demand: 50%
             # - Price: 30%
@@ -104,6 +104,9 @@ class MarketAnalysisService:
     def _calculate_demand(self, listing: MarketListing) -> DemandSignal:
         # Simple demand calculation for MVP based on sold_quantity
         sold = listing.sold_quantity
+        if sold is None:
+            return DemandSignal(score=Decimal("0.0"), label="UNKNOWN")
+
         if sold > 100:
             label = "HIGH"
             score = Decimal("1.0")
@@ -116,7 +119,7 @@ class MarketAnalysisService:
         else:
             label = "NONE"
             score = Decimal("0.0")
-            
+
         return DemandSignal(score=score, label=label)
 
     def _calculate_price_signal(self, listing: MarketListing, median_price: Decimal) -> PriceSignal:
@@ -124,12 +127,12 @@ class MarketAnalysisService:
             ratio = Decimal("1.0")
         else:
             ratio = listing.price.amount / median_price
-            
+
         if ratio < Decimal("0.8"):
             position = "UNDER_MARKET"
         elif ratio > Decimal("1.2"):
             position = "OVER_MARKET"
         else:
             position = "AT_MARKET"
-            
+
         return PriceSignal(ratio=ratio, position=position)

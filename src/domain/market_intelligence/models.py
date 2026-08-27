@@ -24,7 +24,7 @@ class MarketListing:
     marketplace: Marketplace
     title: str
     price: Money
-    sold_quantity: int
+    sold_quantity: Optional[int]
     available_quantity: int
     seller_id: str
     condition: str
@@ -34,7 +34,7 @@ class MarketListing:
     def __post_init__(self):
         if not self.external_id:
             raise ValueError("external_id must be valid")
-        if self.sold_quantity < 0:
+        if self.sold_quantity is not None and self.sold_quantity < 0:
             raise ValueError("sold_quantity cannot be negative")
         if self.available_quantity < 0:
             raise ValueError("available_quantity cannot be negative")

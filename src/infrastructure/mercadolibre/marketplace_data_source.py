@@ -1,4 +1,4 @@
-﻿import uuid
+import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
 from urllib.parse import quote
@@ -87,6 +87,9 @@ class MercadoLibreMarketplaceDataSource(MarketplaceDataSource):
 
         shipping = item.get("shipping") or {}
 
+        raw_sold = item.get("sold_quantity")
+        sold_qty = int(raw_sold) if raw_sold is not None else None
+
         return MarketListing(
             external_id=str(item["id"]),
             marketplace=Marketplace.MERCADO_LIBRE,
@@ -95,7 +98,7 @@ class MercadoLibreMarketplaceDataSource(MarketplaceDataSource):
                 amount=price,
                 currency=item.get("currency_id", "CLP"),
             ),
-            sold_quantity=int(item.get("sold_quantity") or 0),
+            sold_quantity=sold_qty,
             available_quantity=int(item.get("available_quantity") or 0),
             seller_id=seller_id,
             condition=item.get("condition", "unknown"),

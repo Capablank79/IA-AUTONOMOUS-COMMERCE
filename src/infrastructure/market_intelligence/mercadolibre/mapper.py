@@ -13,9 +13,11 @@ class MercadoLibreMapper:
         currency = ml_item.get("currency_id", "CLP")
         
         # Quantities
-        sold_quantity = int(ml_item.get("sold_quantity", 0))
+        raw_sold = ml_item.get("sold_quantity")
+        sold_quantity = int(raw_sold) if raw_sold is not None else None
+
         available_quantity = int(ml_item.get("available_quantity", 0))
-        
+
         # Seller
         seller_data = ml_item.get("seller", {})
         seller_id = str(seller_data.get("id", "unknown"))

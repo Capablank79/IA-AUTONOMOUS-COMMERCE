@@ -79,7 +79,7 @@ class JsonMarketSnapshotRepository(MarketSnapshotRepository):
                 marketplace=Marketplace(data["marketplace"]),
                 title=l["title"],
                 price=Money(amount=Decimal(l["price"]["amount"]), currency=l["price"]["currency"]),
-                sold_quantity=l["sold_quantity"],
+                sold_quantity=l.get("sold_quantity"),
                 available_quantity=l["available_quantity"],
                 seller_id=l["seller_id"],
                 condition=l["condition"],
