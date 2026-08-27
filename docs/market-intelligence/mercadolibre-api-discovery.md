@@ -675,3 +675,143 @@ OFFICIAL CONTRACT        ████████░░░░░░░░░░�
 ```
 
 **Conclusión:** existe suficiente evidencia para modelar las relaciones principales de forma experimental, pero todavía no para declarar que todos los significados internos están oficialmente determinados.
+
+
+
+## 14. Highlights — BEST_SELLER por categoría
+
+Se descubrió que el endpoint:
+
+```text
+/highlights/MLC/category/{category_id}
+```
+
+es accesible y devuelve información de productos destacados para una categoría.
+
+Para la categoría:
+
+```text
+MLC74192
+```
+
+la respuesta fue:
+
+```text
+HTTP = 200
+KEYS = ['query_data', 'content']
+content = 10 resultados
+```
+
+El objeto `query_data` permitió confirmar explícitamente la naturaleza de la consulta:
+
+```text
+highlight_type = BEST_SELLER
+criteria       = CATEGORY
+id             = MLC74192
+```
+
+Por lo tanto, la consulta corresponde a un ranking de tipo:
+
+```text
+BEST_SELLER
+    ↓
+CATEGORY
+    ↓
+MLC74192
+```
+
+Cada elemento de `content[]` contiene:
+
+```text
+id
+position
+type
+```
+
+El campo `type` puede representar diferentes entidades. En la consulta analizada se observaron:
+
+```text
+ITEM
+PRODUCT
+USER_PRODUCT
+```
+
+Ejemplo:
+
+```text
+POSITION=1 | ID=MLC1587988367 | TYPE=ITEM
+POSITION=2 | ID=MLC49736170   | TYPE=PRODUCT
+POSITION=9 | ID=MLCU1411773233 | TYPE=USER_PRODUCT
+```
+
+El hallazgo más relevante es:
+
+```text
+MLC49736170
+TYPE     = PRODUCT
+POSITION = 2
+```
+
+`MLC49736170` había sido identificado previamente como un `catalog_product` perteneciente a:
+
+```text
+parent = MLC47773362
+family = Bosich CXJ-MT10 150 mL
+```
+
+Por lo tanto, se confirmó que un `catalog_product` puede aparecer directamente dentro de los resultados de `BEST_SELLER` de una categoría.
+
+En la misma consulta:
+
+```text
+MLC47773363
+```
+
+no apareció entre los 10 resultados devueltos.
+
+### Implicación para Demand Intelligence
+
+Este recurso proporciona una señal de demanda/ranking independiente de `sold_quantity`.
+
+Modelo observado:
+
+```text
+CATEGORY
+    │
+    ▼
+BEST_SELLER
+    │
+    ├── POSITION
+    ├── ID
+    └── TYPE
+          │
+          ├── ITEM
+          ├── PRODUCT
+          └── USER_PRODUCT
+```
+
+En el caso analizado:
+
+```text
+MLC49736170
+    ↓
+BEST_SELLER
+    ↓
+CATEGORY = MLC74192
+    ↓
+POSITION = 2
+    ↓
+TYPE = PRODUCT
+```
+
+### Estado
+
+**CONFIRMADO:** el endpoint responde con `highlight_type=BEST_SELLER`, `criteria=CATEGORY` y posiciones dentro de `content`.
+
+**CONFIRMADO:** `content[]` puede contener elementos de tipo `ITEM`, `PRODUCT` y `USER_PRODUCT`.
+
+**CONFIRMADO:** `MLC49736170` aparece como `PRODUCT` en posición 2 para la categoría `MLC74192`.
+
+**NO CONFIRMADO:** que `position` represente directamente unidades vendidas o volumen absoluto de ventas. La interpretación segura en esta etapa es que representa la posición del objeto dentro del resultado `BEST_SELLER`.
+
+**NO CONFIRMADO:** que la ausencia de `MLC47773363` en los 10 resultados implique que el producto no sea un best seller en términos absolutos; únicamente se observó que no apareció en los resultados devueltos por esta consulta.
