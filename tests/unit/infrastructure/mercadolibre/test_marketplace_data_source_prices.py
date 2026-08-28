@@ -1,4 +1,4 @@
-﻿from decimal import Decimal
+from decimal import Decimal
 
 from src.domain.market_intelligence.models import Marketplace, SearchCriteria
 from src.infrastructure.mercadolibre.marketplace_data_source import (
@@ -29,9 +29,11 @@ def test_price_range():
         max_price=Decimal("30000"),
     )
 
-    source.fetch_snapshot(criteria)
+    snapshot = source.fetch_snapshot(criteria)
 
-    assert "price=10000-30000" in client.path
+    assert snapshot.search_criteria.min_price == Decimal("10000")
+    assert snapshot.search_criteria.max_price == Decimal("30000")
+    assert "price=" not in client.path
 
 
 def test_min_price_only():
@@ -43,9 +45,10 @@ def test_min_price_only():
         min_price=Decimal("10000"),
     )
 
-    source.fetch_snapshot(criteria)
+    snapshot = source.fetch_snapshot(criteria)
 
-    assert "price=10000-" in client.path
+    assert snapshot.search_criteria.min_price == Decimal("10000")
+    assert "price=" not in client.path
 
 
 def test_max_price_only():
@@ -57,6 +60,7 @@ def test_max_price_only():
         max_price=Decimal("30000"),
     )
 
-    source.fetch_snapshot(criteria)
+    snapshot = source.fetch_snapshot(criteria)
 
-    assert "price=-30000" in client.path
+    assert snapshot.search_criteria.max_price == Decimal("30000")
+    assert "price=" not in client.path

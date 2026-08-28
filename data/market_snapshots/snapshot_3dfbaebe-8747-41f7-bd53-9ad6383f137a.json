@@ -1,0 +1,16 @@
+{
+    "snapshot_id": "3dfbaebe-8747-41f7-bd53-9ad6383f137a",
+    "timestamp": "2026-08-28T12:24:00.364419+00:00",
+    "marketplace": "MERCADO_LIBRE",
+    "total_results": 10000,
+    "search_criteria": {
+        "query": "SSD",
+        "marketplace": "MERCADO_LIBRE",
+        "category": null,
+        "limit": 3,
+        "min_price": null,
+        "max_price": null,
+        "condition": null
+    },
+    "listings": []
+}

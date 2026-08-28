@@ -1,0 +1,908 @@
+{
+  "name": "Scrapear Productos Amazon",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Productos Amazon",
+        "formDescription": "Elige tu producto de Amazon que quieres analizar o comprar",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Producto",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "path": "producto_amazon"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        672
+      ],
+      "id": "ac8a8e7c-d6fb-4690-8474-79cabe287d7e",
+      "name": "On form submission",
+      "webhookId": "1f38e28a-3632-4a31-a91d-262cd35850da"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"analisis_seo\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"keywords_principales\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\", \n            \"properties\": {\n              \"keyword\": {\n                \"type\": \"string\"\n              },\n              \"potencial_clickbait\": {\n                \"type\": \"number\",\n                \"minimum\": 1,\n                \"maximum\": 10\n              },\n              \"volumen_busqueda\": {\n                \"type\": \"string\",\n                \"enum\": [\"Alto\", \"Medio\", \"Bajo\"]\n              }\n            },\n            \"required\": [\"keyword\", \"potencial_clickbait\", \"volumen_busqueda\"]\n          },\n          \"minItems\": 3,\n          \"maxItems\": 3\n        },\n        \"score_seo\": {\n          \"type\": \"number\",\n          \"minimum\": 1,\n          \"maximum\": 10\n        }\n      },\n      \"required\": [\"keywords_principales\", \"score_seo\"]\n    },\n    \"analisis_cliente\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"emocion_principal\": {\n          \"type\": \"string\",\n          \"enum\": [\"Seguridad\", \"Comodidad\", \"Estatus\", \"Logro\", \"Placer\", \"Control\"],\n          \"description\": \"Emoción principal que satisface el producto\"\n        },\n        \"aspectos_positivos\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"aspecto\": {\n                \"type\": \"string\"\n              },\n              \"frecuencia\": {\n                \"type\": \"string\",\n                \"enum\": [\"Muy Frecuente\", \"Frecuente\", \"Ocasional\"]\n              }\n            },\n            \"required\": [\"aspecto\", \"frecuencia\"]\n          },\n          \"minItems\": 2,\n          \"maxItems\": 3\n        },\n        \"aspectos_negativos\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"problema\": {\n                \"type\": \"string\"\n              },\n              \"oportunidad_mejora\": {\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\"problema\", \"oportunidad_mejora\"]\n          },\n          \"minItems\": 1,\n          \"maxItems\": 3\n        },\n        \"necesidades_no_satisfechas\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          },\n          \"minItems\": 2,\n          \"maxItems\": 4\n        }\n      },\n      \"required\": [\"emocion_principal\", \"aspectos_positivos\", \"aspectos_negativos\", \"necesidades_no_satisfechas\"]\n    }\n  },\n  \"required\": [\"analisis_seo\", \"analisis_cliente\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2704,
+        816
+      ],
+      "id": "30c4b131-6a24-4cd6-8a4b-69502d39d082",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2384,
+        544
+      ],
+      "id": "ad5a294e-62ae-498f-9739-ee0ecd748d86",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "=Analiza esta imagen de producto de Amazon y describe: 1) Calidad visual de la imagen, 2) Elementos destacados del producto, 3) Calidad profesional de la fotografía, 4) Qué transmite la imagen al consumidor",
+        "imageUrls": "={{ $json.thumbnailImage }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        2928,
+        768
+      ],
+      "id": "d13bdf37-204a-4d36-b70a-7926ea7012bb",
+      "name": "Analyze image"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3472,
+        608
+      ],
+      "id": "a2b59cde-ac14-412e-8959-056d6b4dbfce",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Configuración para búsqueda por query excluyendo URLs existentes\nconst inputItems = $input.all();\nconst existingUrls = [];\n\n// Extraer URLs existentes para excluir\ninputItems.forEach(item => {\n  if (item.json.URL && item.json.URL.includes('amazon.es')) {\n    existingUrls.push(item.json.URL);\n  }\n});\n\n// Obtener el producto del nodo anterior (Code Cleanup)\nconst producto = $('Code Cleanup').item.json.producto || \"cepillos+de+dientes\";\n\n// URLs base que siempre se excluyen\nconst baseBlacklistedUrls = [\n  \"https://www.amazon.es/gp/goldbox\",\n  \"https://www.amazon.es/gp/browse.html\",\n  \"https://www.amazon.es/gp/site-directory\",\n  \"https://www.amazon.es/gp/customer-reviews\",\n  \"https://www.amazon.es/gp/help\"\n];\n\n// Combinar URLs base con URLs existentes\nconst allBlacklistedUrls = [...baseBlacklistedUrls, ...existingUrls];\n\n// Usar búsqueda por query dinámico\nconst apifyConfig = {\n  \"categoryOrProductUrls\": [\n    {\n      \"url\": `https://www.amazon.es/s?k=${producto}&ref=sr_pg_1`,\n      \"method\": \"GET\"\n    }\n  ],\n  \"countryCode\": \"ES\",\n  \"proxyCountry\": \"ES\",\n  \"maxItemsPerStartUrl\": 5,\n  \"scrapeProductDetails\": true,\n  \"scrapeReviews\": false,\n  \"ensureLoadedProductDescriptionFields\": true,\n  \"includeProductImages\": true,\n  \"includeProductDescription\": true,\n  \"includeGalleryThumbnails\": false,\n  \"includeAiReviewsSummary\": false,\n  \"scrapeProductVariantPrices\": true,\n  \"scrapeSellers\": false,\n  \"scrapeQuestions\": false,\n  \"includeSponsoredProducts\": false,\n  \"useCaptchaSolver\": true,\n  \"sessionPoolName\": \"AMAZON_SEARCH\",\n  \"maxRequestRetries\": 5,\n  \"extendScrapingContext\": {\n    \"maxConcurrency\": 3,\n    \"useSessionPool\": true,\n    \"sessionPoolName\": \"AMAZON_SEARCH\"\n  },\n  \"reviewsSort\": \"helpful\",\n  \"includeReviewImages\": false,\n  \"includeReviewVideos\": false,\n  \"excludeUrlGlobs\": [\n    \"*/gp/slredirect/*\",\n    \"*/gp/product/*/ref=*\",\n    \"*/dp/*/ref=sr_*sponsored*\",\n    \"*/s?*&rnid=*\",\n    \"*/gp/bestsellers/*\",\n    \"*/gp/new-releases/*\",\n    \"*/gp/movers-and-shakers/*\",\n    \"*/gp/most-wished-for/*\",\n    \"*/gp/video/*\",\n    \"*/music/*\",\n    \"*/books/*\",\n    \"*/digital-music/*\",\n    \"*/prime-video/*\",\n    \"*/subscribe-and-save/*\",\n    \"*/advertising/*\",\n    \"*/gp/help/*\",\n    \"*/gp/css/*\",\n    \"*/customer-reviews/*\",\n    \"*/review/*\",\n    \"*/forum/*\",\n    \"*/variation/*\",\n    \"*/offer-listing/*\"\n  ],\n  \"excludePatterns\": [\n    \".*sponsored.*\",\n    \".*advertisement.*\",\n    \".*redirect.*\",\n    \".*affiliate.*\",\n    \".*tracking.*\",\n    \".*ref=.*pd_.*\",\n    \".*ref=.*nav_.*\",\n    \".*kindle.*\",\n    \".*audible.*\",\n    \".*variation.*\",\n    \".*offer-listing.*\"\n  ],\n  \"blacklistedUrls\": allBlacklistedUrls,\n  \"urlFilter\": {\n    \"excludeSponsored\": true,\n    \"excludeVariants\": false,\n    \"excludeOutOfStock\": false,\n    \"maxUrlsPerCategory\": 5,\n    \"onlyMainProducts\": true\n  },\n  \"excludeFields\": [\n    \"videosCount\",\n    \"answeredQuestions\", \n    \"categoryBestSellers\",\n    \"coupon\",\n    \"amazonChoice\",\n    \"salesRank\",\n    \"dimensions\",\n    \"weight\",\n    \"modelNumber\",\n    \"customerQuestions\",\n    \"frequentlyBoughtTogether\",\n    \"sponsoredProducts\",\n    \"variations\",\n    \"offers\",\n    \"attributes\",\n    \"productOverview\",\n    \"variantAsins\",\n    \"variantDetails\",\n    \"productComparison\",\n    \"relatedProducts\",\n    \"buyingOptions\",\n    \"similarProducts\",\n    \"alsoViewed\",\n    \"boughtTogether\",\n    \"compareWithSimilar\",\n    \"technicalDetails\",\n    \"additionalInformation\",\n    \"warranty\",\n    \"returnPolicy\",\n    \"galleryThumbnails\",\n    \"aiReviewsSummary\",\n    \"productPageReviews\"\n  ],\n  \"includeOnlyFields\": [\n    \"url\", \n    \"asin\",\n    \"originalAsin\",\n    \"title\",\n    \"price\",\n    \"listPrice\",\n    \"inStock\",\n    \"inStockText\",\n    \"reviewsCount\",\n    \"stars\",\n    \"starsBreakdown\",\n    \"brand\",\n    \"breadCrumbs\",\n    \"imageUrl\",\n    \"bestsellersRank\",\n    \"position\",\n    \"isSponsored\",\n    \"bestsellerBadge\",\n    \"description\",\n    \"features\",\n    \"category\",\n    \"availability\",\n    \"delivery\",\n    \"currency\"\n  ]\n};\n\nreturn [{\n  json: {\n    apifyConfig: apifyConfig,\n    totalExistingUrls: existingUrls.length,\n    excludedUrls: allBlacklistedUrls.length,\n    searchQuery: producto,\n    maxResults: 5,\n    processedAt: new Date().toISOString(),\n    summary: {\n      search_type: \"category_search\",\n      existing_urls_excluded: existingUrls.length,\n      max_new_products: 5,\n      config_ready: true\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        672
+      ],
+      "id": "f3b35a16-6af1-4ae9-9f91-65df8e56c3e0",
+      "name": "Config URLs"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Limpiar el texto de entrada del usuario\nlet producto = $input.first().json.Producto;\n\nfunction limpiarTexto(texto) {\n  return texto\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/ñ/g, 'n')\n    .replace(/Ñ/g, 'N')\n    .replace(/\\s+/g, '+');\n}\n\nlet productoLimpio = limpiarTexto(producto);\n\nreturn [{\n  json: {\n    producto: productoLimpio,\n    productoOriginal: producto,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        672
+      ],
+      "id": "538b9b00-ffec-48f5-8a9d-232fdb92cac4",
+      "name": "Code Cleanup"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "85e8c899-2290-4da8-b4c7-3d16c2755751",
+              "name": "url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "5a93d5eb-b8c9-41dc-a25b-d689b76d2f79",
+              "name": "brand",
+              "value": "={{ $json.brand }}",
+              "type": "string"
+            },
+            {
+              "id": "298727d2-4cbb-4250-ace8-aa2a6659626a",
+              "name": "asin",
+              "value": "={{ $json.asin }}",
+              "type": "string"
+            },
+            {
+              "id": "0b4887df-b989-4a40-9004-f630df2a47fc",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "7ee6f2ed-6802-429d-bb84-03c06a74e04b",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "da0f4372-6750-47b9-9cbf-f6f96b4a7619",
+              "name": "price",
+              "value": "={{ $json.price.value }}",
+              "type": "number"
+            },
+            {
+              "id": "23de1fc7-4db5-4652-a74c-644277ed5548",
+              "name": "stars",
+              "value": "={{ $json.stars }}",
+              "type": "number"
+            },
+            {
+              "id": "54edbf93-c1e2-4dea-8368-9aaf6cc10c97",
+              "name": "reviewsCount",
+              "value": "={{ $json.reviewsCount }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2912,
+        368
+      ],
+      "id": "9c449b1f-01b3-4678-a205-1c6219fda4eb",
+      "name": "DatosProducto"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1beiJ32JbahZhNyZ5VvddvmfUN1f7WILDTSZ1ebhLeg0",
+          "mode": "list",
+          "cachedResultName": "AMAZON",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1beiJ32JbahZhNyZ5VvddvmfUN1f7WILDTSZ1ebhLeg0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1beiJ32JbahZhNyZ5VvddvmfUN1f7WILDTSZ1ebhLeg0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "URL": "={{ $json.url }}",
+            "BRAND": "={{ $json.brand }}",
+            "ASIN": "={{ $json.asin }}",
+            "TITULO": "={{ $json.title }}",
+            "DESCRIPCION": "={{ $json.description }}",
+            "PRICE": "={{ $json.price }}",
+            "STARS": "={{ $json.stars }}",
+            "REVIEW_COUNT": "={{ $json.reviewsCount }}",
+            "KEYWORDS": "={{ $json.keyword }}",
+            "ASPECTO_POSITIVOS": "={{ $json.aspectos_positivos }}",
+            "ASPECTOS_NEGATIVOS": "={{ $json.aspectos_negativos }}",
+            "NECESIDADES_NO_SATISFECHAS": "={{ $json.necesidades_no_satisfechas }}",
+            "CONTENT": "={{ $json.content }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "BRAND",
+              "displayName": "BRAND",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ASIN",
+              "displayName": "ASIN",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TITULO",
+              "displayName": "TITULO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DESCRIPCION",
+              "displayName": "DESCRIPCION",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PRICE",
+              "displayName": "PRICE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "STARS",
+              "displayName": "STARS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "REVIEW_COUNT",
+              "displayName": "REVIEW_COUNT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KEYWORDS",
+              "displayName": "KEYWORDS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ASPECTO_POSITIVOS",
+              "displayName": "ASPECTO_POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ASPECTOS_NEGATIVOS",
+              "displayName": "ASPECTOS_NEGATIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NECESIDADES_NO_SATISFECHAS",
+              "displayName": "NECESIDADES_NO_SATISFECHAS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CONTENT",
+              "displayName": "CONTENT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3856,
+        720
+      ],
+      "id": "97aa9a35-6bc4-4a38-b1f0-5884ae38bc4a",
+      "name": "EntradaDatosProductos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "R73agaylufKjNTHi",
+          "name": "Transportes Bejarano SL - Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1c2298d2-7f0a-49a8-8c4d-c996a3ee0e81",
+              "name": "url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "0d2f0cc6-abd4-418c-a0e8-a66b131bc26d",
+              "name": "brand",
+              "value": "={{ $json.brand }}",
+              "type": "string"
+            },
+            {
+              "id": "0f2a53e6-c958-451d-bd40-98691b522bc7",
+              "name": "asin",
+              "value": "={{ $json.asin }}",
+              "type": "string"
+            },
+            {
+              "id": "123c7b13-31b9-4385-80bc-32b1496dad04",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "2c10f190-1439-416a-a3d4-cb3aaf22d7d4",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "53a82997-4644-4d9f-9b5a-68c932f0e93e",
+              "name": "price",
+              "value": "={{ $json.price }}",
+              "type": "number"
+            },
+            {
+              "id": "7151fd1b-9e04-4944-8073-d52aa5be3a20",
+              "name": "stars",
+              "value": "={{ $json.stars }}",
+              "type": "number"
+            },
+            {
+              "id": "31335e1b-8fa1-4297-8778-48c21031c9e0",
+              "name": "reviewsCount",
+              "value": "={{ $json.reviewsCount }}",
+              "type": "number"
+            },
+            {
+              "id": "516f8d0f-fb13-4156-9942-666fe9e2153e",
+              "name": "keyword",
+              "value": "={{ $json.output.analisis_seo.keywords_principales.map((item, index) => `${index + 1}. ${item.keyword}`).join('\\n') }}",
+              "type": "string"
+            },
+            {
+              "id": "0302e8d2-8706-4a2d-b8a3-89340f307a05",
+              "name": "aspectos_positivos",
+              "value": "={{ $json.output.analisis_cliente.aspectos_positivos.map((item, index) => `${index + 1}. ${item.aspecto} - ${item.frecuencia}`).join('\\n') }}",
+              "type": "string"
+            },
+            {
+              "id": "957d3952-aa3c-4481-a12a-19e63e664aeb",
+              "name": "aspectos_negativos",
+              "value": "={{ $json.output.analisis_cliente.aspectos_negativos.map((item, index) => `${index + 1}. ${item.problema}`).join('\\n') }}",
+              "type": "string"
+            },
+            {
+              "id": "75fd7e6a-5da1-4eb5-93f3-bd1b636a98c2",
+              "name": "necesidades_no_satisfechas",
+              "value": "={{ $json.output.analisis_cliente.necesidades_no_satisfechas.map((item, index) => `${index + 1}. ${item}`).join('\\n') }}",
+              "type": "string"
+            },
+            {
+              "id": "91d2ab13-cbda-4f39-b16d-a7f52b8eef55",
+              "name": "content",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3664,
+        624
+      ],
+      "id": "63b5270e-bbfe-41ac-bcf7-331fb985dfe9",
+      "name": "DatosExcel"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1beiJ32JbahZhNyZ5VvddvmfUN1f7WILDTSZ1ebhLeg0",
+          "mode": "list",
+          "cachedResultName": "AMAZON",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1beiJ32JbahZhNyZ5VvddvmfUN1f7WILDTSZ1ebhLeg0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1beiJ32JbahZhNyZ5VvddvmfUN1f7WILDTSZ1ebhLeg0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1200,
+        672
+      ],
+      "id": "09c72755-385a-496b-8a97-825dd341902d",
+      "name": "ExtraerUrlGuardadas",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "R73agaylufKjNTHi",
+          "name": "Transportes Bejarano SL - Google Sheets"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.apify.com/v2/acts/junglee~amazon-crawler/run-sync-get-dataset-items?token={{ TU_API }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.apifyConfig }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        672
+      ],
+      "id": "2b3164dc-90ff-4d2e-81c5-6be0ce704a37",
+      "name": "HTTP Extract Amazon Data"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        816
+      ],
+      "id": "7b36bb24-0a4e-4d0c-a508-1356d655c65a",
+      "name": "gpt-4.1-mini"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-3-5-sonnet-20241022",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 3.5 (New)"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        2464,
+        816
+      ],
+      "id": "c3fa572f-3b6b-4a86-a821-2203c4da07c4",
+      "name": "Sonnet 3.5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analiza este producto competidor:\n\nTÍTULO: {{$json.title}}\nMARCA: {{$json.brand}}  \nPRECIO: {{ $json.price.value }} €\nREVIEWS: {{ $json.reviewsCount }} reviews ({{ $json.stars }} estrellas)\nDESCRIPCIÓN: {{ $json.description }}\nFEATURES: {{ $json.features }}\nASIN: {{$json.asin}}\nCOMENTARIOS CLIENTES: {{ $json.productPageReviews.map(r => {\n   return `Rating: ${r.ratingScore}★ | Usuario: ${r.username} | Fecha: ${r.date} | Título: ${r.reviewTitle} | Comentario: ${r.reviewDescription}`;\n}).join('\\n---\\n') }}\n\nProporciona un análisis completo siguiendo el formato JSON requerido.",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Eres un experto en análisis de competencia de Amazon especializado en SEO y posicionamiento de productos. \n\nAnaliza el siguiente producto de Amazon y proporciona un análisis detallado en formato JSON.\n\nCONTEXT: Este es un producto competidor en el mercado de cepillos de dientes en Amazon España.\n\nINSTRUCCIONES:\n1. Analiza el título, descripción, precio, reviews y features del producto\n2. Identifica palabras clave relevantes y su optimización SEO\n3. Evalúa fortalezas y debilidades del producto\n4. Detecta oportunidades de mejora y diferenciación\n5. Responde ÚNICAMENTE con JSON válido, sin texto adicional\n\nFORMATO DE RESPUESTA REQUERIDO:\n- Usa \"true\"/\"false\" para booleanos\n- Usa arrays para listas\n- Usa números para scores (1-10)\n- Sé específico y actionable en recomendaciones"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2784,
+        560
+      ],
+      "id": "1d76bebe-7d86-4f19-8503-def54f382c34",
+      "name": "Analizador"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "reviewsCount",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        672
+      ],
+      "id": "26be2c58-1c62-4a47-a00f-298ca1b77ad8",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4048,
+        848
+      ],
+      "id": "70ae5e02-73ae-486d-a640-ec994ce5dc15",
+      "name": "Wait",
+      "webhookId": "9df6a6d2-127a-450e-bec3-d9b9853f4e1f"
+    },
+    {
+      "parameters": {
+        "content": "# 🔍 ANALIZADOR AUTOMÁTICO DE COMPETENCIA AMAZON\n\n**Sistema completo que busca productos competidores en Amazon, los analiza con IA y guarda insights estratégicos en Google Sheets**\n\n💰 **AHORRA:** 5-10 horas de trabajo manual\n🎯 **RESULTADO:** Estrategia basada en datos reales\n⚡ **AUTOMATIZACIÓN:** 100% sin intervención manual\n🚀 **PROCESAMIENTO:** 5 productos competidores por ejecución",
+        "height": 320,
+        "width": 600
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        -192
+      ],
+      "typeVersion": 1,
+      "id": "76737f83-27ab-4fd9-8e95-114319c9fdd8",
+      "name": "🔍 TÍTULO PRINCIPAL"
+    },
+    {
+      "parameters": {
+        "content": "## 🔵 PASO 1: SETUP & INPUT\n\n**NODOS INCLUIDOS:**\n• On form submission - Formulario web\n• Code Cleanup - Limpieza de texto\n• ExtraerUrlGuardadas - Leer Google Sheets\n• Config URLs - Configurar búsqueda\n\n**QUÉ HACE:**\n✅ Recibe producto a analizar ('cepillos de dientes')\n✅ Convierte a formato Amazon ('cepillos+de+dientes')\n✅ Lee productos ya analizados para evitar duplicados\n✅ Configura búsqueda inteligente excluyendo patrocinados\n\n**RESULTADO:** Sistema listo para buscar competidores\n\n⬇️ **SIGUIENTE:** Data Collection",
+        "height": 652,
+        "width": 820,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        736,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "138549a0-c186-4695-8921-48e1aac2bb1a",
+      "name": "🔵 PASO 1"
+    },
+    {
+      "parameters": {
+        "content": "## 🟢 PASO 2: DATA COLLECTION\n\n**NODOS INCLUIDOS:**\n• HTTP Extract Amazon Data - Scraping\n• Sort - Ordenamiento\n• Loop Over Items - Procesamiento individual\n\n**QUÉ HACE:**\n✅ Scraping de 5 productos competidores top\n✅ Extrae título, precio, reviews, descripción, imágenes\n✅ Ordena por popularidad (más reviews = más éxito)\n✅ Procesa cada producto individualmente para máximo detalle\n\n**DATOS OBTENIDOS:**\n• Información completa de productos reales\n• Reviews y ratings de clientes\n• Precios y disponibilidad\n• Imágenes de alta calidad\n\n**RESULTADO:** Dataset completo de competidores\n\n⬇️ **SIGUIENTE:** AI Analysis",
+        "height": 652,
+        "width": 660,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1600,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "9692ff89-f25c-4b72-9bf6-4493298e9d7e",
+      "name": "🟢 PASO 2"
+    },
+    {
+      "parameters": {
+        "content": "## 🟣  PASO 3: AI ANALYSIS\n\n\n**QUÉ HACE:**\n🔍 **ANÁLISIS VISUAL (GPT-4o-mini):**\n• Calidad de imagen del producto\n• Elementos destacados y presentación\n• Qué transmite al consumidor\n\n🧠 **ANÁLISIS ESTRATÉGICO (Sonnet 3.5):**\n• Keywords SEO con potencial clickbait (1-10)\n• Psicología del consumidor\n• Fortalezas y debilidades del competidor\n• Oportunidades de diferenciación\n\n**INSIGHTS GENERADOS:**\n• Estrategia de marketing visual\n• Keywords para posicionamiento\n• Gaps de mercado no explotados\n\n**RESULTADO:** Analisis de datos e imagen del producto\n\n⬇️ **SIGUIENTE:** Output & Storage",
+        "height": 1132,
+        "width": 1044,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2304,
+        48
+      ],
+      "typeVersion": 1,
+      "id": "0e8c076c-fc14-4c01-8b60-60b798f02aac",
+      "name": "🟣 PASO 3"
+    },
+    {
+      "parameters": {
+        "content": "# 🟡 PASO 4: OUTPUT & ALMACENAMIENTO\n\n\n**NODOS INCLUIDOS:**\n• Merge - Combinar datos\n• EntradaDatosProductos - Google Sheets\n• Wait - Control de flujo\n\n**QUÉ HACE:**\n✅ Combina análisis visual + estratégico + datos básicos\n✅ Estructura información en formato organizado\n✅ Guarda en Google Sheets como base de datos\n✅ Control inteligente de flujo (espera 3 seg)\n✅ Loop automático para procesar siguiente producto\n\n**BASE DE DATOS FINAL:**\n• Información completa de cada competidor\n• Keywords SEO rankeadas\n• Aspectos positivos/negativos identificados\n• Necesidades no satisfechas del mercado\n• Análisis visual profesional\n\n**RESULTADO:** Base de datos de inteligencia competitiva\n\n🔄 **LOOP:** Proceso continúa automáticamente",
+        "height": 1132,
+        "width": 836,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3408,
+        48
+      ],
+      "typeVersion": 1,
+      "id": "2b05111b-6890-4c7d-96b5-2a29ef9876ad",
+      "name": "🟡 PASO 4"
+    },
+    {
+      "parameters": {
+        "content": "# 🎯 VALOR DEL SISTEMA COMPLETO\n\n## ✅ AUTOMATIZA COMPLETAMENTE:\n• Investigación manual de competencia (5-10 horas)\n• Análisis de keywords SEO\n• Evaluación de fortalezas/debilidades\n• Identificación de oportunidades de mercado\n\n## 🚀 PROPORCIONA INSIGHTS DE NIVEL EXPERTO:\n• **Keywords SEO:** Rankeadas 1-10 por potencial clickbait\n• **Psicología del cliente:** Qué aman y odian los compradores\n• **Gaps de mercado:** Oportunidades no explotadas\n• **Estrategia visual:** Análisis profesional de imágenes\n• **Base de datos:** Sistema actualizable automáticamente\n\n## 💰 ROI GARANTIZADO:\n• **Tiempo ahorrado:** 5-10 horas por análisis\n• **Calidad:** Nivel de consultor estratégico\n• **Escalabilidad:** Funciona para cualquier nicho\n• **Actualización:** Se mantiene al día automáticamente\n\n## 🎯 RESULTADO FINAL:\n**Estrategia de producto basada en datos reales de mercado que te da ventaja competitiva**",
+        "height": 688,
+        "width": 600
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        160
+      ],
+      "typeVersion": 1,
+      "id": "44ab7ecd-8a79-42ea-bec5-a1804ab63d09",
+      "name": "🎯 VALOR DEL SISTEMA"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Code Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Analizador",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "DatosProducto",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analizador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Config URLs": {
+      "main": [
+        [
+          {
+            "node": "HTTP Extract Amazon Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Cleanup": {
+      "main": [
+        [
+          {
+            "node": "ExtraerUrlGuardadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DatosProducto": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "DatosExcel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EntradaDatosProductos": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DatosExcel": {
+      "main": [
+        [
+          {
+            "node": "EntradaDatosProductos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExtraerUrlGuardadas": {
+      "main": [
+        [
+          {
+            "node": "Config URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Extract Amazon Data": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gpt-4.1-mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analizador",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Sonnet 3.5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analizador",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizador": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "07246f8e-fcfc-4d4d-a3f0-e9605f53f5c2",
+  "meta": {
+    "instanceId": "a89c445039e7777c28403d0792e520589c92cad21e238c348e9f7c7aea4fd3fa"
+  },
+  "id": "ZkEGjJJ6pD7dx6H8",
+  "tags": []
+}

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from src.domain.market_intelligence.models import (
     MarketListing,
@@ -28,40 +28,29 @@ class MercadoLibreMarketplaceDataSource(MarketplaceDataSource):
         params = {
             "q": criteria.query,
             "limit": criteria.limit or 50,
+            "site_id": self.SITE_ID,
+            "status": "active",
         }
 
         if criteria.category:
             params["category"] = criteria.category
 
-        if criteria.min_price is not None or criteria.max_price is not None:
-            min_price = (
-                str(criteria.min_price)
-                if criteria.min_price is not None
-                else ""
-            )
-            max_price = (
-                str(criteria.max_price)
-                if criteria.max_price is not None
-                else ""
-            )
-            params["price"] = f"{min_price}-{max_price}"
-
         if criteria.condition:
             params["condition"] = criteria.condition
 
-        query = "&".join(
-            f"{key}={quote(str(value), safe='')}"
-            for key, value in params.items()
-        )
+        query = urlencode(params)
 
         data = self.api_client.get(
-            f"/sites/{self.SITE_ID}/search?{query}"
+            f"/products/search?{query}"
         )
 
-        listings = [
-            self._map_listing(item)
-            for item in data.get("results", [])
-        ]
+        listings = []
+        for item in data.get("results", []):
+            winner = item.get("buy_box_winner")
+            if winner:
+                listings.append(
+                    self._map_listing(winner, fallback_title=item.get("name", ""))
+                )
 
         return MarketSnapshot(
             snapshot_id=str(uuid.uuid4()),
@@ -75,7 +64,7 @@ class MercadoLibreMarketplaceDataSource(MarketplaceDataSource):
         )
 
     @staticmethod
-    def _map_listing(item: dict) -> MarketListing:
+    def _map_listing(item: dict, fallback_title: str = "") -> MarketListing:
         price = Decimal(str(item["price"]))
 
         seller = item.get("seller", {})
@@ -91,9 +80,9 @@ class MercadoLibreMarketplaceDataSource(MarketplaceDataSource):
         sold_qty = int(raw_sold) if raw_sold is not None else None
 
         return MarketListing(
-            external_id=str(item["id"]),
+            external_id=str(item.get("item_id") or item.get("id")),
             marketplace=Marketplace.MERCADO_LIBRE,
-            title=item.get("title", ""),
+            title=item.get("title") or fallback_title,
             price=Money(
                 amount=price,
                 currency=item.get("currency_id", "CLP"),

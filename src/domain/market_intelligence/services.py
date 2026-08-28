@@ -9,8 +9,70 @@ from .models import (
     DemandSignal,
     PriceSignal,
     TrendSignal,
-    MarketListing
+    MarketListing,
+    MarketEvidence,
+    VisitSignal,
+    Confidence
 )
+
+class MarketEvidenceComposer:
+    """
+    Domain Service for composing MarketEvidence from its constituent parts.
+    It acts as a pure factory that preserves all signals exactly as they were observed
+    or derived, without applying any business scoring or arbitrary thresholds.
+    """
+
+    def compose(
+        self,
+        listing: MarketListing,
+        visit_signal: VisitSignal | None = None,
+        trend_signal: TrendSignal | None = None,
+        price_signal: PriceSignal | None = None,
+        demand_signal: DemandSignal | None = None,
+    ) -> MarketEvidence:
+
+        traffic_signals = [visit_signal] if visit_signal else []
+        trend_signals = [trend_signal] if trend_signal else []
+        price_signals = [price_signal] if price_signal else []
+        demand_signals = [demand_signal] if demand_signal else []
+
+        # Determinar confianza agregada basada en las señales disponibles
+        confidence = Confidence.UNKNOWN
+        if visit_signal:
+            confidence = visit_signal.confidence
+        elif demand_signal:
+            confidence = demand_signal.confidence
+
+        return MarketEvidence(
+            listing=listing,
+            traffic_signals=traffic_signals,
+            trend_signals=trend_signals,
+            price_signals=price_signals,
+            demand_signals=demand_signals,
+            confidence=confidence,
+        )
+
+class DemandIntelligenceService:
+    """
+    Domain Service for deriving DemandSignal from MarketEvidence.
+    This service explicitly separates traffic visibility from sales conversion.
+    It does not infer sales or revenue from visits, and does not invent scoring
+    formulas without SPEC backing.
+    """
+
+    def calculate(self, evidence: MarketEvidence) -> DemandSignal:
+        if not evidence.traffic_signals:
+            return DemandSignal(score=None, label="UNKNOWN")
+
+        visit_signal = evidence.traffic_signals[0]
+
+        if visit_signal.total_visits is None:
+            return DemandSignal(score=None, label="UNKNOWN")
+
+        if visit_signal.total_visits == 0:
+            return DemandSignal(score=None, label="NO_TRAFFIC")
+
+        return DemandSignal(score=None, label="OBSERVED_TRAFFIC")
 
 class MarketAnalysisService:
     """
@@ -46,8 +108,9 @@ class MarketAnalysisService:
             else:
                 price_score = Decimal("0.0")
 
+            demand_score = demand_signal.score if demand_signal.score is not None else Decimal("0.0")
             opportunity_score = (
-                demand_signal.score * Decimal("0.50")
+                demand_score * Decimal("0.50")
                 + price_score * Decimal("0.30")
                 + trend_signal.trend_score * Decimal("0.20")
             ) * Decimal("100.0")
@@ -105,7 +168,7 @@ class MarketAnalysisService:
         # Simple demand calculation for MVP based on sold_quantity
         sold = listing.sold_quantity
         if sold is None:
-            return DemandSignal(score=Decimal("0.0"), label="UNKNOWN")
+            return DemandSignal(score=None, label="UNKNOWN")
 
         if sold > 100:
             label = "HIGH"

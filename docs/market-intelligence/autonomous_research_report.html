@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Market Research - INTEGRATION-01</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
+        h1, h2, h3 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .label { font-weight: bold; color: #7f8c8d; }
+        .value { font-weight: bold; color: #2980b9; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; }
+        .tag-observed { background: #d4edda; color: #155724; }
+        .tag-derived { background: #cce5ff; color: #004085; }
+        .tag-estimated { background: #fff3cd; color: #856404; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        .trace { font-family: monospace; background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; white-space: pre-wrap; }
+        .success { color: #27ae60; }
+        .warning { color: #e67e22; }
+    </style>
+</head>
+<body>
+    <h1>INTEGRATION-01 — AUTONOMOUS MARKET RESEARCH</h1>
+    
+    <div class="card">
+        <h2>Resumen de Familia</h2>
+        <div class="grid">
+            <div>
+                <p><span class="label">Familia (Parent ID):</span> <span class="value">MLC47773362</span> <span class="tag tag-observed">OBSERVED</span></p>
+                <p><span class="label">Nombre:</span> <span class="value">Bosich CXJ-MT10 150 mL</span> <span class="tag tag-observed">OBSERVED</span></p>
+            </div>
+            <div>
+                <p><span class="label">Estado:</span> <span class="value">Validada mediante Variantes</span> <span class="tag tag-derived">DERIVED</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Comparativa de Variantes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Variante</th>
+                    <th>Catalog ID</th>
+                    <th>Item ID</th>
+                    <th>Visitas (30d)</th>
+                    <th>Reviews</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Azul</td>
+                    <td>MLC47773363</td>
+                    <td>MLC2022490177</td>
+                    <td>493 <span class="tag tag-observed">OBSERVED</span></td>
+                    <td>431 <span class="tag tag-observed">OBSERVED</span></td>
+                    <td>4.4 <span class="tag tag-observed">OBSERVED</span></td>
+                </tr>
+                <tr>
+                    <td>Celeste</td>
+                    <td>MLC49736170</td>
+                    <td>MLC1857331199</td>
+                    <td>892 <span class="tag tag-observed">OBSERVED</span></td>
+                    <td>431 <span class="tag tag-observed">OBSERVED</span></td>
+                    <td>4.4 <span class="tag tag-observed">OBSERVED</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <p><span class="label">Hallazgo Crítico:</span> La variante <span class="value">Celeste</span> tiene un <strong>80.9% más de tráfico</strong> que la Azul, indicando una preferencia de mercado clara. <span class="tag tag-derived">DERIVED</span></p>
+    </div>
+
+    <div class="card">
+        <h2>Inteligencia Social (Reviews)</h2>
+        <p>Se observa un pool de <strong>431 reviews compartidas</strong> a nivel de familia. <span class="tag tag-derived">DERIVED</span></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Review ID</th>
+                    <th>reviewable_object (Item)</th>
+                    <th>secondary_key (Catalog)</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2650266166</td>
+                    <td>MLC3439996320</td>
+                    <td>MLC47773363 (Azul)</td>
+                    <td>5</td>
+                </tr>
+                <tr>
+                    <td>2835376309</td>
+                    <td>MLC1857202071</td>
+                    <td>MLC49736170 (Celeste)</td>
+                    <td>5</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><span class="label">Significado de Keys:</span> <code>secondary_key</code> vincula la experiencia del usuario con la variante de catálogo específica. <span class="tag tag-derived">DERIVED</span></p>
+    </div>
+
+    <div class="card">
+        <h2>Gaps de Información</h2>
+        <ul>
+            <li class="warning">Faltan precios de venta en tiempo real para cálculo de margen.</li>
+            <li class="warning">Falta disponibilidad y costos de proveedores (Supplier Intelligence).</li>
+            <li class="warning">Falta validación de Buy Box Winner para cada variante.</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Próxima Acción Recomendada</h2>
+        <p class="success">Proceder a <strong>SUPPLIER-01</strong> enfocándose en la variante <strong>Celeste (MLC49736170)</strong> debido a su dominancia en tráfico (892 visitas).</p>
+    </div>
+
+    <div class="card">
+        <h2>Trace de Ejecución</h2>
+        <div class="trace">
+Agent -> MCP: commerce_lab.get_product_family_intelligence(MLC47773363)
+   -> Service: ProductFamilyIntelligenceService.get_family_intelligence
+   -> API: /products/MLC47773363 -> parent: MLC47773362
+   -> API: /products/MLC47773362 -> children: [MLC47773363, MLC49736170]
+   Result: Success (Family identified)
+
+Agent -> MCP: commerce_lab.get_item_evidence(MLC2022490177)
+   -> Service: TrafficIntelligenceService.get_visits
+   -> API: /items/MLC2022490177/visits/time_window?last=30
+   Result: 493 visits
+
+Agent -> MCP: commerce_lab.get_item_evidence(MLC1857331199)
+   -> Service: TrafficIntelligenceService.get_visits
+   -> API: /items/MLC1857331199/visits/time_window?last=30
+   Result: 892 visits
+
+Agent -> MCP: commerce_lab.get_review_intelligence(MLC2022490177)
+   -> Service: ReviewIntelligenceService.get_reviews
+   -> API: /reviews/item/MLC2022490177
+   Result: 431 reviews, mapped via secondary_key
+        </div>
+    </div>
+</body>
+</html>

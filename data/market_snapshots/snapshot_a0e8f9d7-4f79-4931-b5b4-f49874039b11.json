@@ -1,0 +1,16 @@
+{
+    "snapshot_id": "a0e8f9d7-4f79-4931-b5b4-f49874039b11",
+    "timestamp": "2026-08-28T14:52:57.824873+00:00",
+    "marketplace": "MERCADO_LIBRE",
+    "total_results": 7258,
+    "search_criteria": {
+        "query": "antena starlink",
+        "marketplace": "MERCADO_LIBRE",
+        "category": null,
+        "limit": 5,
+        "min_price": null,
+        "max_price": null,
+        "condition": null
+    },
+    "listings": []
+}

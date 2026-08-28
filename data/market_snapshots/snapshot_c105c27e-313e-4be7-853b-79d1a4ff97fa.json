@@ -1,0 +1,16 @@
+{
+    "snapshot_id": "c105c27e-313e-4be7-853b-79d1a4ff97fa",
+    "timestamp": "2026-08-28T12:23:50.035311+00:00",
+    "marketplace": "MERCADO_LIBRE",
+    "total_results": 7275,
+    "search_criteria": {
+        "query": "SSD SATA 480GB",
+        "marketplace": "MERCADO_LIBRE",
+        "category": null,
+        "limit": 5,
+        "min_price": null,
+        "max_price": null,
+        "condition": null
+    },
+    "listings": []
+}

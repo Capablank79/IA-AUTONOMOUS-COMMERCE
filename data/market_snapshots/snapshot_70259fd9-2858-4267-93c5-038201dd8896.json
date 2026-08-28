@@ -1,0 +1,16 @@
+{
+    "snapshot_id": "70259fd9-2858-4267-93c5-038201dd8896",
+    "timestamp": "2026-08-28T14:53:10.850912+00:00",
+    "marketplace": "MERCADO_LIBRE",
+    "total_results": 10000,
+    "search_criteria": {
+        "query": "linterna",
+        "marketplace": "MERCADO_LIBRE",
+        "category": null,
+        "limit": 5,
+        "min_price": null,
+        "max_price": null,
+        "condition": null
+    },
+    "listings": []
+}

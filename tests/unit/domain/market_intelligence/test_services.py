@@ -308,7 +308,7 @@ def test_opportunity_score_with_unknown_demand():
     assert len(opportunities) == 1
     opp = opportunities[0]
     assert opp.demand_signal.label == "UNKNOWN"
-    assert opp.demand_signal.score == Decimal("0.0")
+    assert opp.demand_signal.score is None
 
 
 def test_opportunity_score_increases_with_better_price():

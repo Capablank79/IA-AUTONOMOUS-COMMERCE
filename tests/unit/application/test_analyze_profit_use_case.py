@@ -3,6 +3,9 @@ from decimal import Decimal
 
 from src.domain.profit.models import FinancialData, DecisionRules, Money, ProfitAnalysis, Decision
 from src.domain.profit.ports import ProfitDataRepository
+from src.domain.supplier_intelligence.ports import SupplierDataSource
+from src.domain.supplier_intelligence.models import SupplierData, SupplierEvidence
+from src.domain.market_intelligence.models import Confidence
 from src.application.use_cases.analyze_profit import AnalyzeProfitUseCase
 
 class FakeProfitDataRepository(ProfitDataRepository):
@@ -81,3 +84,46 @@ def test_analyze_profit_use_case_domain_error_propagates():
     
     with pytest.raises(ValueError, match="All money values must have the same currency"):
         use_case.execute("EXP-TEST")
+
+
+class FakeSupplierDataSource(SupplierDataSource):
+    def get_supplier_data(self, supplier_id: str):
+        return None
+
+    def get_supplier_evidence(self, supplier_id: str, sku: str):
+        if supplier_id == "SUP-1" and sku == "SKU-1":
+            return SupplierEvidence(
+                supplier_id=supplier_id,
+                sku=sku,
+                wholesale_price=Decimal('30'),
+                currency="USD",
+                minimum_order_quantity=1,
+                stock_available=True,
+                shipping_cost=Decimal('5'),
+                lead_time_days=2,
+                confidence=Confidence.HIGH
+            )
+        return None
+
+
+def test_analyze_profit_use_case_with_supplier_evidence():
+    repository = FakeProfitDataRepository()
+    supplier_source = FakeSupplierDataSource()
+    use_case = AnalyzeProfitUseCase(repository, supplier_source)
+
+    result = use_case.execute("EXP-TEST", supplier_id="SUP-1", sku="SKU-1")
+
+    # Base net_profit was 30 (100 - 15 - 40 - 10 - 5)
+    # New net_profit: 100 - 15 - 30 (supplier) - 5 (shipping) - 5 = 45
+    assert result.net_profit.amount == Decimal('45')
+    assert result.net_margin_pct == Decimal('45')
+    assert result.decision == Decision.STRONG_BUY
+
+
+def test_analyze_profit_use_case_supplier_evidence_not_found():
+    repository = FakeProfitDataRepository()
+    supplier_source = FakeSupplierDataSource()
+    use_case = AnalyzeProfitUseCase(repository, supplier_source)
+
+    with pytest.raises(ValueError, match="Supplier evidence not found"):
+        use_case.execute("EXP-TEST", supplier_id="SUP-UNKNOWN", sku="SKU-1")

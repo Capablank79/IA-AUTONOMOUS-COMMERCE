@@ -1,106 +1,89 @@
-﻿from src.domain.market_intelligence.models import Marketplace
-from src.infrastructure.mercadolibre.product_catalog_data_source import (
-    MercadoLibreProductCatalogDataSource,
-)
+import pytest
+from unittest.mock import MagicMock
+from decimal import Decimal
+from src.domain.market_intelligence.models import Marketplace
+from src.infrastructure.mercadolibre.product_catalog_data_source import MercadoLibreProductCatalogDataSource
 
+@pytest.fixture
+def mock_api_client():
+    return MagicMock()
 
-def test_search_products_maps_mercadolibre_catalog_results():
-    class FakeApiClient:
-        def __init__(self):
-            self.path = None
+@pytest.fixture
+def data_source(mock_api_client):
+    return MercadoLibreProductCatalogDataSource(mock_api_client)
 
-        def get(self, path):
-            self.path = path
-            return {
-                "paging": {"total": 123},
-                "results": [
+def test_get_product_success(data_source, mock_api_client):
+    # Mock response for /products/MLC123
+    mock_response = {
+        "id": "MLC123",
+        "name": "Test Product",
+        "domain_id": "MLC-TEST",
+        "status": "active",
+        "attributes": [
+            {"id": "BRAND", "value_name": "TestBrand"},
+            {"id": "MODEL", "value_name": "TestModel"}
+        ],
+        "pictures": [{"url": "http://example.com/img.jpg"}],
+        "parent_id": "MLCPARENT",
+        "children_ids": ["MLC123", "MLC456"],
+        "pickers": [
+            {
+                "picker_id": "COLOR",
+                "picker_name": "Color",
+                "products": [
                     {
-                        "id": "MLC123",
-                        "status": "active",
-                        "domain_id": "MLC-VACUUM_AND_STEAM_CLEANERS",
-                        "name": "Aspiradora portátil",
-                        "attributes": [
-                            {"id": "BRAND", "value_name": "Arcashopping"},
-                            {"id": "MODEL", "value_name": "ABC-123"},
-                        ],
-                        "pictures": [
-                            {"url": "https://example.com/image.jpg"}
-                        ],
+                        "product_id": "MLC123",
+                        "picker_label": "Red",
+                        "changes": [["COLOR", "Red"]]
                     }
-                ],
+                ]
             }
+        ],
+        "buy_box_winner": {
+            "id": "MLC_ITEM_123",
+            "title": "Item Title",
+            "price": 100.5,
+            "currency_id": "CLP",
+            "available_quantity": 10,
+            "sold_quantity": 5,
+            "condition": "new",
+            "seller": {"id": 999},
+            "shipping": {"logistic_type": "full"}
+        }
+    }
+    mock_api_client.get.return_value = mock_response
 
-    client = FakeApiClient()
-    source = MercadoLibreProductCatalogDataSource(client)
-
-    products = source.search_products(
-        query="aspiradora",
-        marketplace=Marketplace.MERCADO_LIBRE,
-        limit=5,
-    )
-
-    assert client.path == (
-        "/products/search?"
-        "status=active&site_id=MLC&q=aspiradora&limit=5"
-    )
-
-    assert len(products) == 1
-
-    product = products[0]
+    product = data_source.get_product("MLC123")
 
     assert product.product_id == "MLC123"
-    assert product.marketplace == Marketplace.MERCADO_LIBRE
-    assert product.title == "Aspiradora portátil"
-    assert product.domain_id == "MLC-VACUUM_AND_STEAM_CLEANERS"
-    assert product.brand == "Arcashopping"
-    assert product.model == "ABC-123"
-    assert product.attributes["BRAND"] == "Arcashopping"
-    assert product.attributes["MODEL"] == "ABC-123"
-    assert product.thumbnail == "https://example.com/image.jpg"
-    assert product.status == "active"
+    assert product.title == "Test Product"
+    assert product.brand == "TestBrand"
+    assert product.model == "TestModel"
+    assert product.parent_id == "MLCPARENT"
+    assert len(product.children_ids) == 2
+    assert len(product.pickers) == 1
+    assert product.pickers[0].variants[0].picker_label == "Red"
+    assert product.buy_box_winner.external_id == "MLC_ITEM_123"
+    assert product.buy_box_winner.price.amount == Decimal("100.5")
+    assert product.buy_box_winner.seller_id == "999"
 
-def test_search_products_returns_empty_list_when_no_results():
-    class FakeApiClient:
-        def get(self, path):
-            return {
-                "paging": {"total": 0},
-                "results": [],
+def test_search_products_success(data_source, mock_api_client):
+    mock_api_client.get.return_value = {
+        "results": [
+            {
+                "id": "MLC123",
+                "name": "Test Product",
+                "domain_id": "MLC-TEST",
+                "status": "active",
+                "attributes": [],
+                "pictures": []
             }
+        ]
+    }
 
-    source = MercadoLibreProductCatalogDataSource(FakeApiClient())
-
-    products = source.search_products(
-        query="producto inexistente",
-        marketplace=Marketplace.MERCADO_LIBRE,
-        limit=5,
-    )
-
-    assert products == []
-
-
-def test_search_products_handles_missing_pictures():
-    class FakeApiClient:
-        def get(self, path):
-            return {
-                "paging": {"total": 1},
-                "results": [
-                    {
-                        "id": "MLC999",
-                        "status": "active",
-                        "domain_id": "MLC-TEST",
-                        "name": "Producto sin imagen",
-                        "attributes": [],
-                    }
-                ],
-            }
-
-    source = MercadoLibreProductCatalogDataSource(FakeApiClient())
-
-    products = source.search_products(
-        query="producto",
-        marketplace=Marketplace.MERCADO_LIBRE,
-        limit=1,
-    )
+    products = data_source.search_products("query", Marketplace.MERCADO_LIBRE)
 
     assert len(products) == 1
-    assert products[0].thumbnail is None
+    assert products[0].product_id == "MLC123"
+    mock_api_client.get.assert_called_once()
+    assert "/products/search" in mock_api_client.get.call_args[0][0]

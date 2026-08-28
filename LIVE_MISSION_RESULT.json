@@ -1,0 +1,12 @@
+{
+  "mission_id": "b61b85ba-a988-4d52-ab6c-6b2a399f0b32",
+  "status": "FAILED",
+  "output": {},
+  "trace": [],
+  "evidences": [],
+  "blocks": [],
+  "errors": [
+    "Mercado Libre API request failed: HTTP 403: {\"message\":\"forbidden\",\"error\":\"forbidden\",\"status\":403,\"cause\":[]}"
+  ],
+  "finished_at": "2026-08-27T22:56:34.282248"
+}
