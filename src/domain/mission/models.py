@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple, Mapping
+from types import MappingProxyType
 import uuid
 
 class MissionType(str, Enum):
@@ -22,6 +23,72 @@ class MissionPriority(str, Enum):
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+
+class LoopAction(str, Enum):
+    CONTINUE = "CONTINUE"
+    PIVOT = "PIVOT"
+    REJECT = "REJECT"
+    PROMOTE = "PROMOTE"
+    COMPLETE = "COMPLETE"
+
+@dataclass(frozen=True)
+class LoopDecision:
+    action: LoopAction
+    reason: str
+    target: Optional[str] = None
+    parameters: Mapping[str, Any] = field(default_factory=dict)
+    confidence: Optional[float] = None
+
+    def __post_init__(self):
+        if not isinstance(self.parameters, MappingProxyType):
+            object.__setattr__(self, "parameters", MappingProxyType(dict(self.parameters)))
+
+@dataclass(frozen=True)
+class LoopState:
+    mission_id: str
+    iteration: int
+    goal: str
+    current_target: Optional[str] = None
+    observations: Tuple[Mapping[str, Any], ...] = field(default_factory=tuple)
+    evidences: Tuple[Any, ...] = field(default_factory=tuple)
+    decision_history: Tuple[LoopDecision, ...] = field(default_factory=tuple)
+
+    def __post_init__(self):
+        if not isinstance(self.observations, tuple):
+            frozen_obs = tuple(
+                MappingProxyType(obs) if isinstance(obs, dict) and not isinstance(obs, MappingProxyType) else obs
+                for obs in self.observations
+            )
+            object.__setattr__(self, "observations", frozen_obs)
+        else:
+            frozen_obs = tuple(
+                MappingProxyType(obs) if isinstance(obs, dict) and not isinstance(obs, MappingProxyType) else obs
+                for obs in self.observations
+            )
+            object.__setattr__(self, "observations", frozen_obs)
+
+        if not isinstance(self.evidences, tuple):
+            object.__setattr__(self, "evidences", tuple(self.evidences))
+
+        if not isinstance(self.decision_history, tuple):
+            object.__setattr__(self, "decision_history", tuple(self.decision_history))
+
+@dataclass(frozen=True)
+class LoopTraceEntry:
+    iteration: int
+    decision: LoopDecision
+    reason: str
+    action: LoopAction
+    target: Optional[str]
+    parameters: Mapping[str, Any]
+    observation: Mapping[str, Any]
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+
+    def __post_init__(self):
+        if not isinstance(self.parameters, MappingProxyType):
+            object.__setattr__(self, "parameters", MappingProxyType(dict(self.parameters)))
+        if not isinstance(self.observation, MappingProxyType):
+            object.__setattr__(self, "observation", MappingProxyType(dict(self.observation)))
 
 @dataclass(frozen=True)
 class Mission:

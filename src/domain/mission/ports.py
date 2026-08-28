@@ -1,6 +1,23 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-from .models import Mission, MissionResult
+from .models import Mission, MissionResult, LoopState, LoopDecision
+
+class DecisionProvider(ABC):
+    """
+    Puerto abstracto para tomar decisiones autónomas dentro del loop basándose en el estado actual.
+    """
+    @abstractmethod
+    def decide(self, state: LoopState) -> LoopDecision:
+        pass
+
+class ActionExecutor(ABC):
+    """
+    Puerto abstracto para ejecutar una decisión tomada por el DecisionProvider.
+    Devuelve una observación (o diccionario de resultado) producto de la acción realizada.
+    """
+    @abstractmethod
+    def execute(self, decision: LoopDecision, state: LoopState) -> dict:
+        pass
 
 class MissionOrchestrator(ABC):
     """

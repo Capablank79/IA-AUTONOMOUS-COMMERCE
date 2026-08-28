@@ -1,4 +1,15 @@
-from .models import Mission, MissionResult, MissionStatus, MissionType, MissionPriority
+from .models import (
+    Mission,
+    MissionResult,
+    MissionStatus,
+    MissionType,
+    MissionPriority,
+    LoopAction,
+    LoopDecision,
+    LoopState,
+    LoopTraceEntry,
+)
+from .ports import DecisionProvider, ActionExecutor, MissionOrchestrator, MissionRepository
 
 __all__ = [
     "Mission",
@@ -6,4 +17,12 @@ __all__ = [
     "MissionStatus",
     "MissionType",
     "MissionPriority",
+    "LoopAction",
+    "LoopDecision",
+    "LoopState",
+    "LoopTraceEntry",
+    "DecisionProvider",
+    "ActionExecutor",
+    "MissionOrchestrator",
+    "MissionRepository",
 ]
