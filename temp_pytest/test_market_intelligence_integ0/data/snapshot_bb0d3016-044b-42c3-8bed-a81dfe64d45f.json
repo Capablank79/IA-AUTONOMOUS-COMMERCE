@@ -1,0 +1,49 @@
+{
+    "snapshot_id": "bb0d3016-044b-42c3-8bed-a81dfe64d45f",
+    "timestamp": "2026-08-29T05:22:48.550834",
+    "marketplace": "MERCADO_LIBRE",
+    "total_results": 2,
+    "search_criteria": {
+        "query": "laptop",
+        "marketplace": "MERCADO_LIBRE",
+        "category": null,
+        "limit": null,
+        "min_price": null,
+        "max_price": null,
+        "condition": null
+    },
+    "listings": [
+        {
+            "external_id": "MLC1",
+            "title": "Cheap Product",
+            "price": {
+                "amount": "50",
+                "currency": "CLP"
+            },
+            "sold_quantity": 150,
+            "available_quantity": 10,
+            "seller_id": "101",
+            "condition": "new",
+            "shipping_info": {
+                "free_shipping": true
+            },
+            "category": "CAT1"
+        },
+        {
+            "external_id": "MLC2",
+            "title": "Expensive Product",
+            "price": {
+                "amount": "150",
+                "currency": "CLP"
+            },
+            "sold_quantity": 5,
+            "available_quantity": 2,
+            "seller_id": "102",
+            "condition": "new",
+            "shipping_info": {
+                "free_shipping": false
+            },
+            "category": "CAT1"
+        }
+    ]
+}
