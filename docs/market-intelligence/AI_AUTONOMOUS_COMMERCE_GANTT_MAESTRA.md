@@ -31,8 +31,8 @@
 | C | Supplier Intelligence | P0 | 🟢 VALIDADA | 🟢 GATE C |
 | D | Profit + Capital Allocation | P0 | 🟢 VALIDADA | 🟢 GATE C-Economics |
 | E | Autonomous Commerce | P0 | 🟢 VALIDADA | 🟢 GATE D |
-| F | Communications + Approval | P1 | ⚪ PENDIENTE | ⚪ GATE E |
-| G | Marketplace Operations | P1 | 🟡 EN PROGRESO (E-01 / G.3 Sub-slice) | ⚪ GATE F |
+| F | Communications + Approval | P1 | 🟢 VALIDADA | 🟢 GATE E |
+| G | Marketplace Operations | P1 | 🟢 VALIDADA | 🟢 GATE F |
 | H | Business Memory | P1 | ⚪ PENDIENTE | ⚪ GATE G |
 | I | Learning Loop | P1 | ⚪ PENDIENTE | ⚪ GATE H |
 | J | Continuous Autonomy | P1 | ⚪ PENDIENTE | ⚪ GATE I |
@@ -61,8 +61,8 @@ Los bloques son secuenciales/relativos y no representan fechas calendario rígid
 | C | Supplier Intelligence | | █ | █ | | | | | 🟢 |
 | D | Profit + Capital Allocation | | | █ | █ | | | | 🟢 |
 | E | Autonomous Commerce | | | | █ | █ | | | 🟢 |
-| F | Communications + Approval | | | | | █ | █ | | ⚪ |
-| G | Marketplace Operations | | | | | | █ | █ | ⚪ |
+| F | Communications + Approval | | | | | █ | █ | | 🟢 |
+| G | Marketplace Operations | | | | | | █ | █ | 🟢 |
 | H | Business Memory | | | | | | | █ | ⚪ |
 | I | Learning Loop | | | | | | | █ | ⚪ |
 | J | Continuous Autonomy | | | | | | | █ | ⚪ |
@@ -251,7 +251,7 @@ Flujo E2E Demostrado:
 
 # 9. Hito G — Marketplace Operations
 
-**Estado: 🟡 EN PROGRESO (G.1 Listing Generator y Sub-slice E-01 Validados/Implementados)**
+**Estado: 🟢 VALIDADA (Sub-slices G.1 a G.8 Validados e Integrados con E2E Gate F Pass)**
 
 | ID | Task | Estado | Criterio de validación | Evidencia / Tests |
 |---|---|---|---|---|
@@ -266,7 +266,19 @@ Flujo E2E Demostrado:
 
 ### GATE F
 
-⚪ PENDIENTE.
+🟢 PASSED.
+
+Fecha de Validación: 2026-08-31
+Tests: 615 unitarios y de integración pasando (100% pass, 1 skipped, 0 failures)
+E2E: Suite formal de validación Gate F en `tests/integration/test_gate_f_e2e_validation.py` completada con 5 escenarios deterministas:
+- Escenario A (STANDARD_APPROVED): Context -> Decision -> Policy -> REQUIRE_APPROVAL (Approved) -> Approval -> ActionExecutor -> Result -> Audit.
+- Escenario B (REJECTED_BY_HUMAN): REQUIRE_APPROVAL -> REJECTED por Humano -> Cero side effects externos.
+- Escenario C (DUPLICATE_REPLAY): Replay de aprobación/acción duplicada -> Idempotencia estricta, 1 sola ejecución.
+- Escenario D (UNKNOWN_TIMEOUT): Timeout/5xx transitorio -> Preservación de `PublicationStatus.UNKNOWN` y `PolicyDecisionType.UNKNOWN` -> Re-observe/reconcile sin falso éxito.
+- Escenario E (DENY_BY_POLICY): Precedencia absoluta de Policy DENY -> Acción bloqueada aun cuando existiera aprobación humana simulada.
+
+Flujo E2E Demostrado:
+`MISSION/CONTEXT → DECISION → POLICY EVALUATION → APPROVAL WORKFLOW (REQUIRE_APPROVAL / APPROVED / REJECTED) → ACTION EXECUTOR → RESULT / AUDIT → RE-OBSERVE`
 
 ---
 
@@ -545,8 +557,8 @@ Actualizar esta tabla cada vez que exista un checkpoint relevante.
 | C | Supplier Intelligence | 🟢 PASSED | 2026-08-30 | Marcha Blanca C-04 (3 escenarios + fallback E2E, 311 tests pass) |
 | C-Economics | Profit + Capital Allocation | 🟢 PASSED | 2026-08-30 | Marchas Blancas D-03 (4 escenarios, 351 tests pass) |
 | D | Autonomous Commerce | 🟢 PASSED | 2026-08-30 | Marcha Blanca Gate D E2E (6 escenarios: ALLOW, DENY, REQUIRE_APPROVAL, UNKNOWN/Data Safety, Economics/Capital Constraint, Tool Recovery, 459 tests pass) |
-| E | Communications + Approval | ⚪ | | |
-| F | Marketplace Operations | ⚪ | | |
+| E | Communications + Approval | 🟢 PASSED | 2026-08-31 | Suite E2E Gate F Validation (`test_gate_f_e2e_validation.py`, 5 escenarios deterministas: APPROVED, REJECTED, DUPLICATE/IDEMPOTENCY, UNKNOWN/TIMEOUT, DENY PRECEDENCE) |
+| F | Marketplace Operations | 🟢 PASSED | 2026-08-31 | Sub-slices G.1–G.8 totalmente validados (192 tests) + Gate F E2E Pass |
 | G | Business Memory | ⚪ | | |
 | H | Learning Loop | ⚪ | | |
 | I | Continuous Autonomy | ⚪ | | |
@@ -574,6 +586,7 @@ TRAE debe agregar una entrada por cada task completada:
 | 2026-08-30 | E.4 / 05.4 | Tool Registry & Discovery Architecture (`ToolRegistry`, `ToolDescriptor`, contracts, versioning, lifecycle, discovery, `ToolInvocationService` con intercepción `PolicyEngine`, safe `UNKNOWN`, catalog) | 18 passed (9 dom + 7 app + 2 integ) | Tool Discovery + Policy Guarded Invocation Integration | 🟢 VALIDADA | `tests/unit/domain/tool/`, `tests/unit/application/tool/`, `tests/integration/test_tool_registry_integration.py` |
 | 2026-08-30 | Gate D | Gate D E2E Marcha Blanca Validation (Integración unificada autónoma no hardcodeada de Market + Opportunity + Supplier + Profit + Capital + Tool Registry + Policy Engine + Action Executor + Recovery en 6 escenarios) | 459 passed, 1 skipped | Marcha Blanca Gate D E2E (6 escenarios: ALLOW, DENY, REQUIRE_APPROVAL, UNKNOWN/Data Safety, Economics/Capital Constraint, Tool Recovery) | 🟢 VALIDADA | `tests/integration/test_gate_d_e2e_validation.py` (6 passed) |
 | 2026-08-30 | G.1 / 07.1 | Listing Generator (Generación determinista y estructurada de `ListingDraft` basada en evidencia de mercado, verdades de producto, customer pain mining, SEO groundedness, trazabilidad de claims, omisión de afirmaciones prohibidas y variantes multicanal) | 474 passed, 1 skipped (15 específicos: 11 dom + 3 app + 1 integ) | MarketEvidence + ProductTruth -> ListingDraft + Grounding + Multichannel E2E | 🟢 VALIDADA | `tests/unit/domain/publication/test_listing_generator.py`, `tests/unit/application/publication/test_listing_generator_service.py`, `tests/integration/test_listing_generator_e2e.py` |
+| 2026-08-31 | Gate F | Validación E2E formal de Gate F (Marketplace Operations + Governance Approval Loop en 5 escenarios deterministas: APPROVED, REJECTED, DUPLICATE/IDEMPOTENCY, UNKNOWN/TIMEOUT, DENY PRECEDENCE) | 615 passed, 1 skipped | E2E Gate F Validation (`test_gate_f_e2e_validation.py` - 5 escenarios PASSED) | 🟢 VALIDADA | `tests/integration/test_gate_f_e2e_validation.py` |
 | 2026-08-31 | G.8 / 07.8 | Returns / Exceptions (Gestión integral de devoluciones, reclamos, disputas, reembolsos y excepciones postventa con separación de ciclos de vida, deduplicación e idempotencia estricta, gobernanza por Policy, tratamiento de incertidumbre UNKNOWN, motor de reconciliación determinista y 6 tools postventa en ToolRegistry) | 610 passed, 1 skipped (28 específicos: 9 dom/rules + 4 adap + 9 app + 6 integ E2E) | Returns Pipeline Integration E2E (6 Escenarios A-F: Happy path, Duplicate/Idempotency, UNKNOWN/Recovery, Discrepancy, Policy Governance, Refund Lifecycle) | 🟢 VALIDADA | `tests/unit/domain/returns/`, `tests/unit/infrastructure/mercadolibre/test_returns_adapter.py`, `tests/unit/application/returns/`, `tests/integration/test_g08_returns_pipeline_integration.py` |
 
 ---
@@ -635,13 +648,14 @@ Antes de comenzar cada task, comprobar el estado de esta Gantt y del Roadmap Mae
 - **Fase C — Supplier Intelligence (🟢 VALIDADA / GATE C PASSED)**
 - **Fase D — Profit + Capital Allocation (🟢 VALIDADA / GATE C-Economics PASSED - Misiones D-01, D-02, D-03)**
 - **Hito E — Autonomous Commerce (🟢 VALIDADA / GATE D PASSED - E.1 a E.6 + Gate D E2E Validation)**
+- **Hito F — Communications + Approval (🟢 VALIDADA / GATE E PASSED)**
+- **Hito G — Marketplace Operations (🟢 VALIDADA / GATE F PASSED - G.1 a G.8 + Gate F E2E Validation)**
 
 **Fases en progreso activo:**
-- **Hito G — Marketplace Operations (🟡 EN PROGRESO — Sub-slice de Publicación E-01 implementado)**
-- **Hito F — Communications + Approval (⚪ PENDIENTE)**
+- **Hito H — Business Memory (⚪ PENDIENTE de inicio según regla de no avanzar prematuramente)**
 
 **Próxima acción:**
-- Avanzar con **Hito G (Marketplace Operations)** — Tareas G.1 (Listing Generator) / G.2 (Listing Quality/Policy Validator) o **Hito F (Communications + Approval Workflow)** de acuerdo con las prioridades del Roadmap Maestro.
+- Con **Gate F PASSED y 🟢 VALIDADO**, el repositorio está listo para someter a revisión el Gate F. La siguiente tarea según el Roadmap Maestro es **Hito H (Business Memory - H.1 Persist Missions)**.
 
 ---
 
