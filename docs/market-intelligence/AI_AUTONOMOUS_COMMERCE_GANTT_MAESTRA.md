@@ -33,7 +33,7 @@
 | E | Autonomous Commerce | P0 | 🟢 VALIDADA | 🟢 GATE D |
 | F | Communications + Approval | P1 | 🟢 VALIDADA | 🟢 GATE E |
 | G | Marketplace Operations | P1 | 🟢 VALIDADA | 🟢 GATE F |
-| H | Business Memory | P1 | ⚪ PENDIENTE | ⚪ GATE G |
+| H | Business Memory | P1 | 🟢 VALIDADA | ⚪ GATE G |
 | I | Learning Loop | P1 | ⚪ PENDIENTE | ⚪ GATE H |
 | J | Continuous Autonomy | P1 | ⚪ PENDIENTE | ⚪ GATE I |
 | K | Observability / Evaluation / Reliability | P0 transversal | 🟡 EN PROGRESO | ⚪ GATE J |
@@ -63,7 +63,7 @@ Los bloques son secuenciales/relativos y no representan fechas calendario rígid
 | E | Autonomous Commerce | | | | █ | █ | | | 🟢 |
 | F | Communications + Approval | | | | | █ | █ | | 🟢 |
 | G | Marketplace Operations | | | | | | █ | █ | 🟢 |
-| H | Business Memory | | | | | | | █ | ⚪ |
+| H | Business Memory | | | | | | | █ | 🟢 |
 | I | Learning Loop | | | | | | | █ | ⚪ |
 | J | Continuous Autonomy | | | | | | | █ | ⚪ |
 | K–N | Transversales: reliability/data/cost/security | → | → | → | → | → | → | → | 🟡 |
@@ -284,17 +284,17 @@ Flujo E2E Demostrado:
 
 # 10. Hito H — Business Memory
 
-**Estado: 🟡 EN PROGRESO (H.1 Validada, H.2-H.7 Pendientes)**
+**Estado: 🟢 VALIDADA (H.1 a H.7 Validadas e Integradas E2E)**
 
 | ID | Task | Estado | Criterio de validación | Evidencia / Tests |
 |---|---|---|---|---|
 | H.1 | Persist Missions | 🟢 VALIDADA | Persistencia durable de misiones (`Mission` y `MissionResult`) basada en JSON con desacoplamiento absoluto de dominio, soporte para ciclo completo (`CREATE -> PERSIST -> LOAD -> UPDATE -> PERSIST -> LOAD -> CONTINUE/RESUME`), serialización ISO/Decimal/Enum, idempotencia estricta, preservación de `correlation_id` / `idempotency_key` / `provenance` / `confidence`, resiliencia ante corrupción y exclusión estricta de PII/credenciales. | `src/infrastructure/persistence/data/json/mission_repository.py`, `tests/unit/infrastructure/persistence/data/json/test_mission_repository.py` (7 passed), `tests/integration/test_h1_mission_memory_integration.py` (1 passed) |
-| H.2 | Persist Decisions | ⚪ | | |
-| H.3 | Persist Actions | ⚪ | | |
-| H.4 | Persist Results | ⚪ | | |
-| H.5 | Product Memory | ⚪ | | |
-| H.6 | Supplier Memory | ⚪ | | |
-| H.7 | Temporal State | ⚪ | | |
+| H.2 | Persist Decisions | 🟢 VALIDADA | Persistencia durable de decisiones (`DecisionRecord`) basada en JSON con desacoplamiento de dominio, soporte para ciclo de vida (`CREATE -> PERSIST -> LOAD -> UPDATE -> PERSIST -> LOAD -> RECOVERY`), vinculación formal con `Mission` (`mission_id`), preservación de `PolicyEvaluation` / `confidence` / `provenance` / `correlation_id` / `idempotency_key`, idempotencia estricta, resiliencia ante datos corruptos y exclusión automática de PII/secretos. | `src/domain/decision/`, `src/infrastructure/persistence/data/json/decision_repository.py`, `src/application/decision/decision_service.py`, `tests/unit/application/decision/test_decision_memory_service.py` (6 passed), `tests/integration/test_h2_decision_memory_integration.py` (1 passed) |
+| H.3 | Persist Actions | 🟢 VALIDADA | Persistencia durable de acciones (`ActionRecord`) basada en JSON con desacoplamiento de dominio, inmutabilidad, idempotencia, sanitización de datos sensibles y vinculación formal a decisiones/misiones. | `src/domain/action/`, `src/infrastructure/persistence/data/json/action_repository.py`, `src/application/action/action_service.py`, `tests/unit/application/action/test_action_memory_service.py` (6 passed), `tests/integration/test_h3_action_memory_integration.py` (1 passed) |
+| H.4 | Persist Results | 🟢 VALIDADA | Persistencia durable de resultados observados de acciones (`ActionResultRecord`) basada en JSON con desacoplamiento de dominio, soporte de UNKNOWN, confianza, procedencia e idempotencia. | `src/domain/result/`, `src/infrastructure/persistence/data/json/result_repository.py`, `src/application/result/result_service.py`, `tests/unit/application/result/test_result_memory_service.py` (7 passed), `tests/integration/test_h4_result_memory_integration.py` (1 passed) |
+| H.5 | Product Memory | 🟢 VALIDADA | Memoria contextual de productos/listings (`ProductMemoryRecord`) basada en JSON, conservando SKUs, precios, observaciones, procedencia y evidencias. | `src/domain/product_memory/`, `src/infrastructure/persistence/data/json/product_memory_repository.py`, `src/application/product_memory/product_memory_service.py`, `tests/unit/application/product_memory/test_product_memory_service.py` (6 passed), `tests/integration/test_h5_product_memory_integration.py` (1 passed) |
+| H.6 | Supplier Memory | 🟢 VALIDADA | Memoria contextual de proveedores/cotizaciones (`SupplierMemoryRecord`) basada en JSON, conservando identidades de proveedor, condiciones comerciales, nivel de riesgo, confianza y procedencia. | `src/domain/supplier_memory/`, `src/infrastructure/persistence/data/json/supplier_memory_repository.py`, `src/application/supplier_memory/supplier_memory_service.py`, `tests/unit/application/supplier_memory/test_supplier_memory_service.py` (6 passed), `tests/integration/test_h6_supplier_memory_integration.py` (1 passed) |
+| H.7 | Temporal State | 🟢 VALIDADA | Captura y reconstrucción histórica temporal de snapshots (`TemporalSnapshot`) permitiendo consultar el estado exacto de cualquier entidad en $T_0, T_1, T_2$ con ordenamiento cronológico e inmutabilidad. | `src/domain/temporal_state/`, `src/infrastructure/persistence/data/json/temporal_state_repository.py`, `src/application/temporal_state/temporal_state_service.py`, `tests/unit/application/temporal_state/test_temporal_state_service.py` (6 passed), `tests/integration/test_h7_temporal_state_integration.py` (1 passed) |
 
 ### GATE G
 
@@ -588,6 +588,7 @@ TRAE debe agregar una entrada por cada task completada:
 | 2026-08-30 | G.1 / 07.1 | Listing Generator (Generación determinista y estructurada de `ListingDraft` basada en evidencia de mercado, verdades de producto, customer pain mining, SEO groundedness, trazabilidad de claims, omisión de afirmaciones prohibidas y variantes multicanal) | 474 passed, 1 skipped (15 específicos: 11 dom + 3 app + 1 integ) | MarketEvidence + ProductTruth -> ListingDraft + Grounding + Multichannel E2E | 🟢 VALIDADA | `tests/unit/domain/publication/test_listing_generator.py`, `tests/unit/application/publication/test_listing_generator_service.py`, `tests/integration/test_listing_generator_e2e.py` |
 | 2026-08-31 | Gate F | Validación E2E formal de Gate F (Marketplace Operations + Governance Approval Loop en 5 escenarios deterministas: APPROVED, REJECTED, DUPLICATE/IDEMPOTENCY, UNKNOWN/TIMEOUT, DENY PRECEDENCE) | 615 passed, 1 skipped | E2E Gate F Validation (`test_gate_f_e2e_validation.py` - 5 escenarios PASSED) | 🟢 VALIDADA | `tests/integration/test_gate_f_e2e_validation.py` |
 | 2026-08-31 | G.8 / 07.8 | Returns / Exceptions (Gestión integral de devoluciones, reclamos, disputas, reembolsos y excepciones postventa con separación de ciclos de vida, deduplicación e idempotencia estricta, gobernanza por Policy, tratamiento de incertidumbre UNKNOWN, motor de reconciliación determinista y 6 tools postventa en ToolRegistry) | 610 passed, 1 skipped (28 específicos: 9 dom/rules + 4 adap + 9 app + 6 integ E2E) | Returns Pipeline Integration E2E (6 Escenarios A-F: Happy path, Duplicate/Idempotency, UNKNOWN/Recovery, Discrepancy, Policy Governance, Refund Lifecycle) | 🟢 VALIDADA | `tests/unit/domain/returns/`, `tests/unit/infrastructure/mercadolibre/test_returns_adapter.py`, `tests/unit/application/returns/`, `tests/integration/test_g08_returns_pipeline_integration.py` |
+| 2026-08-31 | Hito H (H.1–H.7) | Business Memory Complete (Persistencia Hexagonal JSON durable, inmutable y segura de Missions, Decisions, Actions, Results, Product Memory, Supplier Memory y Temporal State Snapshots con reconstrucción temporal y simulada de reinicio de servicios) | 650 passed, 1 skipped (35 específicos de Hito H + E2E integration) | E2E Business Memory Integration (`MISSION -> DECISION -> ACTION -> RESULT -> PRODUCT -> SUPPLIER -> TEMPORAL STATE` + Disk Recovery) | 🟢 VALIDADA | `tests/integration/test_hito_h_business_memory_e2e.py` |
 
 ---
 
@@ -650,12 +651,13 @@ Antes de comenzar cada task, comprobar el estado de esta Gantt y del Roadmap Mae
 - **Hito E — Autonomous Commerce (🟢 VALIDADA / GATE D PASSED - E.1 a E.6 + Gate D E2E Validation)**
 - **Hito F — Communications + Approval (🟢 VALIDADA / GATE E PASSED)**
 - **Hito G — Marketplace Operations (🟢 VALIDADA / GATE F PASSED - G.1 a G.8 + Gate F E2E Validation)**
+- **Hito H — Business Memory (🟢 VALIDADA - H.1 a H.7 + Business Memory E2E Integration)**
 
 **Fases en progreso activo:**
-- **Hito H — Business Memory (⚪ PENDIENTE de inicio según regla de no avanzar prematuramente)**
+- Ninguna en progreso activo (Hito H completado al 100%).
 
 **Próxima acción:**
-- Con **Gate F PASSED y 🟢 VALIDADO**, el repositorio está listo para someter a revisión el Gate F. La siguiente tarea según el Roadmap Maestro es **Hito H (Business Memory - H.1 Persist Missions)**.
+- Con **Hito H 🟢 VALIDADO**, el repositorio está listo para someter a revisión el Hito H completo. La siguiente unidad funcional según el Roadmap Maestro es **Gate G / Hito I (Learning Loop)**. NO implementar Gate G/Hito I antes de autorización explícita.
 
 ---
 
