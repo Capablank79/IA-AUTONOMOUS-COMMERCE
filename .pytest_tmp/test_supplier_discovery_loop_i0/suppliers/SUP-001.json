@@ -1,0 +1,29 @@
+{
+  "supplier_id": "SUP-001",
+  "name": "Proveedor Test Chile",
+  "source": "DIRECTORY_suppliers",
+  "source_type": "FIXTURE",
+  "status": "RESEARCH",
+  "observed_at": "2026-08-31T05:17:08.968143+00:00",
+  "location": {
+    "country": "Chile",
+    "city": null,
+    "region": null
+  },
+  "contact": {
+    "name": "",
+    "email": "",
+    "phone": "",
+    "website": ""
+  },
+  "product_reference": {
+    "sku": "SA400S37/480G",
+    "title": "Kingston A400 SA400S37/480G",
+    "brand": "Kingston",
+    "model": "A400",
+    "category": "storage",
+    "source_product_id": null,
+    "source_url": null
+  },
+  "metadata": {}
+}

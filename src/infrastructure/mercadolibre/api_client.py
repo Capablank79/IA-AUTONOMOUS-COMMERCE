@@ -1,4 +1,4 @@
-﻿import json
+import json
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -8,7 +8,10 @@ API_BASE_URL = "https://api.mercadolibre.com"
 
 class MercadoLibreApiError(Exception):
     """Raised when Mercado Libre API requests fail."""
-    pass
+    def __init__(self, message: str, status_code: int = None, response_body: str = None):
+        super().__init__(message)
+        self.status_code = status_code
+        self.response_body = response_body
 
 
 class MercadoLibreApiClient:
@@ -20,15 +23,30 @@ class MercadoLibreApiClient:
         self.access_token = access_token
 
     def get(self, path: str) -> dict:
+        return self._request(path, method="GET")
+
+    def post(self, path: str, payload: dict) -> dict:
+        return self._request(path, method="POST", payload=payload)
+
+    def put(self, path: str, payload: dict) -> dict:
+        return self._request(path, method="PUT", payload=payload)
+
+    def _request(self, path: str, method: str = "GET", payload: dict = None) -> dict:
         url = f"{API_BASE_URL}{path}"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {self.access_token}",
+        }
+        data = None
+        if payload is not None:
+            data = json.dumps(payload).encode("utf-8")
+            headers["Content-Type"] = "application/json"
 
         request = Request(
             url,
-            headers={
-                "Accept": "application/json",
-                "Authorization": f"Bearer {self.access_token}",
-            },
-            method="GET",
+            data=data,
+            headers=headers,
+            method=method,
         )
 
         try:
@@ -37,7 +55,9 @@ class MercadoLibreApiClient:
         except HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
             raise MercadoLibreApiError(
-                f"Mercado Libre API request failed: HTTP {exc.code}: {detail}"
+                f"Mercado Libre API request failed: HTTP {exc.code}: {detail}",
+                status_code=exc.code,
+                response_body=detail,
             ) from exc
         except URLError as exc:
             raise MercadoLibreApiError(

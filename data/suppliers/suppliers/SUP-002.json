@@ -1,0 +1,29 @@
+{
+  "supplier_id": "SUP-002",
+  "name": "Distribuidora Tech Mayorista SpA",
+  "source": "DIRECTORY_suppliers",
+  "source_type": "FIXTURE",
+  "status": "VERIFIED",
+  "observed_at": "2026-08-30T00:47:51.909412+00:00",
+  "location": {
+    "country": "Chile",
+    "city": null,
+    "region": null
+  },
+  "contact": {
+    "name": "Carlos Gomez",
+    "email": "ventas@techmayorista.cl",
+    "phone": "+56911223344",
+    "website": "techmayorista.cl"
+  },
+  "product_reference": {
+    "sku": "SA400S37/480G",
+    "title": "Disco Estado Solido SSD Kingston A400 480GB SATA3 2.5",
+    "brand": "Kingston",
+    "model": "A400",
+    "category": "storage",
+    "source_product_id": null,
+    "source_url": null
+  },
+  "metadata": {}
+}

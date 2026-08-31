@@ -28,6 +28,8 @@ class SignalType(str, Enum):
     OBSERVED = "OBSERVED"
     DERIVED = "DERIVED"
     ESTIMATED = "ESTIMATED"
+    INFERRED = "INFERRED"
+    RECOMMENDED = "RECOMMENDED"
 
 @dataclass(frozen=True)
 class MarketListing:

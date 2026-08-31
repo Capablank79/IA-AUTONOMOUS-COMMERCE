@@ -223,7 +223,7 @@ def main():
     lines += ["", "=" * 72, "UNIQUE RESPONSE VARIABLES", "=" * 72]
     lines += [f"- {k}" for k in all_keys]
 
-    desktop = Path.home() / "Desktop"
+    desktop = Path.cwd() / "tmp"
     desktop.mkdir(exist_ok=True)
     output = desktop / (
         "mercadolibre_api_discovery_"

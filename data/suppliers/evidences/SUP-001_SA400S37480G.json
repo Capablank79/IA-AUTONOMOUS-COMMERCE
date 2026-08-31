@@ -1,0 +1,68 @@
+{
+  "supplier_id": "SUP-001",
+  "sku": "SA400S37/480G",
+  "wholesale_price": "4384",
+  "currency": "CLP",
+  "minimum_order_quantity": 1,
+  "stock_available": false,
+  "shipping_cost": null,
+  "lead_time_days": null,
+  "confidence": "MEDIUM",
+  "signal_type": "OBSERVED",
+  "provenance_type": "FIXTURE",
+  "source": "DIRECTORY_suppliers",
+  "observed_at": "2026-08-30T00:47:51.909412+00:00",
+  "raw_payload": {
+    "supplier_id": "SUP-001",
+    "company": {
+      "name": "Proveedor Test Chile",
+      "country": "Chile",
+      "website": "",
+      "business_type": "wholesaler"
+    },
+    "contact": {
+      "name": "",
+      "email": "",
+      "phone": ""
+    },
+    "commercial": {
+      "payment_terms": "Por definir",
+      "invoice_available": false,
+      "minimum_order_quantity": 1
+    },
+    "product": {
+      "category": "storage",
+      "brand": "Kingston",
+      "model": "A400",
+      "sku": "SA400S37/480G",
+      "capacity_gb": 480
+    },
+    "pricing": {
+      "wholesale_price_clp": 4384,
+      "currency": "CLP",
+      "price_valid_until": null
+    },
+    "stock": {
+      "available": false,
+      "quantity": 0,
+      "last_checked": null
+    },
+    "logistics": {
+      "ships_from": "Chile",
+      "shipping_cost_clp": null,
+      "delivery_time_days": null
+    },
+    "warranty": {
+      "available": false,
+      "period_months": null,
+      "rma_available": false
+    },
+    "verification": {
+      "status": "unverified",
+      "verified_at": null,
+      "verification_score": 0
+    },
+    "supplier_status": "RESEARCH"
+  },
+  "quote": null
+}

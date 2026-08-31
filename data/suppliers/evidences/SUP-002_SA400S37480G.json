@@ -1,0 +1,69 @@
+{
+  "supplier_id": "SUP-002",
+  "sku": "SA400S37/480G",
+  "wholesale_price": "21500",
+  "currency": "CLP",
+  "minimum_order_quantity": 5,
+  "stock_available": true,
+  "shipping_cost": "2990",
+  "lead_time_days": 2,
+  "confidence": "MEDIUM",
+  "signal_type": "OBSERVED",
+  "provenance_type": "FIXTURE",
+  "source": "DIRECTORY_suppliers",
+  "observed_at": "2026-08-30T00:47:51.909412+00:00",
+  "raw_payload": {
+    "supplier_id": "SUP-002",
+    "company": {
+      "name": "Distribuidora Tech Mayorista SpA",
+      "country": "Chile",
+      "website": "techmayorista.cl",
+      "business_type": "distributor"
+    },
+    "contact": {
+      "name": "Carlos Gomez",
+      "email": "ventas@techmayorista.cl",
+      "phone": "+56911223344"
+    },
+    "commercial": {
+      "payment_terms": "Transferencia / 30 dias",
+      "invoice_available": true,
+      "minimum_order_quantity": 5
+    },
+    "product": {
+      "category": "storage",
+      "brand": "Kingston",
+      "model": "A400",
+      "sku": "SA400S37/480G",
+      "title": "Disco Estado Solido SSD Kingston A400 480GB SATA3 2.5",
+      "capacity_gb": 480
+    },
+    "pricing": {
+      "wholesale_price_clp": 21500,
+      "currency": "CLP",
+      "price_valid_until": "2026-12-31"
+    },
+    "stock": {
+      "available": true,
+      "quantity": 150,
+      "last_checked": "2026-08-28T10:00:00Z"
+    },
+    "logistics": {
+      "ships_from": "Santiago, Chile",
+      "shipping_cost_clp": 2990,
+      "delivery_time_days": 2
+    },
+    "warranty": {
+      "available": true,
+      "period_months": 12,
+      "rma_available": true
+    },
+    "verification": {
+      "status": "verified",
+      "verified_at": "2026-08-01T00:00:00Z",
+      "verification_score": 95
+    },
+    "supplier_status": "VERIFIED"
+  },
+  "quote": null
+}

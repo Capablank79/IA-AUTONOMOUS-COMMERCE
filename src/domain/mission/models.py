@@ -8,7 +8,13 @@ import uuid
 class MissionType(str, Enum):
     MARKET_DISCOVERY = "MARKET_DISCOVERY"
     SUPPLIER_SEARCH = "SUPPLIER_SEARCH"
+    SUPPLIER_DISCOVERY = "SUPPLIER_DISCOVERY"
+    PROFIT_EVALUATION = "PROFIT_EVALUATION"
+    CAPITAL_ALLOCATION = "CAPITAL_ALLOCATION"
+    OPERATING_MODEL_EVALUATION = "OPERATING_MODEL_EVALUATION"
     FULL_OPPORTUNITY_ANALYSIS = "FULL_OPPORTUNITY_ANALYSIS"
+    COMMERCIAL_PUBLICATION = "COMMERCIAL_PUBLICATION"
+
 
 class MissionStatus(str, Enum):
     PENDING = "PENDING"
@@ -52,6 +58,8 @@ class LoopState:
     observations: Tuple[Mapping[str, Any], ...] = field(default_factory=tuple)
     evidences: Tuple[Any, ...] = field(default_factory=tuple)
     decision_history: Tuple[LoopDecision, ...] = field(default_factory=tuple)
+    best_known: Optional[Any] = None
+    progress: Optional[Any] = None
 
     def __post_init__(self):
         if not isinstance(self.observations, tuple):
@@ -83,12 +91,17 @@ class LoopTraceEntry:
     parameters: Mapping[str, Any]
     observation: Mapping[str, Any]
     timestamp: datetime = field(default_factory=datetime.utcnow)
+    score: Optional[float] = None
+    confidence: Optional[float] = None
+    progress: Optional[Mapping[str, Any]] = None
 
     def __post_init__(self):
         if not isinstance(self.parameters, MappingProxyType):
             object.__setattr__(self, "parameters", MappingProxyType(dict(self.parameters)))
         if not isinstance(self.observation, MappingProxyType):
             object.__setattr__(self, "observation", MappingProxyType(dict(self.observation)))
+        if self.progress is not None and not isinstance(self.progress, MappingProxyType):
+            object.__setattr__(self, "progress", MappingProxyType(dict(self.progress)))
 
 @dataclass(frozen=True)
 class Mission:
