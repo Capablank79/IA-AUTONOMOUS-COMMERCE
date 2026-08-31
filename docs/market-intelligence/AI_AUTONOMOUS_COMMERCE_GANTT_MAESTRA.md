@@ -284,17 +284,17 @@ Flujo E2E Demostrado:
 
 # 10. Hito H — Business Memory
 
-**Estado: ⚪ PENDIENTE**
+**Estado: 🟡 EN PROGRESO (H.1 Validada, H.2-H.7 Pendientes)**
 
-| ID | Task | Estado |
-|---|---|---|
-| H.1 | Persist Missions | ⚪ |
-| H.2 | Persist Decisions | ⚪ |
-| H.3 | Persist Actions | ⚪ |
-| H.4 | Persist Results | ⚪ |
-| H.5 | Product Memory | ⚪ |
-| H.6 | Supplier Memory | ⚪ |
-| H.7 | Temporal State | ⚪ |
+| ID | Task | Estado | Criterio de validación | Evidencia / Tests |
+|---|---|---|---|---|
+| H.1 | Persist Missions | 🟢 VALIDADA | Persistencia durable de misiones (`Mission` y `MissionResult`) basada en JSON con desacoplamiento absoluto de dominio, soporte para ciclo completo (`CREATE -> PERSIST -> LOAD -> UPDATE -> PERSIST -> LOAD -> CONTINUE/RESUME`), serialización ISO/Decimal/Enum, idempotencia estricta, preservación de `correlation_id` / `idempotency_key` / `provenance` / `confidence`, resiliencia ante corrupción y exclusión estricta de PII/credenciales. | `src/infrastructure/persistence/data/json/mission_repository.py`, `tests/unit/infrastructure/persistence/data/json/test_mission_repository.py` (7 passed), `tests/integration/test_h1_mission_memory_integration.py` (1 passed) |
+| H.2 | Persist Decisions | ⚪ | | |
+| H.3 | Persist Actions | ⚪ | | |
+| H.4 | Persist Results | ⚪ | | |
+| H.5 | Product Memory | ⚪ | | |
+| H.6 | Supplier Memory | ⚪ | | |
+| H.7 | Temporal State | ⚪ | | |
 
 ### GATE G
 
