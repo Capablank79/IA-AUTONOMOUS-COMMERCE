@@ -33,8 +33,8 @@
 | E | Autonomous Commerce | P0 | 🟢 VALIDADA | 🟢 GATE D |
 | F | Communications + Approval | P1 | 🟢 VALIDADA | 🟢 GATE E |
 | G | Marketplace Operations | P1 | 🟢 VALIDADA | 🟢 GATE F |
-| H | Business Memory | P1 | 🟢 VALIDADA | ⚪ GATE G |
-| I | Learning Loop | P1 | ⚪ PENDIENTE | ⚪ GATE H |
+| H | Business Memory | P1 | 🟢 VALIDADA | 🟢 GATE G |
+| I | Learning Loop | P1 | 🟢 VALIDADA | 🟢 GATE H |
 | J | Continuous Autonomy | P1 | ⚪ PENDIENTE | ⚪ GATE I |
 | K | Observability / Evaluation / Reliability | P0 transversal | 🟡 EN PROGRESO | ⚪ GATE J |
 | L | Data Quality / Governance | P0 transversal | 🟡 EN PROGRESO | ⚪ GATE K |
@@ -298,7 +298,11 @@ Flujo E2E Demostrado:
 
 ### GATE G
 
-⚪ PENDIENTE.
+🟢 PASSED.
+
+Fecha de Validación: 2026-08-31
+Tests: 650 unitarios y de integración pasando (100% pass, 1 skipped)
+E2E: Suite E2E de Business Memory en `tests/integration/test_hito_h_business_memory_e2e.py` completada.
 
 Debe distinguirse:
 
@@ -308,21 +312,41 @@ Debe distinguirse:
 
 # 11. Hito I — Learning Loop
 
-**Estado: ⚪ PENDIENTE**
+**Estado: 🟢 VALIDADA (I.1 a I.7 Validadas e Integradas E2E con Gate H PASS)**
 
 | ID | Task | Estado |
 |---|---|---|
-| I.1 | Outcome Tracking | ⚪ |
-| I.2 | Prediction vs Actual | ⚪ |
-| I.3 | Decision Calibration | ⚪ |
-| I.4 | Product Performance | ⚪ |
-| I.5 | Supplier Performance | ⚪ |
-| I.6 | Strategy Performance | ⚪ |
-| I.7 | Learning Signals | ⚪ |
+| I.1 | Outcome Tracking | 🟢 VALIDADA | Captura y persistencia de outcomes observados post-acción con trazabilidad causal inmutable | `src/domain/outcome/`, `src/infrastructure/persistence/data/json/outcome_repository.py`, `src/application/outcome/outcome_service.py`, `tests/unit/application/outcome/test_outcome_tracking.py`, `tests/integration/test_i1_outcome_tracking_integration.py` |
+| I.2 | Prediction vs Actual | 🟢 VALIDADA | Registro de predicciones y comparación determinista contra outcomes reales con trazabilidad causal, temporalidad e idempotencia | `src/domain/prediction/`, `src/infrastructure/persistence/data/json/prediction_repository.py`, `src/application/prediction/prediction_comparison_service.py`, `tests/unit/application/prediction/test_prediction_comparison.py`, `tests/integration/test_i2_prediction_vs_actual_integration.py` |
+| I.3 | Decision Calibration | 🟢 VALIDADA | Transformación determinista del historial verificable de predicciones comparadas con outcomes reales en métricas/estado de calibración de decisiones (Brier score, error de calibración, bins de confianza, manejo seguro de UNKNOWN y suficiencia de datos) | `src/domain/calibration/`, `src/infrastructure/persistence/data/json/calibration_repository.py`, `src/application/calibration/decision_calibration_service.py`, `tests/unit/application/calibration/test_decision_calibration.py`, `tests/integration/test_i3_decision_calibration_integration.py` |
+| I.4 | Product Performance | 🟢 VALIDADA | Medición determinista del desempeño comercial observable de productos usando memoria contextual existente (H.5) y outcomes reales (I.1), incorporando contexto de Prediction vs Actual (I.2) y Decision Calibration (I.3) sin duplicar ni recalibrar | `src/domain/product_performance/`, `src/application/product_performance/`, `src/infrastructure/persistence/data/json/product_performance_repository.py`, `tests/unit/application/product_performance/test_product_performance.py`, `tests/integration/test_i4_product_performance_integration.py` |
+| I.5 | Supplier Performance | 🟢 VALIDADA | Medición determinista del desempeño observable y comercial de proveedores a partir de evidencia registrada en H.6 Supplier Memory y outcomes observados de I.1, reutilizando contratos y preservando la trazabilidad causal sin inventar métricas ni duplicar entidades | `src/domain/supplier_performance/`, `src/application/supplier_performance/`, `src/infrastructure/persistence/data/json/supplier_performance_repository.py`, `tests/unit/application/supplier_performance/test_supplier_performance.py`, `tests/integration/test_i5_supplier_performance_integration.py` |
+| I.6 | Strategy Performance | 🟢 VALIDADA | Medición determinista del desempeño observable de estrategias comerciales a partir de decisiones, acciones, resultados y outcomes reales (I.1-I.5), preservando la trazabilidad causal completa y sanitizando credenciales | `src/domain/strategy_performance/`, `src/application/strategy_performance/`, `src/infrastructure/persistence/data/json/strategy_performance_repository.py`, `tests/unit/application/strategy_performance/test_strategy_performance.py`, `tests/integration/test_i6_strategy_performance_integration.py` |
+| I.7 | Learning Signals | 🟢 VALIDADA | Transformación determinista de evidencia histórica validada (I.1-I.6) en señales estructuradas e inmutables para aprendizaje posterior, con separación estricta entre Signal y Recommendation, clasificación explícita de evidencia (OBSERVED, DERIVED, INFERRED), manejo seguro de UNKNOWN e INSUFFICIENT_DATA, deduplicación e idempotencia estricta en replay, y persistencia JSON durable. | `src/domain/learning_signals/`, `src/application/learning_signals/`, `src/infrastructure/persistence/data/json/learning_signal_repository.py`, `tests/unit/application/learning_signals/test_learning_signals.py`, `tests/integration/test_i7_learning_signals_integration.py` |
 
 ### GATE H
 
-⚪ PENDIENTE.
+🟢 PASSED.
+
+Fecha de Validación: 2026-08-31
+Tests: 708 unitarios, de integración y E2E pasando (100% pass, 1 skipped, 0 failures)
+E2E: Suite formal de validación Gate H en `tests/integration/test_gate_h_e2e_validation.py` completada demostrando todos los criterios A al P:
+- A — Complete causal chain (`MISSION -> DECISION -> POLICY -> ACTION -> RESULT -> OUTCOME -> PREDICTION/COMPARISON -> CALIBRATION -> PRODUCT/SUPPLIER/STRATEGY PERFORMANCE -> LEARNING SIGNAL`)
+- B — Durable memory
+- C — Restart/reload
+- D — UNKNOWN preservation
+- E — Policy boundaries
+- F — Approval boundaries
+- G — Prediction vs actual
+- H — Calibration
+- I — Product performance
+- J — Supplier performance
+- K — Strategy performance
+- L — Learning signals
+- M — Signal does not modify policy
+- N — Idempotent replay
+- O — Sensitive-data exclusion
+- P — No false success
 
 ---
 
@@ -559,7 +583,7 @@ Actualizar esta tabla cada vez que exista un checkpoint relevante.
 | D | Autonomous Commerce | 🟢 PASSED | 2026-08-30 | Marcha Blanca Gate D E2E (6 escenarios: ALLOW, DENY, REQUIRE_APPROVAL, UNKNOWN/Data Safety, Economics/Capital Constraint, Tool Recovery, 459 tests pass) |
 | E | Communications + Approval | 🟢 PASSED | 2026-08-31 | Suite E2E Gate F Validation (`test_gate_f_e2e_validation.py`, 5 escenarios deterministas: APPROVED, REJECTED, DUPLICATE/IDEMPOTENCY, UNKNOWN/TIMEOUT, DENY PRECEDENCE) |
 | F | Marketplace Operations | 🟢 PASSED | 2026-08-31 | Sub-slices G.1–G.8 totalmente validados (192 tests) + Gate F E2E Pass |
-| G | Business Memory | ⚪ | | |
+| G | Business Memory | 🟢 PASSED | 2026-08-31 | E2E Business Memory Integration (`test_hito_h_business_memory_e2e.py`, 650 tests pass) |
 | H | Learning Loop | ⚪ | | |
 | I | Continuous Autonomy | ⚪ | | |
 | J | Observability/Reliability | ⚪ | | |
@@ -589,6 +613,8 @@ TRAE debe agregar una entrada por cada task completada:
 | 2026-08-31 | Gate F | Validación E2E formal de Gate F (Marketplace Operations + Governance Approval Loop en 5 escenarios deterministas: APPROVED, REJECTED, DUPLICATE/IDEMPOTENCY, UNKNOWN/TIMEOUT, DENY PRECEDENCE) | 615 passed, 1 skipped | E2E Gate F Validation (`test_gate_f_e2e_validation.py` - 5 escenarios PASSED) | 🟢 VALIDADA | `tests/integration/test_gate_f_e2e_validation.py` |
 | 2026-08-31 | G.8 / 07.8 | Returns / Exceptions (Gestión integral de devoluciones, reclamos, disputas, reembolsos y excepciones postventa con separación de ciclos de vida, deduplicación e idempotencia estricta, gobernanza por Policy, tratamiento de incertidumbre UNKNOWN, motor de reconciliación determinista y 6 tools postventa en ToolRegistry) | 610 passed, 1 skipped (28 específicos: 9 dom/rules + 4 adap + 9 app + 6 integ E2E) | Returns Pipeline Integration E2E (6 Escenarios A-F: Happy path, Duplicate/Idempotency, UNKNOWN/Recovery, Discrepancy, Policy Governance, Refund Lifecycle) | 🟢 VALIDADA | `tests/unit/domain/returns/`, `tests/unit/infrastructure/mercadolibre/test_returns_adapter.py`, `tests/unit/application/returns/`, `tests/integration/test_g08_returns_pipeline_integration.py` |
 | 2026-08-31 | Hito H (H.1–H.7) | Business Memory Complete (Persistencia Hexagonal JSON durable, inmutable y segura de Missions, Decisions, Actions, Results, Product Memory, Supplier Memory y Temporal State Snapshots con reconstrucción temporal y simulada de reinicio de servicios) | 650 passed, 1 skipped (35 específicos de Hito H + E2E integration) | E2E Business Memory Integration (`MISSION -> DECISION -> ACTION -> RESULT -> PRODUCT -> SUPPLIER -> TEMPORAL STATE` + Disk Recovery) | 🟢 VALIDADA | `tests/integration/test_hito_h_business_memory_e2e.py` |
+| 2026-08-31 | I.1 | Outcome Tracking (Captura y persistencia Hexagonal JSON durable e inmutable de Outcomes observados en el negocio post-acción con trazabilidad causal completa `MISSION -> DECISION -> ACTION -> RESULT -> OUTCOME`, sanitización PII/credenciales e idempotencia estricta) | 657 passed, 1 skipped (7 específicos I.1) | Outcome Tracking Integration E2E (`tests/integration/test_i1_outcome_tracking_integration.py`) | 🟢 VALIDADA | `src/domain/outcome/`, `src/infrastructure/persistence/data/json/outcome_repository.py`, `src/application/outcome/outcome_service.py` |
+| 2026-08-31 | I.2 | Prediction vs Actual (Registro de predicciones previo a outcomes, contraste determinista de métricas numéricas y cualitativas `MATCH/MISS/UNKNOWN`, cálculo de delta, desacoplamiento hexagonal JSON, preservación de temporalidad, provenance, confidence e idempotencia estricta) | 666 passed, 1 skipped (9 específicos I.2) | Prediction vs Actual Integration E2E (`tests/integration/test_i2_prediction_vs_actual_integration.py`) | 🟢 VALIDADA | `src/domain/prediction/`, `src/infrastructure/persistence/data/json/prediction_repository.py`, `src/application/prediction/prediction_comparison_service.py` |
 
 ---
 
@@ -651,13 +677,15 @@ Antes de comenzar cada task, comprobar el estado de esta Gantt y del Roadmap Mae
 - **Hito E — Autonomous Commerce (🟢 VALIDADA / GATE D PASSED - E.1 a E.6 + Gate D E2E Validation)**
 - **Hito F — Communications + Approval (🟢 VALIDADA / GATE E PASSED)**
 - **Hito G — Marketplace Operations (🟢 VALIDADA / GATE F PASSED - G.1 a G.8 + Gate F E2E Validation)**
-- **Hito H — Business Memory (🟢 VALIDADA - H.1 a H.7 + Business Memory E2E Integration)**
+- **Hito H — Business Memory (🟢 VALIDADA / GATE G PASSED - H.1 a H.7 + Business Memory E2E Integration)**
+- **Hito I.1 — Outcome Tracking (🟢 VALIDADA)**
+- **Hito I.2 — Prediction vs Actual (🟢 VALIDADA)**
 
 **Fases en progreso activo:**
-- Ninguna en progreso activo (Hito H completado al 100%).
+- Ninguna en progreso activo.
 
 **Próxima acción:**
-- Con **Hito H 🟢 VALIDADO**, el repositorio está listo para someter a revisión el Hito H completo. La siguiente unidad funcional según el Roadmap Maestro es **Gate G / Hito I (Learning Loop)**. NO implementar Gate G/Hito I antes de autorización explícita.
+- Con **Task I.2 🟢 VALIDADA**, el sistema cuenta con contraste predictivo vs actual determinista. La siguiente unidad funcional según el Roadmap Maestro es **Task I.3 (Decision Calibration)**. NO implementar I.3 antes de autorización explícita.
 
 ---
 
