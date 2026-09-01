@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 from src.application.oauth.connection_service import OAuthConnectionService
 from src.domain.oauth.models import OAuthConnection
@@ -102,3 +102,15 @@ def test_expired_connection_is_refreshed_and_saved():
     assert repository.saved == result
     assert result.access_token == "new-access"
     assert result.refresh_token == "new-refresh"
+
+
+def test_oauth_connection_service_import_no_circular_dependency():
+    """Verify that OAuthConnectionService can be imported alongside infrastructure adapters without circular import."""
+    import importlib
+    import src.application.oauth.connection_service as cs_module
+    import src.infrastructure.mercadolibre.publication_adapter as pub_module
+    import src.infrastructure.mercadolibre.oauth_client as oauth_mod
+
+    assert hasattr(cs_module, "OAuthConnectionService")
+    assert hasattr(pub_module, "MercadoLibrePublicationAdapter")
+    assert hasattr(oauth_mod, "MercadoLibreOAuthClient")

@@ -1,8 +1,7 @@
-﻿from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 from src.domain.oauth.models import OAuthConnection
-from src.domain.oauth.ports import OAuthConnectionRepository
-from src.infrastructure.mercadolibre.oauth_client import MercadoLibreOAuthClient
+from src.domain.oauth.ports import OAuthClientPort, OAuthConnectionRepository
 
 
 class OAuthConnectionService:
@@ -16,7 +15,7 @@ class OAuthConnectionService:
     def __init__(
         self,
         repository: OAuthConnectionRepository,
-        oauth_client: MercadoLibreOAuthClient,
+        oauth_client: OAuthClientPort,
         refresh_window_seconds: int = 300,
     ):
         self.repository = repository
