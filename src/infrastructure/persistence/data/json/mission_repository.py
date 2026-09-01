@@ -25,6 +25,8 @@ class InvalidMissionDataError(JsonMissionRepositoryError):
     pass
 
 
+from dataclasses import is_dataclass, asdict
+
 def _encode_json_value(val: Any) -> Any:
     """Helper to convert complex objects to JSON-serializable types."""
     if isinstance(val, datetime):
@@ -33,9 +35,11 @@ def _encode_json_value(val: Any) -> Any:
         return str(val)
     if hasattr(val, "value"):  # Enum
         return val.value
+    if is_dataclass(val) and not isinstance(val, type):
+        return _encode_json_value(asdict(val))
     if isinstance(val, dict):
         return {str(k): _encode_json_value(v) for k, v in val.items()}
-    if isinstance(val, (list, tuple)):
+    if isinstance(val, (list, tuple, set)):
         return [_encode_json_value(v) for v in val]
     return val
 
