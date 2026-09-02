@@ -11,6 +11,9 @@ from src.domain.mission.models import (
     LoopTraceEntry,
 )
 from src.domain.mission.ports import DecisionProvider, ActionExecutor
+from src.domain.agent_trace.models import StepType, TraceStatus
+from src.domain.agent_trace.ports import AgentTraceRepositoryPort
+from src.application.agent_trace.agent_trace_service import AgentTraceService
 
 @dataclass
 class LoopLimits:
@@ -48,7 +51,8 @@ class AutonomousLoop:
         max_iterations: int = 10,
         limits: Optional[LoopLimits] = None,
         completion_validator: Optional[Callable[[LoopState], Tuple[bool, str]]] = None,
-        state_enhancer: Optional[Callable[[LoopState, Dict[str, Any]], LoopState]] = None
+        state_enhancer: Optional[Callable[[LoopState, Dict[str, Any]], LoopState]] = None,
+        agent_trace_service: Optional[AgentTraceService] = None,
     ):
         if max_iterations <= 0:
             raise ValueError("max_iterations must be greater than zero")
@@ -58,8 +62,33 @@ class AutonomousLoop:
         self.limits = limits or LoopLimits(max_iterations=max_iterations)
         self.completion_validator = completion_validator
         self.state_enhancer = state_enhancer
+        self.agent_trace_service = agent_trace_service
 
-    def run(self, mission_id: str, goal: str, initial_target: Optional[str] = None) -> LoopResult:
+    def run(
+        self,
+        mission_id: str,
+        goal: str,
+        initial_target: Optional[str] = None,
+        execution_id: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        cycle_id: Optional[str] = None,
+    ) -> LoopResult:
+        exec_id = execution_id or f"exec-loop-{mission_id}"
+        corr_id = correlation_id or f"corr-{mission_id}"
+
+        # Registrar START en Agent Trace
+        if self.agent_trace_service:
+            self.agent_trace_service.start_execution(
+                component_name="AutonomousLoop",
+                execution_id=exec_id,
+                mission_id=mission_id,
+                cycle_id=cycle_id,
+                correlation_id=corr_id,
+                input_reference=f"goal:{goal[:64]}",
+                metadata={"max_iterations": self.limits.max_iterations}
+            )
+
+        step_counter = 1
         state = LoopState(
             mission_id=mission_id,
             iteration=0,
@@ -97,12 +126,59 @@ class AutonomousLoop:
             
             # 1. Decide
             try:
+                if self.agent_trace_service:
+                    self.agent_trace_service.record_step(
+                        component_name="AutonomousLoop",
+                        execution_id=exec_id,
+                        step_number=step_counter,
+                        step_type=StepType.OBSERVE,
+                        operation=f"OBSERVE_AND_DECIDE_ITERATION_{current_iteration}",
+                        status=TraceStatus.STARTED,
+                        tool_or_service="DecisionProvider",
+                        input_reference=f"iteration:{current_iteration},target:{state.current_target}",
+                        correlation_id=corr_id,
+                        mission_id=mission_id,
+                        cycle_id=cycle_id,
+                    )
+                step_counter += 1
+
                 decision = self.decision_provider.decide(state)
+
+                if self.agent_trace_service:
+                    self.agent_trace_service.record_step(
+                        component_name="AutonomousLoop",
+                        execution_id=exec_id,
+                        step_number=step_counter,
+                        step_type=StepType.SERVICE_CALL,
+                        operation="DECISION_PRODUCED",
+                        status=TraceStatus.SUCCESS,
+                        tool_or_service="DecisionProvider",
+                        output_reference=f"action:{decision.action.value if hasattr(decision, 'action') else 'INVALID'}",
+                        correlation_id=corr_id,
+                        mission_id=mission_id,
+                        cycle_id=cycle_id,
+                    )
+                step_counter += 1
             except Exception as e:
                 error_msg = f"DecisionProvider error at iteration {current_iteration}: {str(e)}"
                 errors.append(error_msg)
                 final_status = "ERROR"
                 termination_reason = "ERROR"
+                if self.agent_trace_service:
+                    self.agent_trace_service.record_step(
+                        component_name="AutonomousLoop",
+                        execution_id=exec_id,
+                        step_number=step_counter,
+                        step_type=StepType.FAILURE,
+                        operation="DECISION_FAILED",
+                        status=TraceStatus.FAILED,
+                        tool_or_service="DecisionProvider",
+                        output_reference=f"error:{str(e)[:64]}",
+                        correlation_id=corr_id,
+                        mission_id=mission_id,
+                        cycle_id=cycle_id,
+                    )
+                    step_counter += 1
                 break
 
             if not isinstance(decision, LoopDecision):
@@ -214,15 +290,65 @@ class AutonomousLoop:
             # 3. Act (Execute non-terminal action)
             observation = {}
             try:
+                if self.agent_trace_service:
+                    self.agent_trace_service.record_step(
+                        component_name="AutonomousLoop",
+                        execution_id=exec_id,
+                        step_number=step_counter,
+                        step_type=StepType.TOOL_CALL,
+                        operation=f"EXECUTE_ACTION_{decision.action.value if hasattr(decision, 'action') else 'ACTION'}",
+                        status=TraceStatus.STARTED,
+                        tool_or_service="ActionExecutor",
+                        input_reference=f"action:{decision.action.value if hasattr(decision, 'action') else 'ACTION'},target:{decision.target or state.current_target}",
+                        correlation_id=corr_id,
+                        mission_id=mission_id,
+                        cycle_id=cycle_id,
+                    )
+                step_counter += 1
+
                 raw_observation = self.action_executor.execute(decision, state)
                 if isinstance(raw_observation, dict):
                     observation = raw_observation
                 else:
                     observation = {"result": raw_observation}
+
+                if self.agent_trace_service:
+                    act_status = TraceStatus.SUCCESS if observation.get("status") != "FAILED" else TraceStatus.FAILED
+                    if observation.get("status") == "UNKNOWN":
+                        act_status = TraceStatus.UNKNOWN
+                    self.agent_trace_service.record_step(
+                        component_name="AutonomousLoop",
+                        execution_id=exec_id,
+                        step_number=step_counter,
+                        step_type=StepType.TOOL_CALL,
+                        operation="ACTION_RESULT_RECEIVED",
+                        status=act_status,
+                        tool_or_service="ActionExecutor",
+                        output_reference=f"obs_keys:{list(observation.keys())[:5]}",
+                        correlation_id=corr_id,
+                        mission_id=mission_id,
+                        cycle_id=cycle_id,
+                    )
+                step_counter += 1
             except Exception as e:
                 error_msg = f"ActionExecutor error at iteration {current_iteration}: {str(e)}"
                 errors.append(error_msg)
                 observation = {"error": str(e), "status": "FAILED"}
+                if self.agent_trace_service:
+                    self.agent_trace_service.record_step(
+                        component_name="AutonomousLoop",
+                        execution_id=exec_id,
+                        step_number=step_counter,
+                        step_type=StepType.FAILURE,
+                        operation="ACTION_EXECUTION_FAILED",
+                        status=TraceStatus.FAILED,
+                        tool_or_service="ActionExecutor",
+                        output_reference=f"error:{str(e)[:64]}",
+                        correlation_id=corr_id,
+                        mission_id=mission_id,
+                        cycle_id=cycle_id,
+                    )
+                    step_counter += 1
                 
                 updated_history = tuple(state.decision_history) + (decision,)
                 updated_observations = tuple(state.observations) + (observation,)
@@ -290,6 +416,23 @@ class AutonomousLoop:
                 timestamp=datetime.now(timezone.utc),
                 score=trace_score
             ))
+
+        if self.agent_trace_service:
+            trace_final_status = TraceStatus.SUCCESS if final_status in ("COMPLETED", "CONVERGED") else TraceStatus.FAILED
+            if final_status == "REJECTED":
+                trace_final_status = TraceStatus.SUCCESS
+            self.agent_trace_service.complete_execution(
+                component_name="AutonomousLoop",
+                execution_id=exec_id,
+                step_number=step_counter,
+                operation=f"TERMINATION_{termination_reason}",
+                mission_id=mission_id,
+                cycle_id=cycle_id,
+                correlation_id=corr_id,
+                output_reference=f"status:{final_status},iterations:{state.iteration}",
+                status=trace_final_status,
+                metadata={"termination_reason": termination_reason, "errors_count": len(errors)},
+            )
 
         return LoopResult(
             status=final_status,

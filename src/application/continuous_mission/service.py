@@ -40,6 +40,8 @@ from src.domain.continuous_mission.ports import (
     CycleExecutorPort,
 )
 from src.application.continuous_mission.cycle_executor_adapter import StandardCycleExecutorAdapter
+from src.domain.agent_trace.models import StepType, TraceStatus
+from src.application.agent_trace.agent_trace_service import AgentTraceService
 
 logger = logging.getLogger(__name__)
 
@@ -56,11 +58,13 @@ class ContinuousMissionService(MissionTriggerPort):
         cycle_executor: Optional[CycleExecutorPort] = None,
         scheduler_service: Optional[SchedulerService] = None,
         clock: Optional[Clock] = None,
+        agent_trace_service: Optional[AgentTraceService] = None,
     ):
         self.repository = repository
         self.cycle_executor = cycle_executor or StandardCycleExecutorAdapter()
         self.scheduler_service = scheduler_service
         self.clock = clock or SystemClock()
+        self.agent_trace_service = agent_trace_service
 
     def create_continuous_mission(
         self,
@@ -307,8 +311,42 @@ class ContinuousMissionService(MissionTriggerPort):
         self.repository.save_cycle(initial_cycle)
 
         # Delegar ejecución al adapter de ciclos
+        exec_id = f"exec-cmc-{initial_cycle.cycle_id}"
+        if self.agent_trace_service:
+            self.agent_trace_service.start_execution(
+                component_name="ContinuousMissionService",
+                execution_id=exec_id,
+                mission_id=cm.continuous_mission_id,
+                cycle_id=initial_cycle.cycle_id,
+                correlation_id=cm.correlation_id,
+                input_reference=f"cycle_number:{initial_cycle.cycle_number},schedule_id:{cm.schedule_id}",
+                metadata={"continuous_mission_id": cm.continuous_mission_id}
+            )
+
         cycle_status, mission_id, summary, error_msg = self.cycle_executor.execute_cycle(cm, initial_cycle)
         completed_time = self.clock.now()
+
+        if self.agent_trace_service:
+            if cycle_status == ContinuousCycleStatus.SUCCESS:
+                cm_trace_status = TraceStatus.SUCCESS
+            elif cycle_status == ContinuousCycleStatus.UNKNOWN:
+                cm_trace_status = TraceStatus.UNKNOWN
+            elif cycle_status == ContinuousCycleStatus.SKIPPED:
+                cm_trace_status = TraceStatus.SKIPPED
+            else:
+                cm_trace_status = TraceStatus.FAILED
+            self.agent_trace_service.complete_execution(
+                component_name="ContinuousMissionService",
+                execution_id=exec_id,
+                step_number=10,
+                operation="CYCLE_EXECUTION_COMPLETED",
+                mission_id=cm.continuous_mission_id,
+                cycle_id=initial_cycle.cycle_id,
+                correlation_id=cm.correlation_id,
+                output_reference=f"status:{cycle_status.value},mission_id:{mission_id or ''}",
+                status=cm_trace_status,
+                metadata={"error_message": error_msg or ""}
+            )
 
         completed_cycle = ContinuousMissionCycle(
             cycle_id=initial_cycle.cycle_id,

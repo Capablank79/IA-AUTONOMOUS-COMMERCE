@@ -10,6 +10,8 @@ from src.domain.market_intelligence.services import (
 )
 from src.domain.opportunity.engine import OpportunityEngine
 from src.application.mappers.supplier_financial_mapper import SupplierFinancialMapper
+from src.domain.agent_trace.models import StepType, TraceStatus
+from src.application.agent_trace.agent_trace_service import AgentTraceService
 
 class BasicMissionOrchestrator(MissionOrchestrator):
     """
@@ -28,7 +30,8 @@ class BasicMissionOrchestrator(MissionOrchestrator):
         profit_engine=None,
         opportunity_engine=None,
         market_evidence_composer=None,
-        demand_intelligence=None
+        demand_intelligence=None,
+        agent_trace_service: Optional[AgentTraceService] = None,
     ):
         self.repository = repository
         self.product_hunter = product_hunter
@@ -40,6 +43,7 @@ class BasicMissionOrchestrator(MissionOrchestrator):
         self.opportunity_engine = opportunity_engine or OpportunityEngine()
         self.market_evidence_composer = market_evidence_composer or MarketEvidenceComposer()
         self.demand_intelligence = demand_intelligence or DemandIntelligenceService()
+        self.agent_trace_service = agent_trace_service
 
     def submit(self, mission: Mission) -> None:
         """
@@ -53,6 +57,17 @@ class BasicMissionOrchestrator(MissionOrchestrator):
         mission = self.repository.get_by_id(mission_id)
         if not mission:
             return
+
+        exec_id = f"exec-orch-{mission_id}"
+        if self.agent_trace_service:
+            self.agent_trace_service.start_execution(
+                component_name="BasicMissionOrchestrator",
+                execution_id=exec_id,
+                mission_id=mission_id,
+                correlation_id=f"mission-{mission_id}",
+                input_reference=f"type:{mission.type.value if hasattr(mission.type, 'value') else str(mission.type)}",
+                metadata={"priority": mission.priority.value if hasattr(mission.priority, "value") else str(mission.priority)}
+            )
 
         # Transición a RUNNING
         mission = self._update_status(mission, MissionStatus.RUNNING)
@@ -72,6 +87,19 @@ class BasicMissionOrchestrator(MissionOrchestrator):
             self.repository.save_result(result)
             self._update_status(mission, final_status)
 
+            if self.agent_trace_service:
+                self.agent_trace_service.complete_execution(
+                    component_name="BasicMissionOrchestrator",
+                    execution_id=exec_id,
+                    step_number=10,
+                    operation="MISSION_EXECUTION_COMPLETED",
+                    mission_id=mission_id,
+                    correlation_id=f"mission-{mission_id}",
+                    output_reference=f"status:{final_status.value}",
+                    status=TraceStatus.SUCCESS,
+                    metadata={"blocks_count": len(result.blocks), "evidences_count": len(result.evidences)}
+                )
+
         except Exception as e:
             error_result = MissionResult(
                 mission_id=mission_id,
@@ -81,6 +109,19 @@ class BasicMissionOrchestrator(MissionOrchestrator):
             )
             self.repository.save_result(error_result)
             self._update_status(mission, MissionStatus.FAILED)
+
+            if self.agent_trace_service:
+                self.agent_trace_service.complete_execution(
+                    component_name="BasicMissionOrchestrator",
+                    execution_id=exec_id,
+                    step_number=10,
+                    operation="MISSION_EXECUTION_FAILED",
+                    mission_id=mission_id,
+                    correlation_id=f"mission-{mission_id}",
+                    output_reference=f"error:{str(e)[:64]}",
+                    status=TraceStatus.FAILED,
+                    metadata={"error": str(e)[:128]}
+                )
 
     def _run_market_discovery(self, mission: Mission) -> MissionResult:
         """

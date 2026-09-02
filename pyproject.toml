@@ -18,7 +18,7 @@ dev = [
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-v --basetemp=.pytest_tmp -p no:cacheprovider"
+addopts = "-v --basetemp=.runtime/pytest -p no:cacheprovider"
 testpaths = [
     "tests",
 ]
