@@ -406,8 +406,14 @@ def test_n_equal_timestamp_deterministic_order(audit_repo):
 def test_o_append_only(audit_service):
     # Un cambio de estado genera un nuevo registro, no muta el anterior
     m_id = "mis-append-test"
-    r1 = audit_service.record_mission_state_changed(m_id, MissionStatus.PENDING, MissionStatus.RUNNING)
-    r2 = audit_service.record_mission_state_changed(m_id, MissionStatus.RUNNING, MissionStatus.COMPLETED)
+    started_at = datetime(2026, 9, 1, 10, 0, 0, tzinfo=timezone.utc)
+    completed_at = started_at + timedelta(microseconds=1)
+    r1 = audit_service.record_mission_state_changed(
+        m_id, MissionStatus.PENDING, MissionStatus.RUNNING, occurred_at=started_at
+    )
+    r2 = audit_service.record_mission_state_changed(
+        m_id, MissionStatus.RUNNING, MissionStatus.COMPLETED, occurred_at=completed_at
+    )
 
     timeline = audit_service.reconstruct_mission_audit(m_id)
     assert len(timeline.records) == 2
