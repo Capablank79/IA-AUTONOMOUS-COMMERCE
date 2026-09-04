@@ -38,7 +38,7 @@
 | J | Continuous Autonomy | P1 | ⚪ PENDIENTE | ⚪ GATE I |
 | K | Observability / Evaluation / Reliability | P0 transversal | 🟡 EN PROGRESO | ⚪ GATE J |
 | L | Data Quality / Governance | P0 transversal | 🟡 EN PROGRESO | ⚪ GATE K |
-| M | Cost / Inference | P1 transversal | ⚪ PENDIENTE | ⚪ GATE L |
+| M | Cost / Inference | P1 transversal | 🟢 VALIDADA | 🟢 GATE L |
 | N | Security / Governance / Safety | P0 transversal | 🟡 EN PROGRESO | ⚪ GATE M |
 | O | SaaS / Platformization | P2 | ⚪ PENDIENTE | ⚪ GATE N |
 | P | Production / Operations | P2 | ⚪ PENDIENTE | ⚪ GATE O |
@@ -454,20 +454,20 @@ Demostración de No Falsa Certeza (Zero False Certainty):
 
 # 15. Transversal M — Control de Coste e Inferencia
 
-**Estado: ⚪ PENDIENTE**
+**Estado: 🟢 COMPLETO / VALIDADA**
 
-| ID | Task | Estado |
-|---|---|---|
-| M.1 | Model Routing Strategy | ⚪ |
-| M.2 | Context Budgeting | ⚪ |
-| M.3 | Prompt Compression | ⚪ |
-| M.4 | Caching | ⚪ |
-| M.5 | Model Selection by Task | ⚪ |
-| M.6 | Cost-aware Decision Policy | ⚪ |
+| ID | Task | Estado | Criterio de validación | Evidencia / Tests |
+|---|---|---|---|---|
+| M.1 | Model Routing Strategy | 🟢 VALIDADA | Estrategia de enrutamiento determinista y estructurada (`DeterministicModelRoutingStrategy`) basada en modelos inmutables (`ModelRoute`, `RoutingRequest`, `RoutingDecision`, `RoutingPolicy`), filtrado por estado de salud (`AVAILABLE`, `DEGRADED`, `UNAVAILABLE`, `UNKNOWN`), capacidades técnicas (`TOOL_USE`, `STRUCTURED_OUTPUT`, `VISION`, `LONG_CONTEXT`, `REASONING`, `JSON_MODE`), criticidad/calidad requerida, latencia, techo de coste y desempate determinista lexicográfico por `route_id`. Integración no destructiva con `OmniRouteDecisionProvider`, deduplicación de razones de exclusión, preservación de incertidumbre y sanitización estricta de secretos/CoT. | `src/domain/model_routing/`, `src/application/model_routing/`, `src/infrastructure/llm/omniroute_decision_provider.py`, `tests/unit/test_m1_model_routing_strategy_unit.py` (14 passed), `tests/integration/test_m1_model_routing_strategy_integration.py` (8 passed) |
+| M.2 | Context Budgeting | 🟢 VALIDADA | Presupuesto y evaluación determinista de capacidad de contexto (`ContextBudgetService`, `DeterministicTokenEstimator`) sobre modelos inmutables (`ContextBudgetRequest`, `ContextBudgetDecision`, `ContextBudgetPolicy`, `InputTokensBreakdown`), integración con rutas M.1 (`context_window`), aritmética canónica entera (`available_input = context_window - reserved_output - safety_margin`), protección estricta de reserva de salida y margen de seguridad, preservación de `UNKNOWN` ante capacidades no declaradas, desborde explícito (`OVER_BUDGET`) sin truncamiento ni compresión silenciosa, y sanitización estricta de secretos. | `src/domain/context_budget/`, `src/application/context_budget/`, `tests/unit/test_m2_context_budgeting_unit.py` (14 passed), `tests/integration/test_m2_context_budgeting_integration.py` (7 passed) |
+| M.3 | Prompt Compression | 🟢 VALIDADA | Compresión determinista de prompt y contexto (`DeterministicPromptCompressor`) basada en prioridades inmutables (`PROTECTED`, `HIGH_PRIORITY`, `NORMAL`, `LOW_PRIORITY`, `REMOVABLE`), preservación estricta de componentes críticos (instrucciones del sistema, entrada de usuario y esquemas de tools), pipeline secuencial determinista (deduplicación exacta de contenido, compactación estructurada de JSON, poda de historial más antiguo, limitación de evidencia opcional), reporte auditable de tokens ahorrados y breakdown, checksum SHA-256 canónico y retorno explícito de `CANNOT_COMPRESS` sin truncamiento destructivo. | `src/domain/prompt_compression/`, `src/application/prompt_compression/`, `tests/unit/test_m3_prompt_compression_unit.py` (11 passed), `tests/integration/test_m3_prompt_compression_integration.py` (4 passed) |
+| M.4 | Caching | 🟢 VALIDADA | Sistema determinista de caché de inferencias (`InferenceCacheService`, `InMemoryCacheRepository`, `JsonCacheRepository`) con generación de clave canónica `CacheKey` (SHA-256 de payload normalizado, route/model_id, tool schemas, params y versionado de política), seguridad semántica sin *false HITs*, expiración estricta por TTL desacoplada vía `ClockPort` (K.7), bloqueo total de almacenamiento para estados `ERROR`, `UNKNOWN`, denegaciones de política o efectos secundarios (`has_side_effects`), sanitización recursiva de secretos y aislamiento multi-tenant por `security_context_id`, persistencia atómica crash-safe con verificación de integridad por checksum SHA-256 y concurrencia segura con `threading.RLock`. | `src/domain/caching/`, `src/application/caching/`, `src/infrastructure/persistence/data/in_memory/cache_repository.py`, `src/infrastructure/persistence/data/json/cache_repository.py`, `tests/unit/test_m4_caching_unit.py` (14 passed), `tests/integration/test_m4_caching_integration.py` (9 passed) |
+| M.5 | Model Selection by Task | 🟢 VALIDADA | Selección y parametrización declarativa de requerimientos de modelo por tipo de tarea (`ModelSelectionByTaskService`, `TaskModelProfile`, `TaskSelectionRequirements`, `TaskSelectionPolicy`, `StandardTaskType`) transformando el tipo de tarea y contexto en requerimientos técnicos para M.1 (`RoutingRequest`). Taxonomía basada en misiones reales del sistema (`MARKET_DISCOVERY`, `SUPPLIER_SEARCH`, `PROFIT_EVALUATION`, `CAPITAL_ALLOCATION`, `COMMERCIAL_REASONING`, `VISION_ANALYSIS`, `TOOL_EXECUTION_PLANNING`, etc.), mapeo determinista de complejidad (`LOW`, `MEDIUM`, `HIGH`, `UNKNOWN`), criticidad, capacidades técnicas (`TOOL_USE`, `STRUCTURED_OUTPUT`, `VISION`, etc.), calidad mínima y latencia, preservación estricta de incertidumbre (`UNKNOWN_TASK` / `NO_PROFILE` sin asignar modelo arbitrario por defecto), sin optimización económica invasiva (reserva para M.6), sanitización estricta de credenciales/secretos y exclusión de CoT, integración fluida en pipeline M.5 → M.1 → M.2 → M.3 → M.4. | `src/domain/model_selection/`, `src/application/model_selection/`, `tests/unit/test_m5_model_selection_by_task_unit.py` (15 passed), `tests/integration/test_m5_model_selection_by_task_integration.py` (8 passed); regresión completa: 1514 passed, 1 skipped |
+| M.6 | Cost-aware Decision Policy | 🟢 VALIDADA | Política de decisión de inferencia consciente de costes (`CostAwareDecisionService`, `CostAwarePolicy`, `CostAwareRequest`, `CostAwareDecision`) respondiendo a: "¿Entre opciones técnicamente válidas, qué decisión cumple la política de coste sin violar calidad, capacidad o criticidad?". Principio *Quality First* estricto (capacidades y calidad mínima antes de coste), precisión monetaria absoluta con `Decimal` (cero floats), semántica rigurosa de incertidumbre (`UNKNOWN != FREE`), integración de omisión de inferencia por Cache HIT (M.4) con coste incremental 0.00, cálculo de coste sobre tokens finales post-compresión (M.3) y contexto M.2, vinculación no destructiva con el catálogo y registros de costes medidos en K.3 (`CostRecord`), desempate determinista por `route_id`, inmutabilidad estricta y sanitización de credenciales/secretos excluyendo CoT. | `src/domain/cost_aware_policy/`, `src/application/cost_aware_policy/`, `tests/unit/test_m6_cost_aware_decision_policy_unit.py` (15 passed), `tests/integration/test_m6_cost_aware_decision_policy_integration.py` (7 passed); regresión completa: 1536 passed, 1 skipped |
 
 ### GATE L
 
-⚪ PENDIENTE.
+🟢 PASSED — Validación formal E2E ejecutada: misión comercial completa con selección M.5/M.1, presupuesto M.2, compresión M.3, caché M.4, política económica M.6 y coste real K.3 trazable. Evidencia: `tests/integration/test_gate_l_hito_m_e2e.py` (7 passed), regresión M.1–M.6 + K.3 (160 passed), regresión completa (1543 passed, 1 skipped), `GATE_L_HITO_M_VALIDATION_REPORT.md`.
 
 ---
 

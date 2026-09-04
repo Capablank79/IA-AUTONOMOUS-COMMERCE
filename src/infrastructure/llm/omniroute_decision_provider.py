@@ -1,11 +1,12 @@
 import json
 import socket
-from typing import Optional
+from typing import Optional, Union
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from src.domain.mission.models import LoopState, LoopDecision
 from src.domain.mission.ports import DecisionProvider
+from src.domain.model_routing.models import ModelRoute, RoutingDecision
 from src.infrastructure.llm.config import OmniRouteConfig
 from src.infrastructure.llm.exceptions import (
     OmniRouteConnectionError,
@@ -24,8 +25,29 @@ class OmniRouteDecisionProvider(DecisionProvider):
     a OmniRoute (o cualquier gateway OpenAI-compatible).
     """
 
-    def __init__(self, config: Optional[OmniRouteConfig] = None):
-        self.config = config or OmniRouteConfig()
+    def __init__(
+        self,
+        config: Optional[OmniRouteConfig] = None,
+        route: Optional[Union[ModelRoute, RoutingDecision]] = None,
+    ):
+        if route is not None:
+            # Reusar o extraer la ruta seleccionada de M.1 sin alterar el gateway
+            selected = route.selected_route if isinstance(route, RoutingDecision) else route
+            if selected is not None:
+                base_cfg = config or OmniRouteConfig()
+                self.config = OmniRouteConfig(
+                    base_url=base_cfg.base_url,
+                    api_key=base_cfg.api_key,
+                    model=selected.model_id,
+                    timeout=base_cfg.timeout,
+                )
+                self.active_route: Optional[ModelRoute] = selected
+            else:
+                self.config = config or OmniRouteConfig()
+                self.active_route = None
+        else:
+            self.config = config or OmniRouteConfig()
+            self.active_route = None
 
     def decide(self, state: LoopState) -> LoopDecision:
         user_prompt = build_user_prompt(state)
