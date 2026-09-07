@@ -1001,9 +1001,10 @@ STOP TOOL
 STOP TENANT
 ```
 
-### GATE M
+### GATE M (🟢 PASSED — 2026-09-07)
 
 Ninguna acción financiera o externa de alto impacto puede ejecutarse sin cumplir la política correspondiente.
+Demostrado formalmente de extremo a extremo en suite E2E (`test_gate_m_hito_n_e2e.py` - 14 escenarios canónicos N.1 a N.11, 1837 passed, 1 skipped, 0 failures).
 
 ---
 

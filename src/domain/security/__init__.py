@@ -17,6 +17,35 @@ from .ports import (
     SecurityCheckPort,
     SecurityCheckServicePort,
 )
+from .sensitive_data_models import (
+    DataClassification,
+    SensitiveCategory,
+    DataHandlingPurpose,
+    PersistenceHandlingMode,
+    CacheHandlingMode,
+    DataHandlingReasonCode,
+    SensitiveFieldDescriptor,
+    SensitiveDataClassification,
+    DataHandlingPolicy,
+    DataHandlingRequest,
+    RedactionResult,
+    DataHandlingDecision,
+    mask_email,
+    mask_phone,
+    mask_rut_dni,
+    mask_credit_card,
+    compute_deterministic_fingerprint,
+)
+from .sensitive_data_ports import (
+    SensitiveDataClassifierPort,
+    SensitiveDataRedactorPort,
+    DataHandlingPolicyRepositoryPort,
+    SensitiveDataHandlingServicePort,
+)
+from .sensitive_data_engine import (
+    DeterministicSensitiveDataClassifier,
+    DeterministicSensitiveDataRedactor,
+)
 
 __all__ = [
     "SecurityCheckStatus",
@@ -30,4 +59,27 @@ __all__ = [
     "validate_safe_identifier",
     "SecurityCheckPort",
     "SecurityCheckServicePort",
+    "DataClassification",
+    "SensitiveCategory",
+    "DataHandlingPurpose",
+    "PersistenceHandlingMode",
+    "CacheHandlingMode",
+    "DataHandlingReasonCode",
+    "SensitiveFieldDescriptor",
+    "SensitiveDataClassification",
+    "DataHandlingPolicy",
+    "DataHandlingRequest",
+    "RedactionResult",
+    "DataHandlingDecision",
+    "mask_email",
+    "mask_phone",
+    "mask_rut_dni",
+    "mask_credit_card",
+    "compute_deterministic_fingerprint",
+    "SensitiveDataClassifierPort",
+    "SensitiveDataRedactorPort",
+    "DataHandlingPolicyRepositoryPort",
+    "SensitiveDataHandlingServicePort",
+    "DeterministicSensitiveDataClassifier",
+    "DeterministicSensitiveDataRedactor",
 ]
