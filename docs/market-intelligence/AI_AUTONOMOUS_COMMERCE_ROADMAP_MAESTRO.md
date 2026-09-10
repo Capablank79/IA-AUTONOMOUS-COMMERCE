@@ -1010,24 +1010,26 @@ Demostrado formalmente de extremo a extremo en suite E2E (`test_gate_m_hito_n_e2
 
 # 16. FASE 15 — SaaS / PLATFORMIZATION
 
+**Estado: 🟢 VALIDADA (2026-09-10 — Gate N PASSED).**
+
 **Prioridad: P2**
 
 No iniciar esta fase antes de demostrar el núcleo comercial.
 
 ## TASK 15.1
-Tenant Isolation.
+Tenant Isolation. 🟢 VALIDADA
 
 ## TASK 15.2
-Organizations / Users.
+Organizations / Users. 🟢 VALIDADA
 
 ## TASK 15.3
-Authentication.
+Authentication. 🟢 VALIDADA
 
 ## TASK 15.4
-Authorization.
+Authorization. 🟢 VALIDADA
 
 ## TASK 15.5
-Model Gateway.
+Model Gateway. 🟢 VALIDADA
 
 Soportar conceptualmente:
 
@@ -1041,30 +1043,32 @@ BYO Key
 ```
 
 ## TASK 15.6
-Usage Metering.
+Usage Metering. 🟢 VALIDADA
 
 ## TASK 15.7
-Quota Management.
+Quota Management. 🟢 VALIDADA
 
 ## TASK 15.8
-Plans.
+Plans. 🟢 VALIDADA
 
 ## TASK 15.9
-Billing.
+Billing. 🟢 VALIDADA
 
 ## TASK 15.10
-Admin Console.
+Admin Console. 🟢 VALIDADA
 
 ## TASK 15.11
-Tenant-level Configuration.
+Tenant-level Configuration. 🟢 VALIDADA
 
 ## TASK 15.12
-Observability.
+Observability. 🟢 VALIDADA
 
 ## TASK 15.13
-Deployment Automation.
+Deployment Automation. 🟢 VALIDADA
 
 ### GATE N
+
+🟢 PASSED (2026-09-10 — 16 escenarios E2E canónicos, 2215 tests pass, 1 skipped, 0 failures, deploy_validate 5/5).
 
 Un segundo usuario/tenant puede operar el sistema sin compartir estado, secretos, memoria ni permisos con otro tenant.
 

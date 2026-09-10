@@ -40,7 +40,7 @@
 | L | Data Quality / Governance | P0 transversal | 🟡 EN PROGRESO | ⚪ GATE K |
 | M | Cost / Inference | P1 transversal | 🟢 VALIDADA | 🟢 GATE L |
 | N | Security / Governance / Safety | P0 transversal | 🟡 EN PROGRESO | ⚪ GATE M |
-| O | SaaS / Platformization | P2 | ⚪ PENDIENTE | ⚪ GATE N |
+| O | SaaS / Platformization | P2 | 🟢 VALIDADA | 🟢 GATE N |
 | P | Production / Operations | P2 | ⚪ PENDIENTE | ⚪ GATE O |
 | Q | Business Intelligence | P2 | ⚪ PENDIENTE | ⚪ GATE — |
 | R | Advanced Autonomy | P3 | ⚪ PENDIENTE | ⚪ GATE P |
@@ -67,7 +67,7 @@ Los bloques son secuenciales/relativos y no representan fechas calendario rígid
 | I | Learning Loop | | | | | | | █ | ⚪ |
 | J | Continuous Autonomy | | | | | | | █ | ⚪ |
 | K–N | Transversales: reliability/data/cost/security | → | → | → | → | → | → | → | 🟡 |
-| O | SaaS / Platformization | | | | | | | | ⚪ |
+| O | SaaS / Platformization | | | | | | | | 🟢 |
 | P | Production / Operations | | | | | | | | ⚪ |
 | Q | Business Intelligence | | | | | | | | ⚪ |
 | R | Advanced Autonomy | | | | | | | | ⚪ |
@@ -497,29 +497,27 @@ Demostración de No Falsa Certeza (Zero False Certainty):
 
 # 17. Hito O — SaaS / Platformization
 
-**Estado: ⚪ PENDIENTE**
+**Estado: 🟢 VALIDADA (2026-09-10 — Gate N PASSED)**
 
-No iniciar antes de demostrar el núcleo comercial.
-
-| ID | Task | Estado |
-|---|---|---|
-| O.1 | Tenant Isolation | ⚪ |
-| O.2 | Organizations / Users | ⚪ |
-| O.3 | Authentication | ⚪ |
-| O.4 | Authorization | ⚪ |
-| O.5 | Model Gateway | ⚪ |
-| O.6 | Usage Metering | ⚪ |
-| O.7 | Quota Management | ⚪ |
-| O.8 | Plans | ⚪ |
-| O.9 | Billing | ⚪ |
-| O.10 | Admin Console | ⚪ |
-| O.11 | Tenant-level Configuration | ⚪ |
-| O.12 | Observability | ⚪ |
-| O.13 | Deployment Automation | ⚪ |
+| ID | Task | Estado | Evidencia |
+|---|---|---|---|
+| O.1 | Tenant Isolation | 🟢 VALIDADA | `O1_TENANT_ISOLATION_EXECUTION_REPORT.md` |
+| O.2 | Organizations / Users | 🟢 VALIDADA | `O2_ORGANIZATIONS_USERS_EXECUTION_REPORT.md` |
+| O.3 | Authentication | 🟢 VALIDADA | `O3_AUTHENTICATION_EXECUTION_REPORT.md` |
+| O.4 | Authorization | 🟢 VALIDADA | `O4_AUTHORIZATION_RBAC_EXECUTION_REPORT.md` |
+| O.5 | Model Gateway | 🟢 VALIDADA | `O5_MODEL_GATEWAY_EXECUTION_REPORT.md` |
+| O.6 | Usage Metering | 🟢 VALIDADA | `O6_USAGE_METERING_EXECUTION_REPORT.md` |
+| O.7 | Quota Management | 🟢 VALIDADA | `O7_QUOTA_MANAGEMENT_EXECUTION_REPORT.md` |
+| O.8 | Plans | 🟢 VALIDADA | `O8_PLANS_ENTITLEMENTS_EXECUTION_REPORT.md` |
+| O.9 | Billing | 🟢 VALIDADA | `O9_BILLING_EXECUTION_REPORT.md` |
+| O.10 | Admin Console | 🟢 VALIDADA | `O10_ADMIN_CONSOLE_EXECUTION_REPORT.md` |
+| O.11 | Tenant-level Configuration | 🟢 VALIDADA | `O11_TENANT_CONFIGURATION_EXECUTION_REPORT.md` |
+| O.12 | Observability | 🟢 VALIDADA | `O12_OBSERVABILITY_EXECUTION_REPORT.md` |
+| O.13 | Deployment Automation | 🟢 VALIDADA | `O13_DEPLOYMENT_AUTOMATION_EXECUTION_REPORT.md` |
 
 ### GATE N
 
-⚪ PENDIENTE.
+🟢 PASSED — Validación formal E2E ejecutada: 16 escenarios canónicos de aislamiento multi-tenant demostrados (`test_gate_n_hito_o_e2e.py`), 357 tests O.1–O.13 (integración + unit) passed, 191 transversales (N.1–N.11/M.1–M.6/K/L.5) passed, baseline completa 2215 passed 1 skipped 0 failures, deploy_validate.py 5/5 checks PASSED, NO commit, NO push. `GATE_N_HITO_O_VALIDATION_REPORT.md`.
 
 ---
 
@@ -606,6 +604,7 @@ No iniciar antes de demostrar el núcleo comercial.
 | 2026-08-29 | — | A | 🟢 | 226 tests + E2E LIVE reportado |
 | 2026-08-29 | — | B / Marcha Blanca #1 | 🟢 | 240 tests + Marcha Blanca #1 E2E LIVE Autónoma (8 iteraciones, 8 llamadas LIVE, 0 fallos) |
 | 2026-09-07 | — | Gate M / Hito N (Transversal N) | 🟢 | 1837 tests pass, 1 skipped, 0 failures + E2E Gate M Validation (14 escenarios canónicos) |
+| 2026-09-10 | — | Gate N / Hito O (SaaS/Platformization) | 🟢 | 2215 tests pass, 1 skipped, 0 failures + E2E Gate N Validation (16 escenarios canónicos) + deploy_validate 5/5 |
 
 Actualizar esta tabla cada vez que exista un checkpoint relevante.
 
@@ -629,7 +628,7 @@ Actualizar esta tabla cada vez que exista un checkpoint relevante.
 | K | Data Quality/Governance | ⚪ | | |
 | L | Cost/Inference | ⚪ | | |
 | M | Security/Safety | 🟢 PASSED | 2026-09-07 | E2E Gate M Validation (`test_gate_m_hito_n_e2e.py` - 14 escenarios canónicos PASSED, 1837 passed, 1 skipped, 0 failures) |
-| N | SaaS | ⚪ | | |
+| N | SaaS | 🟢 PASSED | 2026-09-10 | E2E Gate N Validation (`test_gate_n_hito_o_e2e.py` - 16 escenarios, 2215 passed, 1 skipped, 0 failures, deploy_validate 5/5) |
 | O | Production | ⚪ | | |
 | P | Advanced Autonomy | ⚪ | | |
 
@@ -723,6 +722,7 @@ Antes de comenzar cada task, comprobar el estado de esta Gantt y del Roadmap Mae
 - **Hito I.1 — Outcome Tracking (🟢 VALIDADA)**
 - **Hito I.2 — Prediction vs Actual (🟢 VALIDADA)**
 - **Hito N — Transversal N: Security, Governance & Safety (🟢 VALIDADA / GATE M PASSED - N.1 a N.11 + Gate M E2E Validation)**
+- **Hito O — SaaS / Platformization (🟢 VALIDADA / GATE N PASSED - O.1 a O.13 + Gate N E2E Validation)**
 
 **Fases en progreso activo:**
 - Ninguna en progreso activo.

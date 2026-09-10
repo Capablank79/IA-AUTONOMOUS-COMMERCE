@@ -326,7 +326,7 @@ class JsonIdentityRepository(IdentityRepositoryPort):
                         continue
                     entry = json.loads(line)
                     if (
-                        entry.get("provider", "").lower() == norm_provider
+                        (entry.get("provider") or "").lower() == norm_provider
                         and str(entry.get("external_subject_id", "")).strip() == norm_ext_id
                     ):
                         matched_id = entry.get("identity_id")

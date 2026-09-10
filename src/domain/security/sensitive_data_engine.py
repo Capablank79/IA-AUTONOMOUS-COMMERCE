@@ -242,6 +242,16 @@ class DeterministicSensitiveDataRedactor(SensitiveDataRedactorPort):
                         redacted_count += 1
                         continue
 
+                    # Regla 0: Minimización de campos para INFERENCE o MARKETPLACE o TOOL cuando hay required_fields
+                    if purpose in (DataHandlingPurpose.INFERENCE, DataHandlingPurpose.MARKETPLACE_OPERATION, DataHandlingPurpose.ORDER_FULFILLMENT):
+                        if effective_allowed_fields and not _should_allow_field(k_str):
+                            # Campo no necesario para la operación -> eliminar o redactar
+                            if not isinstance(v, (dict, MappingProxyType, list, tuple)):
+                                cleaned_dict[k_str] = "[MINIMIZED_FIELD]"
+                                redacted_paths.append(path)
+                                redacted_count += 1
+                                continue
+
                     # Regla 2: Private prompt context / CoT -> SIEMPRE [REDACTED_COT]
                     is_cot = any(s in k_lower for s in ("chain_of_thought", "reasoning", "reasoning_tokens", "internal_scratchpad"))
                     if is_cot:
@@ -250,10 +260,10 @@ class DeterministicSensitiveDataRedactor(SensitiveDataRedactorPort):
                         redacted_count += 1
                         continue
 
-                    # Regla 3: Propósito LOGGING o AUDIT o CACHE -> Aplicar protecciones estrictas
-                    if purpose in (DataHandlingPurpose.LOGGING, DataHandlingPurpose.AUDIT, DataHandlingPurpose.CACHE):
+                    # Regla 3: Propósito LOGGING o AUDIT o CACHE o INFERENCE -> Aplicar protecciones estrictas de PII y datos de contacto si no son campos requeridos
+                    if purpose in (DataHandlingPurpose.LOGGING, DataHandlingPurpose.AUDIT, DataHandlingPurpose.CACHE, DataHandlingPurpose.INFERENCE):
                         # Si es dato financiero crítico
-                        if any(s in k_lower for s in ("card_number", "pan", "cvv", "bank_account", "iban")):
+                        if any(s in k_lower for s in ("card_number", "credit_card", "creditcard", "pan", "cvv", "bank_account", "iban")):
                             cleaned_dict[k_str] = "[REDACTED_FINANCIAL]"
                             redacted_paths.append(path)
                             redacted_count += 1
@@ -295,16 +305,6 @@ class DeterministicSensitiveDataRedactor(SensitiveDataRedactorPort):
                             redacted_paths.append(path)
                             redacted_count += 1
                             continue
-
-                    # Regla 4: Minimización de campos para INFERENCE o MARKETPLACE o TOOL
-                    if purpose in (DataHandlingPurpose.INFERENCE, DataHandlingPurpose.MARKETPLACE_OPERATION, DataHandlingPurpose.ORDER_FULFILLMENT):
-                        if effective_allowed_fields and not _should_allow_field(k_str):
-                            # Campo no necesario para la operación -> eliminar o redactar
-                            if not isinstance(v, (dict, MappingProxyType, list, tuple)):
-                                cleaned_dict[k_str] = "[MINIMIZED_FIELD]"
-                                redacted_paths.append(path)
-                                redacted_count += 1
-                                continue
 
                     # Procesar recursivamente
                     cleaned_dict[k_str] = _redact_value(v, key_name=k_str, current_path=path)

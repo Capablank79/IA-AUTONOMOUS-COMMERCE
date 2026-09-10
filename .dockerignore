@@ -1,0 +1,43 @@
+# Deterministic .dockerignore for AI Autonomous Commerce Platform (O.13)
+# Exclude git, caches, test artifacts, local environments, and temporary secrets
+
+.git
+.gitignore
+.gitattributes
+.github
+
+# Python caches and artifacts
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.runtime/
+
+# Environment files and secrets (strictly forbidden in image builds)
+.env
+.env.*
+*.local
+*.secret
+*.pem
+*.key
+
+# IDE and Editor configs
+.idea/
+.vscode/
+.trae/
+*.swp
+*.swo
+
+# Temporary data, logs, and docs
+data/
+logs/
+*.log
+docs/
+reports/
+tmp/
+dist/
+build/
+*.egg-info/
