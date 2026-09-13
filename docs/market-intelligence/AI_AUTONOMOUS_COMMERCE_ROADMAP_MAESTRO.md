@@ -1077,12 +1077,13 @@ Un segundo usuario/tenant puede operar el sistema sin compartir estado, secretos
 # 17. FASE 16 — PRODUCTION / OPERATIONS
 
 **Prioridad: P2**
+**Estado: 🟡 EN PROGRESO**
 
 ## TASK 16.1
-CI/CD.
+CI/CD. 🟢 VALIDADA — `.github/workflows/ci.yml` (GitHub Actions): triggers push/PR master + dispatch, Python 3.10, pip desde pyproject, deploy_validate O.13, pytest full, docker build + smoke; permisos `contents: read`; sin secrets; sin deploy productivo. Ver `P1_CI_CD_EXECUTION_REPORT.md`.
 
 ## TASK 16.2
-Environment Separation.
+Environment Separation. 🟢 VALIDADA — Modelo canónico `ApplicationEnvironment` (DEVELOPMENT/STAGING/PRODUCTION/TESTING) reutilizando O.13; single source of truth `APP_ENV` (compat legacy `ENVIRONMENT` con detección de divergencia, default fail-safe production); perfiles `data/{development|staging|production}` con guards cross-env; secret namespaces `dev|staging|prod` validados; production safety (rechaza debug, mock providers, loopback, plaintext secrets); resolucion en `src/infrastructure/deployment/environment_policy.py` integrada al `DeploymentConfigValidator` y `entrypoint`; `deploy_validate.py --environment {development|staging|production}`; CI valida los 3 profiles; tests unit+integration P.2 (27). Ver `P2_ENVIRONMENT_SEPARATION_EXECUTION_REPORT.md`.
 
 ```text
 DEV
@@ -1119,7 +1120,7 @@ Rate-limit Management.
 
 ### GATE O
 
-El sistema puede desplegarse, monitorizarse, recuperarse y actualizarse sin perder estado crítico.
+🟢 PASSED — El sistema puede desplegarse, monitorizarse, recuperarse y actualizarse sin perder estado crítico. Validado formalmente de extremo a extremo en Hito P con 16 escenarios canónicos (`tests/integration/test_gate_o_hito_p_e2e.py`), 2471 tests pasando en suite completa y evidencia real en PostgreSQL.
 
 ---
 

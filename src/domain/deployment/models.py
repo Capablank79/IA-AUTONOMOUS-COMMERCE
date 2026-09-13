@@ -22,6 +22,50 @@ class DeploymentEnvironment(str, Enum):
     TESTING = "testing"
 
 
+# P.2 — Environment Separation: nombre canónico del modelo de entorno de aplicación.
+# Reutiliza el enum existente (O.13) para no duplicar semántica.
+ApplicationEnvironment = DeploymentEnvironment
+
+# Entornos canónicos de ejecución (TESTING queda como entorno de pruebas existente).
+CANONICAL_APPLICATION_ENVIRONMENTS = (
+    ApplicationEnvironment.DEVELOPMENT,
+    ApplicationEnvironment.STAGING,
+    ApplicationEnvironment.PRODUCTION,
+)
+
+# Alias legibles deterministas para normalización de nombres de entorno.
+ENVIRONMENT_NAME_ALIASES = {
+    "dev": ApplicationEnvironment.DEVELOPMENT,
+    "development": ApplicationEnvironment.DEVELOPMENT,
+    "staging": ApplicationEnvironment.STAGING,
+    "stage": ApplicationEnvironment.STAGING,
+    "production": ApplicationEnvironment.PRODUCTION,
+    "prod": ApplicationEnvironment.PRODUCTION,
+    "testing": ApplicationEnvironment.TESTING,
+    "test": ApplicationEnvironment.TESTING,
+}
+
+
+def normalize_environment_name(raw: Any) -> ApplicationEnvironment:
+    """Normaliza un nombre de entorno de forma determinista.
+
+    Acepta solo valores canónicos (y alias explícitos) presentes en
+    ENVIRONMENT_NAME_ALIASES, así como instancias directas de ApplicationEnvironment.
+    Cualquier otra cadena se rechaza (fallo de arranque) en lugar de aceptarse con semántica ambigua.
+    """
+    if isinstance(raw, DeploymentEnvironment):
+        return raw
+    if hasattr(raw, "value") and isinstance(raw.value, str):
+        key = raw.value.strip().lower()
+    else:
+        key = str(raw).strip().lower()
+    env = ENVIRONMENT_NAME_ALIASES.get(key)
+    if env is None:
+        valid = sorted({e.value for e in ENVIRONMENT_NAME_ALIASES.values()})
+        raise ValueError(f"Unknown environment '{raw}'. Must be one of: {valid}")
+    return env
+
+
 class DeploymentConfigError(ValueError):
     """Error al validar la configuración de despliegue."""
     pass

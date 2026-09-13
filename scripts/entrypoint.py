@@ -1,9 +1,12 @@
 """Entrypoint canónico de ejecución de la plataforma (O.13 Deployment Automation).
 
-Pasos secuenciales de arranque:
-1. Validación estricta pre-startup de configuración de runtime (fail-fast si faltan variables críticas, existen secretos o tenant config horneada).
-2. Verificación de permisos y paths de almacenamiento persistente (`DATA_DIR`).
-3. Inicialización del servidor ASGI canónico (uvicorn) en host y puerto configurados.
+Secuencia de arranque (P.2 — Environment Separation):
+1. Resolver el environment (APP_ENV fuente canónica; ENVIRONMENT legacy compat).
+2. Validar la configuración de runtime (fail-fast si entorno desconocido,
+   debug/mocks en producción, cross-env data roots o secret namespaces).
+3. Resolver la configuración efectiva del environment (DeploymentConfig).
+4. Verificar rutas y secretos (DATA_DIR persistente y seguro).
+5. Iniciar la aplicación ASGI.
 """
 
 import os
@@ -23,10 +26,11 @@ from src.infrastructure.web.app import check_storage_writable, create_platform_a
 def main() -> int:
     print("=== [O.13 Deployment Automation] Platform Startup Pre-flight Check ===")
 
-    # 1. Validación de configuración (fail-fast)
+    # 1-3. Resolución del environment + validación de configuración (fail-fast)
     try:
         validator = DeploymentConfigValidator()
         config = validator.validate()
+        print(f"[ENV RESOLVED] environment={config.environment.value} log_level={config.log_level} data_dir='{config.data_dir}'")
         print(f"[PRE-FLIGHT OK] Environment: {config.environment.value}, Host: {config.host}, Port: {config.port}")
     except (DeploymentConfigError, SecretLeakError, HardcodedTenantConfigError, StoragePathSecurityError) as exc:
         print(f"[FATAL CONFIG ERROR] Startup aborted: {exc}", file=sys.stderr)

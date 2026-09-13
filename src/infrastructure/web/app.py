@@ -12,6 +12,7 @@ Proporciona:
 from datetime import datetime, timezone
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -21,8 +22,13 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Route, Mount
 
 from src.domain.deployment.models import DeploymentConfig, DeploymentEnvironment
+from src.domain.reliability.ports import ClockPort
 from src.infrastructure.deployment.config_validator import DeploymentConfigValidator
 from src.infrastructure.web.admin_app import create_admin_app
+from src.infrastructure.persistence.database.config import DatabaseConfig, DatabaseConnectionFactory
+from scripts.db_migrate import check_schema_compatibility
+from src.infrastructure.health.service import HealthCheckService
+from src.domain.health.models import HealthStatus, DependencyClassification
 from src.application.admin_console.admin_console_service import AdminConsoleService
 from src.infrastructure.persistence.data.json.session_repository import JsonSaaSSessionRepository
 from src.infrastructure.persistence.data.json.organization_repository import (
@@ -71,7 +77,9 @@ from src.application.plans.plan_entitlement_service import PlanEntitlementServic
 from src.application.billing.subscription_service import SubscriptionService
 from src.application.tenant_configuration.tenant_configuration_service import TenantConfigurationService
 from src.application.saas_observability.tenant_observability_service import TenantObservabilityService
-from src.domain.reliability.ports import ClockPort
+from src.application.monitoring.production_monitoring_service import ProductionMonitoringService
+from src.infrastructure.persistence.data.json.metric_repository import JsonMetricRepository, InMemoryMetricRepository
+from src.infrastructure.web.monitoring_middleware import ProductionMonitoringMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -200,55 +208,59 @@ def build_default_admin_service(data_dir: Path, clock: Optional[ClockPort] = Non
 def create_platform_app(
     config: Optional[DeploymentConfig] = None,
     admin_service: Optional[AdminConsoleService] = None,
+    health_service: Optional[HealthCheckService] = None,
+    monitoring_service: Optional[ProductionMonitoringService] = None,
 ) -> Starlette:
     """Crea la aplicación Starlette canónica para despliegue de plataforma."""
     if config is None:
         validator = DeploymentConfigValidator()
         config = validator.validate()
 
+    if health_service is None:
+        health_service = HealthCheckService(config=config)
+
+    if monitoring_service is None:
+        metric_repo = JsonMetricRepository(config.data_dir)
+        monitoring_service = ProductionMonitoringService(
+            repository=metric_repo,
+            environment=config.environment,
+        )
+
     async def liveness_probe(request: Request) -> JSONResponse:
         """Endpoint de liveness probe para orquestadores."""
         if not config.liveness_probes_enabled:
             return JSONResponse({"status": "disabled"}, status_code=404)
-        return JSONResponse({
-            "status": "ok",
-            "service": "ai-autonomous-commerce",
-            "version": config.app_version,
-            "environment": config.environment.value,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        result = health_service.check_liveness()
+        # Registrar health projection en monitoring
+        monitoring_service.record_health_check_result(result, environment=config.environment)
+        return JSONResponse(result.to_dict(), status_code=200)
 
     async def readiness_probe(request: Request) -> JSONResponse:
-        """Endpoint de readiness probe con verificación de almacenamiento."""
+        """Endpoint de readiness probe con verificación de almacenamiento y base de datos."""
         if not config.readiness_probes_enabled:
             return JSONResponse({"status": "disabled"}, status_code=404)
 
-        storage_ok = check_storage_writable(config.data_dir)
-        if not storage_ok:
-            return JSONResponse(
-                {
-                    "status": "unhealthy",
-                    "reason": "storage_not_writable",
-                    "data_dir": str(config.data_dir),
-                    "environment": config.environment.value,
-                },
-                status_code=503,
-            )
+        result = health_service.check_readiness()
+        # Registrar health projection en monitoring
+        monitoring_service.record_health_check_result(result, environment=config.environment)
+        return JSONResponse(result.to_dict(), status_code=result.http_status_code)
 
-        return JSONResponse({
-            "status": "ready",
-            "service": "ai-autonomous-commerce",
-            "version": config.app_version,
-            "environment": config.environment.value,
-            "storage_writable": True,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+    async def metrics_endpoint(request: Request) -> JSONResponse:
+        """Endpoint técnico de observabilidad de producción (P.7)."""
+        window_str = request.query_params.get("window_seconds", "300")
+        window_seconds = int(window_str) if window_str.lstrip("-").isdigit() else 300
+        snapshot = monitoring_service.get_snapshot(
+            window=window_seconds,
+            environment=config.environment,
+        )
+        return JSONResponse(snapshot.to_dict(), status_code=200)
 
     routes = [
         Route("/health", liveness_probe, methods=["GET"]),
         Route("/healthz", liveness_probe, methods=["GET"]),
         Route("/ready", readiness_probe, methods=["GET"]),
         Route("/readyz", readiness_probe, methods=["GET"]),
+        Route("/metrics", metrics_endpoint, methods=["GET"]),
     ]
 
     # Si Admin Console está habilitada, montar sus rutas
@@ -262,7 +274,9 @@ def create_platform_app(
                 routes.append(r)
 
     app = Starlette(debug=(config.environment == DeploymentEnvironment.DEVELOPMENT), routes=routes)
+    app.add_middleware(ProductionMonitoringMiddleware, monitoring_service=monitoring_service, environment=config.environment)
     app.state.deployment_config = config
+    app.state.monitoring_service = monitoring_service
     return app
 
 

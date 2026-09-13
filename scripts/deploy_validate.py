@@ -8,6 +8,7 @@ Comprobaciones ejecutadas:
 5. Ejecución de prueba de humo (smoke test) en memoria sin levantar puertos reales.
 """
 
+import argparse
 import os
 import re
 import sys
@@ -20,6 +21,11 @@ if str(project_root) not in sys.path:
 
 from src.domain.deployment.models import DeploymentConfig, DeploymentEnvironment, DeploymentConfigError, SecretLeakError, HardcodedTenantConfigError, StoragePathSecurityError
 from src.infrastructure.deployment.config_validator import DeploymentConfigValidator
+from src.infrastructure.deployment.environment_policy import (
+    ENVIRONMENT_PROFILES,
+    default_data_root,
+    resolve_application_environment,
+)
 from src.infrastructure.web.app import create_platform_app, check_storage_writable
 from starlette.testclient import TestClient
 
@@ -177,10 +183,75 @@ def validate_entrypoint_script() -> bool:
     return True
 
 
-def main() -> int:
+def validate_environment_profile(environment_name: str) -> bool:
+    """Valida un perfil de entorno canónico (P.2) reutilizando O.13.
+
+    No duplica lógica de validación: delega en DeploymentConfigValidator +
+    política de entornos (environment_policy). Acepta aliases de tooling
+    (dev/stage/prod) y normaliza al valor canónico.
+    """
+    try:
+        environment = resolve_application_environment(
+            {"APP_ENV": environment_name}, use_aliases=True
+        )
+    except DeploymentConfigError as exc:
+        print(f"[ERROR] Invalid environment '{environment_name}': {exc}", file=sys.stderr)
+        return False
+
+    profile = ENVIRONMENT_PROFILES[environment]
+    data_root = default_data_root(environment)
+    print(
+        f"Checking environment profile '{environment.value}' "
+        f"(data_root='{data_root}', log_level='{profile.log_level_default}', "
+        f"secret_namespace='{profile.secret_namespace}')..."
+    )
+
+    profile_env = {
+        "APP_ENV": environment.value,
+        "HOST": "0.0.0.0",
+        "PORT": "8080",
+        "DATA_DIR": data_root,
+        "LOG_LEVEL": profile.log_level_default,
+    }
+    try:
+        config = DeploymentConfigValidator(profile_env).validate()
+    except DeploymentConfigError as exc:
+        print(f"[ERROR] Environment profile '{environment.value}' rejected: {exc}", file=sys.stderr)
+        return False
+
+    if config.environment != environment:
+        print(
+            f"[ERROR] Environment mismatch: expected '{environment.value}', "
+            f"got '{config.environment.value}'",
+            file=sys.stderr,
+        )
+        return False
+
+    print(f"[PASS] Environment profile '{environment.value}' validated and safe.")
+    return True
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(
+        description="O.13 Deployment Automation validation suite with environment profile validation."
+    )
+    parser.add_argument(
+        "--environment",
+        default=None,
+        metavar="NAME",
+        help="Validate a single environment profile: development | staging | production "
+             "(aliases dev/stage/prod accepted). Default: run the full O.13 suite.",
+    )
+    args = parser.parse_args(argv)
+
     print("================================================================")
     print("      O.13 DEPLOYMENT AUTOMATION VALIDATION SUITE               ")
     print("================================================================")
+
+    if args.environment:
+        ok = validate_environment_profile(args.environment)
+        print("\n>>> ENVIRONMENT PROFILE VALIDATION " + ("PASSED." if ok else "FAILED.") + " <<<\n")
+        return 0 if ok else 1
 
     root = project_root
     tmp_path = root / ".runtime" / "validation_tmp"

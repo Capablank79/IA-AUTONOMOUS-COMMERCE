@@ -24,6 +24,11 @@ from src.domain.deployment.models import (
     HardcodedTenantConfigError,
     StoragePathSecurityError,
 )
+from src.infrastructure.deployment.environment_policy import (
+    EnvironmentResolutionError,
+    resolve_application_environment,
+    validate_environment_policy,
+)
 
 # Patrones de variables prohibidas que sugieren secretos en texto plano o bypass no autorizado
 FORBIDDEN_SECRET_PATTERNS = [
@@ -62,15 +67,18 @@ class DeploymentConfigValidator:
         self._check_forbidden_secret_vars()
         self._check_forbidden_tenant_vars()
 
-        # 1. ENVIRONMENT
-        env_raw = self._env.get("ENVIRONMENT", "production").strip().lower()
+        # 1. ENVIRONMENT — fuente canónica única (P.2):
+        #    APP_ENV es el single source of truth; ENVIRONMENT se conserva
+        #    solo como compatibilidad legacy. Si ambos divergen → fail-fast.
         try:
-            environment = DeploymentEnvironment(env_raw)
-        except ValueError:
+            environment = resolve_application_environment(self._env)
+        except EnvironmentResolutionError:
+            raise
+        except DeploymentConfigError as exc:
             valid_envs = [e.value for e in DeploymentEnvironment]
             raise DeploymentConfigError(
-                f"Invalid ENVIRONMENT '{env_raw}'. Must be one of: {valid_envs}"
-            )
+                f"Invalid ENVIRONMENT. Must be one of: {valid_envs} ({exc})"
+            ) from exc
 
         # 2. HOST
         host = self._env.get("HOST", "0.0.0.0").strip()
@@ -117,6 +125,12 @@ class DeploymentConfigValidator:
 
         # 8. Verificación de secretos específicos en producción
         self._check_production_secrets(environment)
+
+        # 9. Política de separación de entornos (P.2):
+        #    - production safety (debug, log level, mock providers, hosts)
+        #    - aislamiento de data roots (cross-env guard)
+        #    - aislamiento de secret namespaces (cross-env guard)
+        validate_environment_policy(environment, self._env, data_dir=str(data_dir))
 
         return DeploymentConfig(
             environment=environment,
