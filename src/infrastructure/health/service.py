@@ -119,10 +119,23 @@ class HealthCheckService:
         En producción o si DATABASE_URL/POSTGRES_DB está configurado, la base de datos es CRITICAL.
         """
         # Determinar si PostgreSQL está activo/requerido
+        # Si psycopg no está instalado o si estamos en TESTING/DEVELOPMENT sin configuración explícita inyectada,
+        # la base de datos no bloquea el readiness si no hay conectividad / driver.
+        try:
+            import psycopg
+        except ImportError:
+            psycopg = None
+
+        if psycopg is None and self._db_config is None:
+            return None
+
+        has_explicit_db_env = bool(os.environ.get("DATABASE_URL")) or bool(os.environ.get("POSTGRES_DB"))
+        if self._config.environment in {ApplicationEnvironment.TESTING, ApplicationEnvironment.DEVELOPMENT} and not has_explicit_db_env and self._db_config is None:
+            return None
+
         db_required = (
             self._config.environment in {ApplicationEnvironment.PRODUCTION, ApplicationEnvironment.STAGING}
-            or bool(os.environ.get("DATABASE_URL"))
-            or bool(os.environ.get("POSTGRES_DB"))
+            or has_explicit_db_env
             or (self._db_config is not None)
         )
 

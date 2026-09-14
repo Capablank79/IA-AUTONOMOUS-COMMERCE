@@ -14,12 +14,18 @@ Asegura:
 - Transacciones atómicas y seguridad ante fallos de concurrencia.
 """
 
+from __future__ import annotations
+
 from datetime import datetime, timezone
 import json
 from typing import Any, Dict, List, Optional, TypeVar, Generic
 
-import psycopg
-from psycopg.rows import dict_row
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:
+    psycopg = None
+    dict_row = None
 
 from src.domain.tenant.models import (
     TenantContext,

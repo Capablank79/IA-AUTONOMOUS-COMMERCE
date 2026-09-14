@@ -1127,24 +1127,25 @@ Rate-limit Management.
 # 18. FASE 17 — BUSINESS INTELLIGENCE
 
 **Prioridad: P2**
+**Estado: 🟢 VALIDADA (2026-09-14 — Gate P PASSED)**
 
 ## TASK 17.1
-Opportunity Dashboard.
+Opportunity Dashboard. 🟢 VALIDADA (`Q1_OPPORTUNITY_DASHBOARD_EXECUTION_REPORT.md`)
 
 ## TASK 17.2
-Supplier Dashboard.
+Supplier Dashboard. 🟢 VALIDADA (`Q2_SUPPLIER_DASHBOARD_EXECUTION_REPORT.md`)
 
 ## TASK 17.3
-Profit Dashboard.
+Profit Dashboard. 🟢 VALIDADA (`Q3_PROFIT_DASHBOARD_EXECUTION_REPORT.md`)
 
 ## TASK 17.4
-Mission Dashboard.
+Mission Dashboard. 🟢 VALIDADA (`Q4_MISSION_DASHBOARD_EXECUTION_REPORT.md`)
 
 ## TASK 17.5
-Agent Cost Dashboard.
+Agent Cost Dashboard. 🟢 VALIDADA (`Q5_AGENT_COST_DASHBOARD_EXECUTION_REPORT.md`)
 
 ## TASK 17.6
-Business KPIs.
+Business KPIs. 🟢 VALIDADA (`Q6_BUSINESS_KPIS_EXECUTION_REPORT.md`)
 
 KPIs mínimos:
 
@@ -1160,6 +1161,10 @@ KPIs mínimos:
 - tasa de éxito;
 - tasa de error;
 - tiempo de misión.
+
+### GATE P
+
+🟢 PASSED — La plataforma puede transformar los hechos reales producidos por el sistema autónomo en Business Intelligence confiable, trazable, multi-tenant y accionable, sin inventar datos ni duplicar motores de dominio. Validado de extremo a extremo en `tests/integration/test_gate_p_hito_q_e2e.py` (16 escenarios canónicos, 2602 tests globales passing, 0 fallos). Reporte formal en `GATE_P_HITO_Q_VALIDATION_REPORT.md`.
 
 ---
 

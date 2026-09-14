@@ -81,9 +81,8 @@ class BuggyHandler(EventHandlerPort):
 
 
 @pytest.fixture
-def e2e_store_dir(tmp_path):
-    d = tmp_path / "j5_e2e_store"
-    d.mkdir(parents=True, exist_ok=True)
+def e2e_store_dir(tmp_path_factory):
+    d = tmp_path_factory.mktemp("j5_e2e_store")
     yield d
     if d.exists():
         shutil.rmtree(d, ignore_errors=True)

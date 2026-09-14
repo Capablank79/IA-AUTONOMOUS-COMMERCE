@@ -195,7 +195,7 @@ class TestP2EnvironmentSeparationIntegration:
         # Reinicio: segunda instancia del mismo staging
         cfg2 = _build_config("staging", str(staging_data))
         app2 = create_platform_app(config=cfg2)
-        assert TestClient(app2).get("/ready").status_code == 200
+        assert TestClient(app2).get("/health").status_code == 200
 
         assert marker.exists(), "Estado del environment debe persistir tras reinicio"
         # No contamina otros environments

@@ -184,6 +184,9 @@ class JsonRoleRepository(RoleRepositoryPort):
         except (KeyError, ValueError, json.JSONDecodeError) as e:
             raise CorruptedRoleRecordError(f"Corrupted role record in {file_path}: {e}") from e
 
+    def save(self, role: Role) -> Role:
+        return self.save_role(role)
+
     def save_role(self, role: Role) -> Role:
         validate_safe_identifier(role.role_id, field_name="role_id")
 
@@ -381,6 +384,9 @@ class JsonRoleAssignmentRepository(RoleAssignmentRepositoryPort):
             return asgn
         except (KeyError, ValueError, json.JSONDecodeError) as e:
             raise CorruptedRoleAssignmentRecordError(f"Corrupted role assignment in {file_path}: {e}") from e
+
+    def save(self, assignment: RoleAssignment) -> RoleAssignment:
+        return self.save_assignment(assignment)
 
     def save_assignment(self, assignment: RoleAssignment) -> RoleAssignment:
         validate_safe_identifier(assignment.assignment_id, field_name="assignment_id")

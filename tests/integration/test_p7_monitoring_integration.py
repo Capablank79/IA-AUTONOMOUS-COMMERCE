@@ -92,6 +92,9 @@ class TestP7MonitoringIntegration(unittest.TestCase):
         self.db_config = None
         try:
             self.db_config = DatabaseConfig.from_env()
+            factory = DatabaseConnectionFactory(self.db_config)
+            with factory.create_connection() as conn:
+                pass
         except Exception:
             self.db_config = None
 

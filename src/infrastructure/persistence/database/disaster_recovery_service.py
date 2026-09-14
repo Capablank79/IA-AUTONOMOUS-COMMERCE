@@ -24,7 +24,10 @@ import time
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 import uuid
 
-import psycopg
+try:
+    import psycopg
+except ImportError:
+    psycopg = None
 
 from src.domain.backup.models import (
     BackupError,

@@ -78,6 +78,12 @@ from src.application.billing.subscription_service import SubscriptionService
 from src.application.tenant_configuration.tenant_configuration_service import TenantConfigurationService
 from src.application.saas_observability.tenant_observability_service import TenantObservabilityService
 from src.application.monitoring.production_monitoring_service import ProductionMonitoringService
+from src.application.opportunity_dashboard.opportunity_dashboard_service import OpportunityDashboardService
+from src.infrastructure.persistence.data.json.tenant_opportunity_repository import JsonTenantOpportunityRepository
+from src.application.supplier_dashboard.supplier_dashboard_service import SupplierDashboardService
+from src.infrastructure.persistence.data.json.tenant_supplier_repository import JsonTenantSupplierRepository
+from src.application.profit_dashboard.profit_dashboard_service import ProfitDashboardService
+from src.infrastructure.persistence.data.json.tenant_profit_repository import JsonTenantProfitRepository
 from src.infrastructure.persistence.data.json.metric_repository import JsonMetricRepository, InMemoryMetricRepository
 from src.infrastructure.web.monitoring_middleware import ProductionMonitoringMiddleware
 
@@ -208,6 +214,9 @@ def build_default_admin_service(data_dir: Path, clock: Optional[ClockPort] = Non
 def create_platform_app(
     config: Optional[DeploymentConfig] = None,
     admin_service: Optional[AdminConsoleService] = None,
+    opportunity_dashboard_service: Optional[OpportunityDashboardService] = None,
+    supplier_dashboard_service: Optional[SupplierDashboardService] = None,
+    profit_dashboard_service: Optional[ProfitDashboardService] = None,
     health_service: Optional[HealthCheckService] = None,
     monitoring_service: Optional[ProductionMonitoringService] = None,
 ) -> Starlette:
@@ -224,6 +233,54 @@ def create_platform_app(
         monitoring_service = ProductionMonitoringService(
             repository=metric_repo,
             environment=config.environment,
+        )
+
+    session_repo = JsonSaaSSessionRepository(config.data_dir / "sessions")
+    org_repo = JsonOrganizationRepository(config.data_dir / "organizations")
+    membership_repo = JsonMembershipRepository(config.data_dir / "memberships")
+    role_repo = JsonRoleRepository(config.data_dir / "roles")
+    assignment_repo = JsonRoleAssignmentRepository(config.data_dir / "role_assignments")
+    rbac_svc = RBACService(
+        role_repository=role_repo,
+        assignment_repository=assignment_repo,
+        clock=SystemClock(),
+    )
+    auth_svc = SaaSAuthorizationService(
+        session_repository=session_repo,
+        organization_repository=org_repo,
+        membership_repository=membership_repo,
+        rbac_service=rbac_svc,
+        clock=SystemClock(),
+    )
+
+    if opportunity_dashboard_service is None:
+        opp_repo = JsonTenantOpportunityRepository(config.data_dir)
+        opportunity_dashboard_service = OpportunityDashboardService(
+            repository=opp_repo,
+            authorization_service=auth_svc,
+            session_repository=session_repo,
+        )
+
+    if supplier_dashboard_service is None:
+        supp_repo = JsonTenantSupplierRepository(config.data_dir)
+        opp_repo = JsonTenantOpportunityRepository(config.data_dir)
+        supplier_dashboard_service = SupplierDashboardService(
+            repository=supp_repo,
+            authorization_service=auth_svc,
+            session_repository=session_repo,
+            opportunity_repository=opp_repo,
+        )
+
+    if profit_dashboard_service is None:
+        profit_repo = JsonTenantProfitRepository(config.data_dir)
+        opp_repo = JsonTenantOpportunityRepository(config.data_dir)
+        supp_repo = JsonTenantSupplierRepository(config.data_dir)
+        profit_dashboard_service = ProfitDashboardService(
+            repository=profit_repo,
+            authorization_service=auth_svc,
+            session_repository=session_repo,
+            opportunity_repository=opp_repo,
+            supplier_repository=supp_repo,
         )
 
     async def liveness_probe(request: Request) -> JSONResponse:
@@ -267,7 +324,12 @@ def create_platform_app(
     if config.enable_admin_console:
         if admin_service is None:
             admin_service = build_default_admin_service(config.data_dir)
-        admin_app = create_admin_app(admin_service)
+        admin_app = create_admin_app(
+            service=admin_service,
+            opportunity_dashboard_service=opportunity_dashboard_service,
+            supplier_dashboard_service=supplier_dashboard_service,
+            profit_dashboard_service=profit_dashboard_service,
+        )
         # Importante: Las rutas de admin_app se integran o montan
         for r in admin_app.routes:
             if r.path not in {"/health"}:  # Evitar sobrescribir liveness de plataforma

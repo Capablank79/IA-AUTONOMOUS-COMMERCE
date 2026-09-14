@@ -57,7 +57,7 @@ def sanitize_security_data(val: Any) -> Any:
         cleaned = {}
         for k, v in val.items():
             k_str = str(k).lower()
-            if any(s in k_str for s in SENSITIVE_KEYS) and not isinstance(v, (dict, MappingProxyType, list, tuple)):
+            if any(s in k_str for s in SENSITIVE_KEYS) and not k_str.endswith("_tokens") and not isinstance(v, (dict, MappingProxyType, list, tuple)):
                 cleaned[str(k)] = "[REDACTED]"
             else:
                 cleaned[str(k)] = sanitize_security_data(v)

@@ -21,7 +21,10 @@ import tempfile
 import unittest
 import uuid
 
-import psycopg
+try:
+    import psycopg
+except ImportError:
+    psycopg = None
 
 from src.domain.backup.models import (
     BackupError,

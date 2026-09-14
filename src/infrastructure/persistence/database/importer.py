@@ -11,6 +11,8 @@ Garantías:
 5. Sanitización de logs y errores (sin secretos expuestos).
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -19,7 +21,10 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Union
 
-import psycopg
+try:
+    import psycopg
+except ImportError:
+    psycopg = None
 
 from src.domain.security.models import validate_safe_identifier
 from src.infrastructure.persistence.database.config import (

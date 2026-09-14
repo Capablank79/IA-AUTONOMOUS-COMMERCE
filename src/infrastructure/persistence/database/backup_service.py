@@ -28,7 +28,10 @@ import subprocess
 import time
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
-import psycopg
+try:
+    import psycopg
+except ImportError:
+    psycopg = None
 from alembic.config import Config
 
 from src.domain.backup.models import (

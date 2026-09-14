@@ -5,6 +5,8 @@ Proporciona:
 2. MigrationRunner: Ejecutor transaccional de migraciones con idempotencia y control de versiones.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
@@ -13,8 +15,12 @@ import inspect
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
-import psycopg
-from psycopg import sql
+try:
+    import psycopg
+    from psycopg import sql
+except ImportError:
+    psycopg = None
+    sql = None
 
 from src.infrastructure.persistence.database.config import (
     DatabaseConfig,

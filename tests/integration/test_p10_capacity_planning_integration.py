@@ -37,11 +37,23 @@ from src.domain.capacity_planning.models import (
     ForecastHorizon,
     ResourceDimension,
 )
+from src.domain.reliability.ports import ClockPort
 from src.application.capacity_planning.capacity_planning_service import (
     CapacityPlanningService,
     DefaultCapacityConfiguration,
     ProductionCapacityDataProvider,
 )
+
+
+class FixedClock(ClockPort):
+    def __init__(self, current_time: datetime):
+        self._now = current_time
+
+    def now(self) -> datetime:
+        return self._now
+
+    def sleep(self, seconds: float) -> None:
+        pass
 
 
 class MockIntegratedMetricRepository:
@@ -309,9 +321,11 @@ def test_scenario_h_dev_metrics_do_not_affect_prod_snapshot():
         base_time=now - timedelta(hours=1),
     )
     repo = MockIntegratedMetricRepository(dev_samples + prod_samples)
+    clock = FixedClock(now)
     service = CapacityPlanningService(
         data_provider=ProductionCapacityDataProvider(repo),
         environment=ApplicationEnvironment.PRODUCTION,
+        clock=clock,
     )
     
     snapshot_prod = service.generate_capacity_snapshot()
@@ -339,7 +353,8 @@ def test_scenario_i_tenant_demand_aggregated_safely_without_leak():
         base_time=now - timedelta(hours=1),
     )
     repo = MockIntegratedMetricRepository(tenant_1_samples + tenant_2_samples)
-    service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
+    clock = FixedClock(now)
+    service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo), clock=clock)
     
     snapshot_t1 = service.generate_capacity_snapshot(
         scope=CapacityScope.TENANT,

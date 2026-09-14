@@ -16,7 +16,10 @@ import os
 from pathlib import Path
 import unittest
 
-import psycopg
+try:
+    import psycopg
+except ImportError:
+    psycopg = None
 from alembic.config import Config
 
 from src.domain.tenant.models import TenantContext

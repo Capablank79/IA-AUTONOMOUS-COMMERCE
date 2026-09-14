@@ -9,7 +9,12 @@ Crea todas las tablas persistentes críticas con:
 - Índices deterministas para alto rendimiento y búsqueda tenant-scoped
 """
 
-import psycopg
+from __future__ import annotations
+
+try:
+    import psycopg
+except ImportError:
+    psycopg = None
 
 from src.infrastructure.persistence.database.migrations.runner import Migration
 

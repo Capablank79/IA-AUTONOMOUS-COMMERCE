@@ -7,14 +7,20 @@ Proporciona:
    parámetros, previene fuga de secretos y maneja conexiones de forma segura.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 import os
 import re
 from typing import Any, Dict, Mapping, Optional
 from urllib.parse import parse_qs, quote_plus, unquote, urlsplit, urlunsplit
 
-import psycopg
-from psycopg import conninfo
+try:
+    import psycopg
+    from psycopg import conninfo
+except ImportError:
+    psycopg = None
+    conninfo = None
 
 
 class DatabaseConfigError(ValueError):
@@ -96,18 +102,32 @@ class DatabaseConfig:
 
     def build_conninfo(self) -> str:
         """Construye el string conninfo seguro para ser usado exclusivamente por el driver."""
-        kwargs: Dict[str, Any] = {
-            "host": self.host,
-            "port": self.port,
-            "dbname": self.database,
-            "user": self.user,
-            "password": self.password,
-            "connect_timeout": self.connect_timeout,
-            "application_name": self.application_name,
-        }
+        if conninfo is not None:
+            kwargs: Dict[str, Any] = {
+                "host": self.host,
+                "port": self.port,
+                "dbname": self.database,
+                "user": self.user,
+                "password": self.password,
+                "connect_timeout": self.connect_timeout,
+                "application_name": self.application_name,
+            }
+            if self.sslmode:
+                kwargs["sslmode"] = self.sslmode
+            return conninfo.make_conninfo(**kwargs)
+
+        parts = [
+            f"host='{self.host.replace("'", "\\'")}'",
+            f"port={self.port}",
+            f"dbname='{self.database.replace("'", "\\'")}'",
+            f"user='{self.user.replace("'", "\\'")}'",
+            f"password='{self.password.replace("'", "\\'")}'",
+            f"connect_timeout={self.connect_timeout}",
+            f"application_name='{self.application_name.replace("'", "\\'")}'",
+        ]
         if self.sslmode:
-            kwargs["sslmode"] = self.sslmode
-        return conninfo.make_conninfo(**kwargs)
+            parts.append(f"sslmode='{self.sslmode}'")
+        return " ".join(parts)
 
     def with_database(self, new_database_name: str) -> "DatabaseConfig":
         """Crea una copia inmutable cambiando únicamente el nombre de la base de datos de destino.
@@ -205,11 +225,13 @@ class DatabaseConnectionFactory:
     def config(self) -> DatabaseConfig:
         return self._config
 
-    def create_connection(self, *, autocommit: bool = False) -> psycopg.Connection:
+    def create_connection(self, *, autocommit: bool = False) -> Any:
         """Crea y retorna una nueva conexión real a PostgreSQL.
         
         Si falla, captura el error y lo sanitiza para no filtrar credenciales.
         """
+        if psycopg is None:
+            raise DatabaseConnectionError("psycopg package is not installed.")
         try:
             conn = psycopg.connect(
                 self._config.build_conninfo(),

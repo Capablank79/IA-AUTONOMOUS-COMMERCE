@@ -42,8 +42,8 @@
 | N | Security / Governance / Safety | P0 transversal | 🟡 EN PROGRESO | ⚪ GATE M |
 | O | SaaS / Platformization | P2 | 🟢 VALIDADA | 🟢 GATE N |
 | P | Production / Operations | P2 | 🟢 VALIDADA | 🟢 GATE O |
-| Q | Business Intelligence | P2 | ⚪ PENDIENTE | ⚪ GATE — |
-| R | Advanced Autonomy | P3 | ⚪ PENDIENTE | ⚪ GATE P |
+| Q | Business Intelligence | P2 | 🟢 VALIDADA | 🟢 GATE P |
+| R | Advanced Autonomy | P3 | ⚪ PENDIENTE | ⚪ GATE Q |
 | S | Self-Improving Commerce | P3 | ⚪ PENDIENTE | ⚪ GATE — |
 
 \* El Roadmap Maestro presenta Supplier Intelligence como Fase 03 y Profit + Capital Allocation como Fase 04; el control de esta carta utiliza identificadores funcionales para evitar ambigüedad.
@@ -69,7 +69,7 @@ Los bloques son secuenciales/relativos y no representan fechas calendario rígid
 | K–N | Transversales: reliability/data/cost/security | → | → | → | → | → | → | → | 🟡 |
 | O | SaaS / Platformization | | | | | | | | 🟢 |
 | P | Production / Operations | | | | | | | | ⚪ |
-| Q | Business Intelligence | | | | | | | | ⚪ |
+| Q | Business Intelligence | | | | | | | | 🟢 |
 | R | Advanced Autonomy | | | | | | | | ⚪ |
 | S | Self-Improving Commerce | | | | | | | | ⚪ |
 
@@ -547,16 +547,20 @@ Demostración de No Falsa Certeza (Zero False Certainty):
 
 # 19. Hito Q — Business Intelligence
 
-**Estado: ⚪ PENDIENTE**
+**Estado: 🟢 VALIDADA**
 
-| ID | Task | Estado |
-|---|---|---|
-| Q.1 | Opportunity Dashboard | ⚪ |
-| Q.2 | Supplier Dashboard | ⚪ |
-| Q.3 | Profit Dashboard | ⚪ |
-| Q.4 | Mission Dashboard | ⚪ |
-| Q.5 | Agent Cost Dashboard | ⚪ |
-| Q.6 | Business KPIs | ⚪ |
+| ID | Task | Estado | Reporte / Evidencia |
+|---|---|---|---|
+| Q.1 | Opportunity Dashboard | 🟢 VALIDADA | `Q1_OPPORTUNITY_DASHBOARD_EXECUTION_REPORT.md` |
+| Q.2 | Supplier Dashboard | 🟢 VALIDADA | `Q2_SUPPLIER_DASHBOARD_EXECUTION_REPORT.md` |
+| Q.3 | Profit Dashboard | 🟢 VALIDADA | `Q3_PROFIT_DASHBOARD_EXECUTION_REPORT.md` |
+| Q.4 | Mission Dashboard | 🟢 VALIDADA | `Q4_MISSION_DASHBOARD_EXECUTION_REPORT.md` |
+| Q.5 | Agent Cost Dashboard | 🟢 VALIDADA | `Q5_AGENT_COST_DASHBOARD_EXECUTION_REPORT.md` |
+| Q.6 | Business KPIs | 🟢 VALIDADA | `Q6_BUSINESS_KPIS_EXECUTION_REPORT.md` |
+
+### GATE P
+
+🟢 PASSED — Formal Hito Q Validation. La plataforma transforma los hechos reales producidos por el sistema autónomo en Business Intelligence confiable, trazable, multi-tenant y accionable, sin inventar datos ni duplicar motores de dominio. Validado en `GATE_P_HITO_Q_VALIDATION_REPORT.md` con suite E2E (`tests/integration/test_gate_p_hito_q_e2e.py`), 131 tests en suite BI y 2602 tests pasando en regresión completa.
 
 ---
 
@@ -656,6 +660,11 @@ TRAE debe agregar una entrada por cada task completada:
 | 2026-09-01 | J.1 | Scheduler (Capacidad programable y temporal desacoplada para iniciar misiones existentes mediante `Clock`/`DeterministicClock`, persistencia Hexagonal JSON durable, deduplicación e idempotencia estricta por ocurrencia, preservación de `UNKNOWN`, manejo seguro de fallos y soporte de restart/reload sin implementar lógica de negocio) | 736 passed, 1 skipped (27 específicos: 20 unit + 7 integ/E2E) | Scheduler Integration & E2E Scenarios A-F (`tests/integration/test_j1_scheduler_integration.py`) | 🟢 VALIDADA | `src/domain/scheduling/`, `src/application/scheduling/`, `src/infrastructure/persistence/data/json/schedule_repository.py`, `tests/unit/test_scheduler_service.py`, `tests/integration/test_j1_scheduler_integration.py` |
 | 2026-09-04 | N.2 | Authentication (Modelos canónicos inmutables `AuthenticationMethod/Status/Request/Result/PrincipalContext`, `AuthenticationService` con validación de presencia/expiración/proveedor/binding de sujeto, resolución a Identidad N.1 estable reutilizando OAuth/MercadoLibre e IdentityService, estados `AUTHENTICATED/UNAUTHENTICATED/EXPIRED/INVALID/UNKNOWN/ERROR`, checksum SHA-256 determinista, cero secretos en results/logs/persistencia, actores internos con contrato explícito, auditoría/traza segura K.1/K.2 `AUTHENTICATION_EVALUATED`, frontera estricta sin autorización N.3/RBAC N.4/PolicyEngine) | 1593 passed, 1 skipped, 0 failures (26 específicos N.2: 16 unit + 10 integ/E2E; regresión relevante N.1/K.1/K.2/K.8/OAuth: 122 passed) | N.2 E2E Scenarios A-H (`tests/integration/test_n2_authentication_integration.py`) | 🟢 VALIDADA | `src/domain/authentication/`, `src/application/authentication/`, `src/domain/audit/models.py` (EXTEND `AUTHENTICATION_EVALUATED`), `tests/unit/test_n2_authentication_unit.py`, `tests/integration/test_n2_authentication_integration.py`, `N2_AUTHENTICATION_EXECUTION_REPORT.md` |
 | 2026-09-07 | Gate M / Hito N | Validación E2E Formal y Cierre de Hito N (Transversal N — Security, Governance & Safety) demostrando la cadena ininterrumpida N.1–N.11 en 14 escenarios canónicos: Happy Path, Auth Deny, RBAC/Authz Deny, Tool Deny, Sensitive Data Redaction, Financial Limits, Valid Approval Exception, Missing/Expired Approval, Missing Secret, Emergency Stop Precedence, Compliant Enforcement, Non-compliant Forced Bypass Detection, Cross-correlation Evidence Isolation y Tampering/Corruption Fail-Safe. Cero llamadas físicas en bloqueos, cero leaks de secretos/PII y checksums SHA-256 | 1837 passed, 1 skipped, 0 failures (14 específicos Gate M, 169 unit N.1-N.11) | Gate M E2E Validation (`test_gate_m_hito_n_e2e.py` - 14 escenarios canónicos) | 🟢 VALIDADA | `tests/integration/test_gate_m_hito_n_e2e.py`, `GATE_M_HITO_N_VALIDATION_REPORT.md` |
+| 2026-09-10 | Gate N / Hito O | Validación E2E Formal y Cierre de Hito O (SaaS / Platformization) con aislamiento físico multi-tenant O.1, organizaciones O.2, AuthN/AuthZ O.3/O.4, RBAC SaaS, Billing O.7, Monitoring O.9, Admin Console O.10 y Deployment Automation O.13 | 2215 passed, 1 skipped, 0 failures | Gate N E2E Validation (`test_gate_n_hito_o_e2e.py` - 16 escenarios) | 🟢 VALIDADA | `tests/integration/test_gate_n_hito_o_e2e.py`, `GATE_N_HITO_O_VALIDATION_REPORT.md` |
+| 2026-09-12 | Gate O / Hito P | Validación E2E Formal y Cierre de Hito P (Production Readiness & Resilience) con CI/CD P.1, Environment Separation P.2, Database Migrations P.3 (PostgreSQL), Backups P.4, Disaster Recovery P.5, Health Checks P.6, Monitoring P.7, Log Retention P.8, Rate Limiting P.9, Capacity Planning P.10 | 2507 passed, 2 skipped, 0 failures | Gate O E2E Validation (`test_gate_o_hito_p_e2e.py` - 10 escenarios canónicos) | 🟢 VALIDADA | `tests/integration/test_gate_o_hito_p_e2e.py`, `GATE_O_HITO_P_VALIDATION_REPORT.md` |
+| 2026-09-13 | Q.1 | Opportunity Dashboard (Business Intelligence / Visualización consultiva de oportunidades de mercado, ranking multi-criterio, filtros avanzados, vistas resumen/detalle, ordenación determinista, paginación, preservación de UNKNOWN e integración con O.1/O.4/O.10) | 18 passed (11 unit + 7 integ) | Opportunity Dashboard Integration & REST/HTML (`test_q1_opportunity_dashboard_integration.py`) | 🟢 VALIDADA | `tests/unit/test_q1_opportunity_dashboard_unit.py`, `tests/integration/test_q1_opportunity_dashboard_integration.py`, `Q1_OPPORTUNITY_DASHBOARD_EXECUTION_REPORT.md` |
+| 2026-09-13 | Q.2 | Supplier Dashboard (Business Intelligence / Visualización consultiva y comparativa de proveedores validados, filtros multicriterio, enmascaramiento PII N.9, aislamiento multi-tenant O.1, RBAC O.4, Admin Console O.10, preservación de UNKNOWN != 0 y ordenación determinista) | 18 passed (10 unit + 8 integ) | Supplier Dashboard Integration & REST/HTML (`test_q2_supplier_dashboard_integration.py`) | 🟢 VALIDADA | `tests/unit/test_q2_supplier_dashboard_unit.py`, `tests/integration/test_q2_supplier_dashboard_integration.py`, `Q2_SUPPLIER_DASHBOARD_EXECUTION_REPORT.md` |
+| 2026-09-13 | Q.3 | Profit Dashboard (Business Intelligence / Unit Economics, Margen y Rentabilidad, visualización consultiva de facts financieros reales, semántica honesta UNKNOWN != 0 / UNKNOWN != FREE, aritmética Decimal estricta, aislamiento multi-tenant O.1, RBAC O.4, Admin Console O.10, comparación de variantes y desglose explicable) | 26 passed (15 unit + 11 integ) | Profit Dashboard Integration & REST/HTML (`test_q3_profit_dashboard_integration.py`) | 🟢 VALIDADA | `tests/unit/test_q3_profit_dashboard_unit.py`, `tests/integration/test_q3_profit_dashboard_integration.py`, `Q3_PROFIT_DASHBOARD_EXECUTION_REPORT.md` |
 
 ---
 
@@ -723,12 +732,14 @@ Antes de comenzar cada task, comprobar el estado de esta Gantt y del Roadmap Mae
 - **Hito I.2 — Prediction vs Actual (🟢 VALIDADA)**
 - **Hito N — Transversal N: Security, Governance & Safety (🟢 VALIDADA / GATE M PASSED - N.1 a N.11 + Gate M E2E Validation)**
 - **Hito O — SaaS / Platformization (🟢 VALIDADA / GATE N PASSED - O.1 a O.13 + Gate N E2E Validation)**
+- **Hito P — Production Readiness & Resilience (🟢 VALIDADA / GATE O PASSED - P.1 a P.10 + Gate O E2E Validation)**
+- **Hito Q — Business Intelligence (🟢 VALIDADA / GATE P PASSED - Q.1 a Q.6 + Gate P E2E Validation)**
 
 **Fases en progreso activo:**
-- Ninguna en progreso activo.
+- Ninguna fase en progreso activo.
 
 **Próxima acción:**
-- Con **Hito N y Gate M 🟢 VALIDADOS**, la cadena completa de gobernanza, seguridad, RBAC, límites financieros, aprobaciones, tool policy, manejo de datos sensibles, auditoría/compliance y parada de emergencia queda demostrada de extremo a extremo. La siguiente fase o hito se determinará según el Roadmap Maestro previa confirmación del usuario. NO iniciar Hito O ni tareas posteriores sin autorización explícita.
+- Con **Hito Q 🟢 VALIDADA y Gate P 🟢 PASSED**, la siguiente fase en el Roadmap Maestro es **Hito R — Advanced Autonomy (Task R.1: Multi-step Planning)**. NO iniciar Hito R sin autorización explícita.
 
 ---
 

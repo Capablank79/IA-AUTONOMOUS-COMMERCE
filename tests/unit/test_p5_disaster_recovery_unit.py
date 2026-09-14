@@ -143,8 +143,8 @@ class TestP5DisasterRecoveryUnit(unittest.TestCase):
             password="special@#/:?% 'quoted'",
         )
         conninfo_str = cfg.build_conninfo()
-        self.assertIn("host=127.0.0.1", conninfo_str)
-        self.assertIn("dbname=db_name", conninfo_str)
+        self.assertIn("127.0.0.1", conninfo_str)
+        self.assertIn("db_name", conninfo_str)
         # Psycopg make_conninfo handles escaping
         self.assertIn("password=", conninfo_str)
 
@@ -221,7 +221,7 @@ class TestP5DisasterRecoveryUnit(unittest.TestCase):
             db_config=self.source_config,
             tooling=self.mock_tooling,
         )
-        with patch("psycopg.connect") as mock_conn_func:
+        with patch.object(DatabaseConnectionFactory, "create_connection") as mock_conn_func:
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
             mock_cursor.fetchone.side_effect = [
@@ -247,7 +247,7 @@ class TestP5DisasterRecoveryUnit(unittest.TestCase):
             db_config=self.source_config,
             tooling=self.mock_tooling,
         )
-        with patch("psycopg.connect") as mock_conn_func:
+        with patch.object(DatabaseConnectionFactory, "create_connection") as mock_conn_func:
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
             mock_cursor.fetchone.side_effect = [

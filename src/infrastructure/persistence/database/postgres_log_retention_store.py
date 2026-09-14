@@ -11,7 +11,10 @@ Alineado con:
 from datetime import datetime, timezone
 import logging
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
-import psycopg
+try:
+    import psycopg
+except ImportError:
+    psycopg = None
 
 from src.domain.deployment.models import ApplicationEnvironment, normalize_environment_name
 from src.domain.log_retention.models import (
