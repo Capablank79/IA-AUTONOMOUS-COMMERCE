@@ -51,7 +51,7 @@ class DecisionCalibrationRecord:
     Registro de dominio inmutable para la medición de Calibración de Decisiones (Task I.3).
     Representa métricas agregadas y verificables de calibración de predicciones comparadas
     con outcomes reales observados.
-    
+
     Aislamiento y Reglas de Dominio:
     - Sin dependencias de DB, HTTP, JSON, SQL, SDKs ni APIs externas.
     - Preserva referencias por IDs (decision_id, mission_id, comparison_ids, prediction_ids, outcome_ids).
@@ -65,29 +65,29 @@ class DecisionCalibrationRecord:
     mission_id: Optional[str] = None
     target_metric: str = "general"
     status: CalibrationStatus = CalibrationStatus.UNKNOWN
-    
+
     # Muestras
     total_samples: int = 0
     valid_samples: int = 0
     unknown_excluded_samples: int = 0
     match_count: int = 0
     miss_count: int = 0
-    
+
     # Métricas agregadas
     accuracy: float = 0.0
     error_rate: float = 0.0
     expected_confidence_score: float = 0.0
     brier_score: Optional[float] = None
     calibration_error: float = 0.0
-    
+
     # Bins por nivel de confianza
     confidence_bins: Tuple[ConfidenceBin, ...] = field(default_factory=tuple)
-    
+
     # Trazabilidad / Links
     comparison_ids: Tuple[str, ...] = field(default_factory=tuple)
     prediction_ids: Tuple[str, ...] = field(default_factory=tuple)
     outcome_ids: Tuple[str, ...] = field(default_factory=tuple)
-    
+
     calculated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     correlation_id: str = "default-correlation"
     idempotency_key: str = "default-idempotency"

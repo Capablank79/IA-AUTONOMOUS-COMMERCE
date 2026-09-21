@@ -63,7 +63,7 @@ class HealthCheckService:
 
     def check_liveness(self) -> LivenessResult:
         """Evalúa si el proceso/aplicación está vivo.
-        
+
         Liveness NUNCA depende de bases de datos externas, LLM, Mercado Libre ni redes remotas.
         Es ligera, determinista y responde de inmediato.
         """
@@ -77,7 +77,7 @@ class HealthCheckService:
 
     def check_storage(self, timeout_sec: float = 2.0) -> DependencyCheckResult:
         """Verifica que el almacenamiento persistente configurado esté accesible y sea escribible.
-        
+
         Garantiza creación de sentinel efímero y limpieza (cleanup) inmediata sin dejar residuos.
         """
         start_t = time.perf_counter()
@@ -113,7 +113,7 @@ class HealthCheckService:
 
     def check_database(self, timeout_sec: float = 3.0) -> Optional[DependencyCheckResult]:
         """Verifica la conectividad a PostgreSQL y la compatibilidad del esquema de migraciones (P.3).
-        
+
         No ejecuta migraciones automáticamente.
         Si la base de datos no está configurada y el entorno no es estricto en DB, retorna None.
         En producción o si DATABASE_URL/POSTGRES_DB está configurado, la base de datos es CRITICAL.
@@ -211,7 +211,7 @@ class HealthCheckService:
 
     def check_readiness(self) -> ReadinessResult:
         """Evalúa si la aplicación está lista para recibir y procesar tráfico de producción.
-        
+
         Reglas:
         - Si está en startup o apagándose (shutdown): UNHEALTHY (503).
         - Storage: CRITICAL (UNHEALTHY -> Readiness FAIL).

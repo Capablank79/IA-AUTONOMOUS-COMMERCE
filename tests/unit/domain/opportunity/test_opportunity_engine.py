@@ -66,7 +66,7 @@ def test_engine_with_full_evidence(engine, base_listing_without_sales):
     demand = DemandSignal(score=None, label="OBSERVED_TRAFFIC", confidence=Confidence.UNKNOWN, signal_type=SignalType.DERIVED)
     price = PriceSignal(ratio=Decimal("0.9"), position="UNDER_MARKET")
     trend = TrendSignal(keyword="product", rank=1, matched=True, trend_score=Decimal("0.9"))
-    
+
     evidence = MarketEvidence(
         listing=base_listing_without_sales,
         traffic_signals=[visit],
@@ -75,9 +75,9 @@ def test_engine_with_full_evidence(engine, base_listing_without_sales):
         demand_signals=[demand],
         confidence=Confidence.MEDIUM
     )
-    
+
     decision = engine.evaluate(evidence)
-    
+
     assert isinstance(decision, OpportunityDecision)
     assert decision.opportunity_score is not None
     assert decision.opportunity_score >= Decimal("50.0")
@@ -200,9 +200,9 @@ def test_engine_does_not_mutate_evidence(engine, base_listing_without_sales):
     )
     original_listing = evidence.listing
     original_traffic_count = len(evidence.traffic_signals)
-    
+
     _ = engine.evaluate(evidence)
-    
+
     assert evidence.listing is original_listing
     assert len(evidence.traffic_signals) == original_traffic_count
     assert evidence.traffic_signals[0].total_visits == 150
@@ -229,7 +229,7 @@ def test_deterministic_behavior(engine, base_listing_without_sales):
     evidence = MarketEvidence(listing=base_listing_without_sales)
     decision1 = engine.evaluate(evidence)
     decision2 = engine.evaluate(evidence)
-    
+
     assert decision1 == decision2
 
 def test_compatibility_with_empty_evidence(engine, base_listing_without_sales):

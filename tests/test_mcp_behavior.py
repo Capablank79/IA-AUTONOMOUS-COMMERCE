@@ -46,16 +46,16 @@ def test_get_supplier_with_full_id_behavior():
 
 def test_discover_products_behavior(monkeypatch):
     from commerce_lab.server import discover_products
-    
+
     # Mockear el use case para no hacer llamadas reales a Mercado Libre
     from unittest.mock import MagicMock
     mock_use_case = MagicMock()
     monkeypatch.setattr("commerce_lab.server.discover_products_use_case", mock_use_case)
-    
+
     from src.domain.market_intelligence.models import MarketOpportunity, MarketListing, Marketplace, Money, DemandSignal, PriceSignal, TrendSignal
     from datetime import datetime
     from decimal import Decimal
-    
+
     mock_opp = MarketOpportunity(
         snapshot_id="snap-mock",
         listing=MarketListing(
@@ -81,11 +81,11 @@ def test_discover_products_behavior(monkeypatch):
         opportunity_score=Decimal("111.11"),
         detected_at=datetime.utcnow()
     )
-    
+
     mock_use_case.execute.return_value = [mock_opp]
-    
+
     result = discover_products(query="ssd sata 480gb")
-    
+
     assert isinstance(result, str)
     assert "PRODUCT HUNTER RESULTS: 'ssd sata 480gb'" in result
     assert "Mocked SSD" in result

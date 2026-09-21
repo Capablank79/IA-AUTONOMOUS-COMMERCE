@@ -1,6 +1,6 @@
 # Market Intelligence — GAP Analysis & MVP Specification
 
-**Proyecto:** AI Autonomous Commerce  
+**Proyecto:** AI Autonomous Commerce
 **Estado:** Discovery de Mercado Libre congelado para esta fase.
 
 ## 1. Propósito

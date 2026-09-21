@@ -48,6 +48,7 @@ from src.domain.production_alerting.ports import (
     NotificationPort,
     ProductionAlertRepositoryPort,
 )
+from src.domain.security.models import sanitize_security_data, deep_freeze
 from src.domain.reliability.ports import ClockPort
 from src.domain.tenant.guard import CrossTenantGuard
 from src.domain.tenant.models import TenantContext
@@ -165,7 +166,7 @@ class ProductionAlertingService:
     def __init__(
         self,
         repository: ProductionAlertRepositoryPort,
-        monitoring_service: ProductionMonitoringService,
+        monitoring_service: Optional[ProductionMonitoringService] = None,
         rules: Optional[Sequence[AlertRule]] = None,
         notification_ports: Optional[Sequence[NotificationPort]] = None,
         audit_repository: Optional[AuditRepositoryPort] = None,
@@ -388,7 +389,7 @@ class ProductionAlertingService:
         for dedup_key, rules_group in grouped_rules.items():
             # Evaluar reglas en orden de mayor severidad primero
             sorted_rules = sorted(rules_group, key=lambda r: r.severity.level, reverse=True)
-            
+
             # Buscar el primer trigger de mayor severidad, o el mejor resultado
             highest_triggered_res: Optional[AlertEvaluationResult] = None
             highest_triggered_rule: Optional[AlertRule] = None
@@ -466,10 +467,10 @@ class ProductionAlertingService:
                         )
                         saved = self._repository.save_alert(new_alert)
                         affected_alerts.append(saved)
-                        
+
                         # Actualizar cooldown tracker
                         self._cooldown_tracker[dedup_key] = now + timedelta(seconds=rule.cooldown_seconds)
-                        
+
                         self._audit_event("ALERT_TRIGGERED", saved)
                         self._dispatch_notifications(saved)
 
@@ -639,6 +640,114 @@ class ProductionAlertingService:
             tenant_id=tenant_id,
             limit=limit,
         )
+
+    def raise_or_escalate_alert(
+        self,
+        rule_type: Union[AlertRuleType, str],
+        severity: Union[AlertSeverity, str],
+        summary: str,
+        evidence: Optional[Mapping[str, Any]] = None,
+        target_resource: str = "platform",
+        scope: ProductionAlertScope = ProductionAlertScope.TENANT,
+        tenant_id: Optional[str] = None,
+        environment: Optional[ApplicationEnvironment] = None,
+        cooldown_seconds: int = 300,
+    ) -> ProductionAlertInstance:
+        """
+        Emite o escala directamente una alerta operacional estructurada (P.8).
+        Reutiliza la deduplicación canónica por clave, persistencia, escalación in-place,
+        cooldown determinista y despacho failure-safe de notificaciones.
+        """
+        target_env = resolve_environment(environment) if environment else self._environment
+        now = self._now()
+        r_type = rule_type if isinstance(rule_type, AlertRuleType) else AlertRuleType(rule_type)
+        r_sev = severity if isinstance(severity, AlertSeverity) else AlertSeverity(severity)
+        clean_evidence = dict(deep_freeze(sanitize_security_data(evidence or {})))
+
+        dedup_key = generate_deduplication_key(
+            environment=target_env,
+            scope=scope,
+            rule_type=r_type,
+            target_resource=target_resource,
+            tenant_id=tenant_id,
+        )
+
+        existing_active = self._repository.get_active_alert_by_deduplication_key(
+            environment=target_env,
+            deduplication_key=dedup_key,
+        )
+
+        if existing_active:
+            new_severity = r_sev if r_sev > existing_active.severity else existing_active.severity
+            was_escalated = new_severity > existing_active.severity
+            updated = ProductionAlertInstance(
+                alert_id=existing_active.alert_id,
+                rule_type=existing_active.rule_type,
+                severity=new_severity,
+                state=existing_active.state,
+                environment=existing_active.environment,
+                scope=existing_active.scope,
+                deduplication_key=existing_active.deduplication_key,
+                summary=summary,
+                evidence=clean_evidence,
+                triggered_at=existing_active.triggered_at,
+                updated_at=now,
+                target_resource=existing_active.target_resource,
+                tenant_id=existing_active.tenant_id,
+                acknowledged_at=existing_active.acknowledged_at,
+                acknowledged_by=existing_active.acknowledged_by,
+            )
+            saved = self._repository.save_alert(updated)
+            if was_escalated:
+                self._audit_event("ALERT_ESCALATED", saved, extra_details={"previous_severity": existing_active.severity.value})
+                self._dispatch_notifications(saved)
+            return saved
+
+        # Verificar cooldown antes de disparar nueva alerta
+        cooldown_expiry = self._cooldown_tracker.get(dedup_key)
+        if cooldown_expiry and now < cooldown_expiry:
+            # En cooldown: no crear alerta duplicada, devolver snapshot existente o crear dummy no persistido
+            # pero dado que existing_active es None, actualizamos cooldown y salimos registrando evento
+            logger.info(f"Alert {r_type.value} suppressed by cooldown until {cooldown_expiry.isoformat()}")
+            alert_id = f"alt_{uuid.uuid4().hex[:12]}"
+            suppressed = ProductionAlertInstance(
+                alert_id=alert_id,
+                rule_type=r_type,
+                severity=r_sev,
+                state=AlertState.ACTIVE,
+                environment=target_env,
+                scope=scope,
+                deduplication_key=dedup_key,
+                summary=f"[COOLDOWN] {summary}",
+                evidence=clean_evidence,
+                triggered_at=now,
+                updated_at=now,
+                target_resource=target_resource,
+                tenant_id=tenant_id,
+            )
+            return suppressed
+
+        alert_id = f"alt_{uuid.uuid4().hex[:12]}"
+        new_alert = ProductionAlertInstance(
+            alert_id=alert_id,
+            rule_type=r_type,
+            severity=r_sev,
+            state=AlertState.ACTIVE,
+            environment=target_env,
+            scope=scope,
+            deduplication_key=dedup_key,
+            summary=summary,
+            evidence=clean_evidence,
+            triggered_at=now,
+            updated_at=now,
+            target_resource=target_resource,
+            tenant_id=tenant_id,
+        )
+        saved = self._repository.save_alert(new_alert)
+        self._cooldown_tracker[dedup_key] = now + timedelta(seconds=cooldown_seconds)
+        self._audit_event("ALERT_TRIGGERED", saved)
+        self._dispatch_notifications(saved)
+        return saved
 
     # -------------------------------------------------------------------------
     # Despacho Seguro de Notificaciones (Failure-Safe)

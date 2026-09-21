@@ -1171,17 +1171,18 @@ KPIs mínimos:
 # 19. FASE 18 — ADVANCED AUTONOMY
 
 **Prioridad: P3**
+**Estado: 🟢 VALIDADA (2026-09-17 — Gate P PASSED)**
 
 Solo después de que el sistema básico sea estable.
 
 ## TASK 18.1
-Multi-step Planning.
+Multi-step Planning. 🟢 VALIDADA (`R1_MULTI_STEP_PLANNING_EXECUTION_REPORT.md` — Motor canónico de planificación multi-paso con descomposición jerárquica de objetivos en sub-objetivos y steps atómicos, grafo acíclico dirigido DAG con detección determinista de ciclos por algoritmo de Kahn, ordenación topológica con tie-breaking determinista, cálculo de Step Readiness dependiente de completitud estricta, validación de capacidades registradas, control estricto de budgets con preservación honesta de incertidumbre UNKNOWN != 0, replanificación acotada de subgrafos afectados por fallos técnicos preservando pasos completados, regla Anti-Policy Bypass que bloquea replanes evasivos ante POLICY_DENIED / Emergency Stop N.11, persistencia hexagonal JSON durable multi-tenant con CrossTenantGuard y emisión de auditoría K.1 y trazas K.2 seguras sin Chain-of-Thought. 2616 passed, 18 skipped, 0 failures).
 
 ## TASK 18.2
-Sub-missions.
+Sub-missions. 🟢 VALIDADA (`R2_SUB_MISSIONS_EXECUTION_REPORT.md` — Delegación jerárquica padre-hijo acotada sobre el modelo canónico Mission, con parent/root IDs, niveles de profundidad y delegation keys idempotentes. Control estricto de invariantes jerárquicos y prevención de ciclos, límite de profundidad y abanico de hijos, partición segura de presupuesto padre-hijo con semántica UNKNOWN != unlimited, aislamiento entre hermanos, evaluación previa de Emergency Stop N.11, ciclo de vida coherente de sub-misiones, integración estructurada de propagación de resultados y fallos hacia ExecutionPlan de R.1, cancelación jerárquica en cascada con preservación inmutable del histórico de misiones completadas, aislamiento multi-tenant estricto con CrossTenantGuard y emisión completa de auditoría K.1 y trazas K.2 sin Chain-of-Thought ni filtración de secretos. 2649 passed, 18 skipped, 0 failures).
 
 ## TASK 18.3
-Specialist Agents.
+Specialist Agents. 🟢 VALIDADA (`R3_SPECIALIST_AGENTS_EXECUTION_REPORT.md` — Modelo formal e inmutable de agentes especialistas y capacidades, registro multi-tenant, selección determinista capability-first con disponibilidad y coste fail-safe, contratos estrictos de entrada/salida, allowlists de acciones y tools, ejecución exclusiva mediante ActionExecutor protegido, idempotencia multidimensional concurrente con detección de colisiones, sanitización profunda, auditoría K.1 y trazas K.2, e integración con R.1 Multi-step Planning y R.2 Sub-missions. 2701 passed, 2 skipped, 0 failures).
 
 Posibles roles:
 
@@ -1197,20 +1198,20 @@ Communication Agent
 ```
 
 ## TASK 18.4
-Agent Coordination.
+Agent Coordination. 🟢 VALIDADA (`R4_AGENT_COORDINATION_EXECUTION_REPORT.md` — Orquestación segura de agentes especialistas preasignados sobre planes de ejecución).
 
 ## TASK 18.5
-Dynamic Delegation.
+Dynamic Delegation. 🟢 VALIDADA (`R5_DYNAMIC_DELEGATION_EXECUTION_REPORT.md` — Reasignación segura en caliente de tareas/submisiones basada en capacidades con transferencia atómica de claims/leases, versionado determinista de asignación, invariante de ejecutor único, regla Anti-Policy Bypass, prevención de bucles ping-pong, continuidad de presupuestos y handoff estructurado Zero-CoT).
 
 ## TASK 18.6
-Long-running Missions.
+Long-running Missions. 🟢 VALIDADA (`R6_LONG_RUNNING_MISSIONS_EXECUTION_REPORT.md` — Checkpoints durables atómicos con checksum SHA-256, pausa segura y reanudación con revalidación estricta de políticas y Emergency Stop N.11, recuperación tras reinicio sin estado volátil, leases de ganador único y latidos deterministas desacoplados con ClockPort, rechazo de stale workers/checkpoints y continuidad inmutable de progreso, presupuestos y cuotas R.1–R.5 sin duplicación de efectos secundarios).
 
 ## TASK 18.7
-Self-monitoring.
+Self-monitoring. 🟢 VALIDADA (`R7_SELF_MONITORING_EXECUTION_REPORT.md` — Capacidad autónoma de auto-observación de salud operacional durante misiones de larga duración y complejas. Detección determinista de latidos vencidos, stall temporal con ClockPort, fallos técnicos recurrentes, conflictos de coordinación, presión de delegación, anomalías de coste relativo en Decimal con paridad monetaria, y despacho acotado de remediaciones seguras hacia R.1 MultiStepPlanning, R.5 DynamicDelegation y R.6 LongRunningMissions. Integración productiva de auditoría y trazabilidad con K.1 AuditRepositoryPort, K.2 AgentTraceService y P.8 ProductionAlertingService con deduplicación y escalación, sin almacenamiento ni alert managers paralelos. Particionado multi-tenant estricto y sanitización recursiva Zero-CoT sin filtración de secretos. 2831 passed, 2 skipped, 0 failures).
 
 ### GATE P
 
-El sistema puede dividir una misión compleja en submisiones sin perder trazabilidad ni control de permisos.
+🟢 PASSED — El sistema divide misiones complejas en planes DAG y submisiones, selecciona y coordina agentes especialistas, delega dinámicamente, reanuda ejecución durable y autoevalúa su salud sin perder trazabilidad, aislamiento multi-tenant ni control de permisos. Validado en `GATE_P_HITO_R_ADVANCED_AUTONOMY_VALIDATION_REPORT.md` mediante 16 escenarios E2E canónicos, 239 tests R.1–R.7, 84 tests transversales y regresión completa de 2831 passed, 18 skipped, 0 failures, 0 errors; deploy validation 5/5 y esquema PostgreSQL UP TO DATE.
 
 ---
 

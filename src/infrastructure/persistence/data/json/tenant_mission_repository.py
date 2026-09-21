@@ -34,6 +34,8 @@ from src.domain.mission.models import (
     MissionTraceEntry,
 )
 from src.domain.mission_dashboard.ports import TenantMissionRepositoryPort
+from src.domain.sub_mission.models import SubMissionResultContract, SubMissionFailureType
+from src.domain.sub_mission.ports import SubMissionRepositoryPort
 
 
 class CorruptedTenantMissionDataError(Exception):
@@ -78,6 +80,11 @@ def _serialize_mission(mission: Mission) -> Dict[str, Any]:
         "parameters": _encode_json_value(mission.parameters),
         "created_at": mission.created_at.isoformat() if mission.created_at else None,
         "updated_at": mission.updated_at.isoformat() if mission.updated_at else None,
+        "parent_mission_id": mission.parent_mission_id,
+        "root_mission_id": mission.root_mission_id,
+        "depth": mission.depth,
+        "delegation_key": mission.delegation_key,
+        "is_required": mission.is_required,
     }
 
 
@@ -92,10 +99,15 @@ def _deserialize_mission(d: Dict[str, Any]) -> Mission:
         parameters=d.get("parameters", {}),
         created_at=created_at,
         updated_at=updated_at,
+        parent_mission_id=d.get("parent_mission_id"),
+        root_mission_id=d.get("root_mission_id"),
+        depth=d.get("depth", 0),
+        delegation_key=d.get("delegation_key"),
+        is_required=d.get("is_required", True),
     )
 
 
-class JsonTenantMissionRepository(TenantMissionRepositoryPort):
+class JsonTenantMissionRepository(TenantMissionRepositoryPort, SubMissionRepositoryPort):
     """
     Repositorio JSON multi-tenant para Mission y MissionResult.
     Almacena los datos particionados físicamente por tenant_id.
@@ -257,6 +269,99 @@ class JsonTenantMissionRepository(TenantMissionRepositoryPort):
             )
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             raise CorruptedTenantMissionDataError(f"Corrupted mission result data for {mission_id}: {e}") from e
+
+    def get_children(self, context: TenantContext, parent_mission_id: str) -> List[Mission]:
+        CrossTenantGuard.ensure_tenant_context(context)
+        validate_safe_identifier(parent_mission_id, field_name="parent_mission_id")
+        tenant_id = context.tenant_id
+        records = self._read_raw_missions(tenant_id)
+        children = []
+        for r in records:
+            if r.get("parent_mission_id") == parent_mission_id:
+                children.append(_deserialize_mission(r))
+        return children
+
+    def get_descendants(self, context: TenantContext, root_mission_id: str) -> List[Mission]:
+        CrossTenantGuard.ensure_tenant_context(context)
+        validate_safe_identifier(root_mission_id, field_name="root_mission_id")
+        tenant_id = context.tenant_id
+        records = self._read_raw_missions(tenant_id)
+        descendants = []
+        for r in records:
+            if r.get("root_mission_id") == root_mission_id or r.get("parent_mission_id") == root_mission_id:
+                descendants.append(_deserialize_mission(r))
+        return descendants
+
+    def get_by_delegation_key(
+        self, context: TenantContext, parent_mission_id: str, delegation_key: str
+    ) -> Optional[Mission]:
+        CrossTenantGuard.ensure_tenant_context(context)
+        validate_safe_identifier(parent_mission_id, field_name="parent_mission_id")
+        tenant_id = context.tenant_id
+        records = self._read_raw_missions(tenant_id)
+        for r in records:
+            if r.get("parent_mission_id") == parent_mission_id and r.get("delegation_key") == delegation_key:
+                return _deserialize_mission(r)
+        return None
+
+    def save_sub_mission_result(
+        self, context: TenantContext, result: SubMissionResultContract
+    ) -> None:
+        CrossTenantGuard.ensure_tenant_context(context)
+        tenant_id = context.tenant_id
+        _, results_dir = self._get_tenant_dirs(tenant_id)
+        validate_safe_identifier(result.mission_id, field_name="mission_id")
+        file_path = results_dir / f"sub_{result.mission_id}.json"
+
+        data = {
+            "mission_id": result.mission_id,
+            "parent_mission_id": result.parent_mission_id,
+            "tenant_id": result.tenant_id,
+            "status": result.status.value if hasattr(result.status, "value") else str(result.status),
+            "outputs": _encode_json_value(dict(result.outputs)),
+            "evidence_refs": list(result.evidence_refs),
+            "failure_type": result.failure_type.value if result.failure_type else None,
+            "failure_reason": result.failure_reason,
+            "cost_spent": str(result.cost_spent) if result.cost_spent is not None else None,
+            "tokens_spent": result.tokens_spent,
+            "completed_at": result.completed_at.isoformat() if result.completed_at else None,
+            "is_required": result.is_required,
+            "metadata": _encode_json_value(dict(result.metadata)),
+        }
+        self._write_atomic(file_path, data)
+
+    def get_sub_mission_result(
+        self, context: TenantContext, mission_id: str
+    ) -> Optional[SubMissionResultContract]:
+        CrossTenantGuard.ensure_tenant_context(context)
+        tenant_id = context.tenant_id
+        _, results_dir = self._get_tenant_dirs(tenant_id)
+        validate_safe_identifier(mission_id, field_name="mission_id")
+        file_path = results_dir / f"sub_{mission_id}.json"
+        if not file_path.exists():
+            return None
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            return SubMissionResultContract(
+                mission_id=data["mission_id"],
+                parent_mission_id=data["parent_mission_id"],
+                tenant_id=data["tenant_id"],
+                status=MissionStatus(data["status"]),
+                outputs=data.get("outputs", {}),
+                evidence_refs=tuple(data.get("evidence_refs", [])),
+                failure_type=SubMissionFailureType(data["failure_type"]) if data.get("failure_type") else None,
+                failure_reason=data.get("failure_reason"),
+                cost_spent=Decimal(str(data["cost_spent"])) if data.get("cost_spent") is not None else None,
+                tokens_spent=data.get("tokens_spent"),
+                completed_at=datetime.fromisoformat(data["completed_at"]) if data.get("completed_at") else datetime.now(timezone.utc),
+                is_required=data.get("is_required", True),
+                metadata=data.get("metadata", {}),
+            )
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            raise CorruptedTenantMissionDataError(f"Corrupted sub-mission result data for {mission_id}: {e}") from e
 
     def delete(self, context: TenantContext, mission_id: str) -> bool:
         CrossTenantGuard.ensure_tenant_context(context)

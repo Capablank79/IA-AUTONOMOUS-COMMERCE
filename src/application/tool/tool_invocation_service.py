@@ -24,7 +24,7 @@ from src.domain.supplier_intelligence.models import EvidenceProvenanceType, Risk
 class ToolInvocationService:
     """
     Servicio de aplicación para la invocación tipada y segura de herramientas registradas.
-    
+
     Flujo de Gobernanza y Separación Estricta:
     1. Obtención y validación de contrato de entrada (Input Schema Validation)
     2. Verificación de estado de ciclo de vida (Bloqueo de DISABLED, DEPRECATED, UNKNOWN)

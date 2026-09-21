@@ -19,6 +19,7 @@ class MissionType(str, Enum):
 class MissionStatus(str, Enum):
     PENDING = "PENDING"
     RUNNING = "RUNNING"
+    PAUSED = "PAUSED"
     COMPLETED = "COMPLETED"
     BLOCKED = "BLOCKED"
     FAILED = "FAILED"
@@ -112,9 +113,24 @@ class Mission:
     parameters: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
+    parent_mission_id: Optional[str] = None
+    root_mission_id: Optional[str] = None
+    depth: int = 0
+    delegation_key: Optional[str] = None
+    is_required: bool = True
 
     @classmethod
-    def create(cls, mission_type: MissionType, parameters: Dict[str, Any], priority: MissionPriority = MissionPriority.MEDIUM) -> 'Mission':
+    def create(
+        cls,
+        mission_type: MissionType,
+        parameters: Dict[str, Any],
+        priority: MissionPriority = MissionPriority.MEDIUM,
+        parent_mission_id: Optional[str] = None,
+        root_mission_id: Optional[str] = None,
+        depth: int = 0,
+        delegation_key: Optional[str] = None,
+        is_required: bool = True,
+    ) -> 'Mission':
         now = datetime.utcnow()
         return cls(
             mission_id=str(uuid.uuid4()),
@@ -123,7 +139,12 @@ class Mission:
             status=MissionStatus.PENDING,
             parameters=parameters,
             created_at=now,
-            updated_at=now
+            updated_at=now,
+            parent_mission_id=parent_mission_id,
+            root_mission_id=root_mission_id,
+            depth=depth,
+            delegation_key=delegation_key,
+            is_required=is_required,
         )
 
 @dataclass(frozen=True)

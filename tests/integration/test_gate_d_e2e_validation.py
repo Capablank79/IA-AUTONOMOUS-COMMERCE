@@ -210,11 +210,11 @@ class DynamicCommercialOperatorDecisionProvider(DecisionProvider):
         if not any(obs.get("capability") == "PROFIT_EVALUATION" for obs in obs_history):
             tools = self.discovery_service.discover_tools_for_capability("PROFIT_EVALUATION")
             selected_tool = tools[0] if tools else None
-            
+
             # Obtener datos de la cotización observada
             supplier_obs = next(obs for obs in obs_history if obs.get("capability") == "SUPPLIER_DISCOVERY")
             unit_cost = supplier_obs.get("unit_cost", 18000.0)
-            
+
             return LoopDecision(
                 action=LoopAction.CONTINUE,
                 target=selected_tool.tool_id if selected_tool else "profit_calculation",
@@ -443,7 +443,7 @@ class E2ECommercialActionExecutor(ActionExecutor):
                 correlation_id=state.mission_id,
             )
             result = self.tool_invocation_service.invoke_tool(request, descriptor)
-            
+
             # Cálculo de márgenes
             cost_total = Decimal(str(unit_cost)) + Decimal(str(shipping_cost)) + (Decimal(str(target_price)) * Decimal("0.13"))
             net_profit = Decimal(str(target_price)) - cost_total

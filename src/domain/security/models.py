@@ -28,36 +28,60 @@ from types import MappingProxyType
 from typing import Mapping, Optional, Any, Tuple, Dict, Sequence, List, Union
 
 
-SENSITIVE_KEYS = {
-    "password",
-    "secret",
-    "token",
-    "api_key",
-    "apikey",
-    "pan",
-    "cvv",
-    "private_key",
-    "credential",
-    "access_token",
-    "refresh_token",
-    "authorization",
-    "chain_of_thought",
-    "reasoning",
-    "reasoning_tokens",
-    "internal_scratchpad",
-    "card_number",
-    "auth_header",
-    "bearer",
-}
+class PrivateReasoningField(str, Enum):
+    THOUGHT = "thought"
+    THOUGHTS = "thoughts"
+    SCRATCHPAD = "scratchpad"
+    CHAIN_OF_THOUGHT = "chain_of_thought"
+    INTERNAL_REASONING = "internal_reasoning"
+    REASONING = "reasoning"
+    REASONING_STEPS = "reasoning_steps"
+    INTERNAL_SCRATCHPAD = "internal_scratchpad"
+
+
+PRIVATE_REASONING_KEYS = frozenset(f.value for f in PrivateReasoningField)
+
+TECHNICAL_SENSITIVE_KEYS = frozenset({
+    "password", "secret", "token", "api_key", "apikey", "pan", "cvv",
+    "private_key", "credential", "access_token", "refresh_token",
+    "authorization", "card_number", "auth_header", "bearer",
+})
+
+# Union for backward compatibility
+SENSITIVE_KEYS = TECHNICAL_SENSITIVE_KEYS | PRIVATE_REASONING_KEYS
+
+SAFE_REASONING_STRUCTURED_FIELDS = frozenset({
+    "reason_code",
+    "failure_reason",
+    "decision_reason",
+    "policy_reason",
+    "replan_reason",
+})
 
 
 def sanitize_security_data(val: Any) -> Any:
-    """Sanitiza recursivamente estructuras de datos para eliminar secretos o credenciales."""
+    """Sanitiza recursivamente estructuras de datos para eliminar secretos o credenciales y razonamiento privado."""
     if isinstance(val, (dict, MappingProxyType)):
         cleaned = {}
         for k, v in val.items():
-            k_str = str(k).lower()
-            if any(s in k_str for s in SENSITIVE_KEYS) and not k_str.endswith("_tokens") and not isinstance(v, (dict, MappingProxyType, list, tuple)):
+            k_str = str(k).strip()
+            k_lower = k_str.lower()
+
+            # Preservar explícitamente campos estructurados seguros de razón/causa
+            if k_lower in SAFE_REASONING_STRUCTURED_FIELDS:
+                cleaned[str(k)] = sanitize_security_data(v)
+                continue
+
+            # Si coincide exactamente con campos de razonamiento privado canónicos (Anti-CoT)
+            # Debe sanitizarse incluso si el valor es estructurado (dict, list, tuple)
+            if k_lower in PRIVATE_REASONING_KEYS:
+                cleaned[str(k)] = "[REDACTED]"
+                continue
+
+            # Si contiene secretos técnicos
+            is_tech_sensitive = any(s in k_lower for s in TECHNICAL_SENSITIVE_KEYS)
+
+            if is_tech_sensitive and not k_lower.endswith("_tokens") and not isinstance(v, (dict, MappingProxyType, list, tuple)):
                 cleaned[str(k)] = "[REDACTED]"
             else:
                 cleaned[str(k)] = sanitize_security_data(v)
@@ -83,11 +107,11 @@ def validate_safe_identifier(identifier: str, field_name: str = "identifier") ->
     """
     if not isinstance(identifier, str) or not identifier.strip():
         raise ValueError(f"{field_name} must be a non-empty string.")
-    
+
     clean_id = identifier.strip()
     if "/" in clean_id or "\\" in clean_id or ".." in clean_id or ":" in clean_id:
         raise ValueError(f"{field_name} '{identifier}' contains unsafe path traversal sequences or separators.")
-    
+
     if Path(clean_id).name != clean_id:
         raise ValueError(f"{field_name} '{identifier}' is not a safe basename.")
 

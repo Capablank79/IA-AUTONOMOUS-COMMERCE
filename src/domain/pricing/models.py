@@ -77,7 +77,7 @@ class PricingError:
 class PricingDecision:
     """
     Representación estructurada e inmutable de una decisión de fijación o ajuste de precio.
-    
+
     Aislamiento y Principios:
     - No guarda un simple número: contiene contexto económico, justificación, evidencia y riesgos.
     - Respeta el price floor determinista (minimum_allowed_price).
@@ -170,11 +170,11 @@ class PricingAction:
             raise ValueError("action_id cannot be empty")
         if not self.listing_id or not self.listing_id.strip():
             raise ValueError("listing_id cannot be empty")
-        
+
         target_new = self.new_price if self.new_price is not None else self.proposed_price
         if target_new is None or target_new <= Decimal("0"):
             raise ValueError("proposed_price/new_price must be greater than zero")
-            
+
         if self.new_price is None and self.proposed_price is not None:
             object.__setattr__(self, "new_price", self.proposed_price)
         if self.proposed_price is None and self.new_price is not None:

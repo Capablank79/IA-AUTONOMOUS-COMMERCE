@@ -13,7 +13,7 @@ class ListingQualityValidatorService:
     """
     Servicio de aplicación para la validación formal de calidad, factualidad y políticas
     de publicaciones comerciales (G.2 / TASK 07.2).
-    
+
     Barrera de control previa a la gobernanza y publicación:
     ListingDraft -> ListingQualityValidatorService -> ListingValidationResult
     """

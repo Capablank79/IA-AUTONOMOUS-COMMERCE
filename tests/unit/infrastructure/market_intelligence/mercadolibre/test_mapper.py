@@ -16,9 +16,9 @@ def test_mapper_to_domain():
         "shipping": {"free_shipping": True},
         "category_id": "MLC1055"
     }
-    
+
     listing = MercadoLibreMapper.to_domain(ml_item)
-    
+
     assert listing.external_id == "MLC12345"
     assert listing.marketplace == Marketplace.MERCADO_LIBRE
     assert listing.title == "Producto de prueba"

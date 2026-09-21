@@ -21,7 +21,7 @@ def test_get_visits_uses_valid_oauth_connection_and_returns_signal():
             return connection
 
     captured = {}
-    
+
     expected_signal = VisitSignal(
         item_id="MLC123",
         window="7d",

@@ -69,6 +69,11 @@ class JsonMissionRepository(MissionRepository):
             "parameters": _encode_json_value(mission.parameters),
             "created_at": mission.created_at.isoformat(),
             "updated_at": mission.updated_at.isoformat(),
+            "parent_mission_id": mission.parent_mission_id,
+            "root_mission_id": mission.root_mission_id,
+            "depth": mission.depth,
+            "delegation_key": mission.delegation_key,
+            "is_required": mission.is_required,
         }
 
         temp_path = file_path.with_suffix(".tmp")
@@ -93,6 +98,11 @@ class JsonMissionRepository(MissionRepository):
                 parameters=data.get("parameters", {}),
                 created_at=datetime.fromisoformat(data["created_at"]),
                 updated_at=datetime.fromisoformat(data["updated_at"]),
+                parent_mission_id=data.get("parent_mission_id"),
+                root_mission_id=data.get("root_mission_id"),
+                depth=data.get("depth", 0),
+                delegation_key=data.get("delegation_key"),
+                is_required=data.get("is_required", True),
             )
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             raise InvalidMissionDataError(f"Corrupted mission data for {mission_id}: {e}") from e

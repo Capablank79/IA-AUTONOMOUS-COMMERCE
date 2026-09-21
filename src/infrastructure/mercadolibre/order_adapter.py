@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 class MercadoLibreOrderAdapter(OrderPort):
     """
     Adaptador de infraestructura de Mercado Libre para la integración de órdenes (Hito G.6).
-    
+
     Principios Arquitectónicos:
     - Desacoplamiento total del dominio respecto al formato JSON de Mercado Libre.
     - Normalización determinista: mapea DTO externo -> entidad Order inmutable.
@@ -196,7 +196,7 @@ class MercadoLibreOrderAdapter(OrderPort):
             item_id = str(item_info.get("id") or f"item_{idx}")
             title = str(item_info.get("title") or "Unknown Product")
             quantity = int(item_data.get("quantity") or 1)
-            
+
             unit_price_val = item_data.get("unit_price")
             if unit_price_val is None:
                 unit_price_val = item_data.get("full_unit_price", 0)

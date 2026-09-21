@@ -37,18 +37,18 @@ def test_get_reviews_valid_response():
             }
         ]
     }
-    
+
     client = FakeApiClient(response)
     source = MercadoLibreReviewsDataSource(client)
-    
+
     signal = source.get_reviews("MLC2022490177", offset=0, limit=50)
-    
+
     assert client.path == "/reviews/item/MLC2022490177?offset=0&limit=50"
     assert signal.item_id == "MLC2022490177"
     assert signal.total_reviews == 1
     assert signal.average_rating == 4.5
     assert len(signal.reviews) == 1
-    
+
     review = signal.reviews[0]
     assert review.external_id == "2650266166"
     assert review.rating == 5
@@ -69,12 +69,12 @@ def test_get_reviews_empty_response():
         },
         "reviews": []
     }
-    
+
     client = FakeApiClient(response)
     source = MercadoLibreReviewsDataSource(client)
-    
+
     signal = source.get_reviews("MLC000", offset=0, limit=50)
-    
+
     assert signal.total_reviews == 0
     assert len(signal.reviews) == 0
     assert signal.confidence == Confidence.UNKNOWN
@@ -82,6 +82,6 @@ def test_get_reviews_empty_response():
 def test_get_reviews_propagates_api_error():
     client = FakeApiClient({}, should_raise=True)
     source = MercadoLibreReviewsDataSource(client)
-    
+
     with pytest.raises(MercadoLibreApiError):
         source.get_reviews("MLC123", offset=0, limit=50)

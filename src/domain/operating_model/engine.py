@@ -65,7 +65,7 @@ class OperatingModelEvaluator:
     Evaluador y comparador determinista para construir los escenarios de
     Inventory vs Dropshipping a partir de datos reales de oportunidad, proveedor,
     economía y asignación de capital.
-    
+
     Reglas estrictas anti-fabricación:
     - UNKNOWN != 0, UNKNOWN != FREE, UNKNOWN != HIGH_ROTATION, UNKNOWN != LOW_RISK.
     - No se asume que dropshipping requiere capital = 0 si existen costos de flete o buffer operativo.
@@ -90,15 +90,15 @@ class OperatingModelEvaluator:
         fixed_marketplace_fee: Optional[Decimal] = None,
     ) -> InventoryScenario:
         unknowns: List[str] = []
-        
+
         # 1. Determinar MOQ y Cantidad Objetivo
         moq_qty = quote.moq.quantity if quote.moq and quote.moq.quantity is not None and quote.moq.quantity > 0 else 1
         qty = target_quantity if target_quantity is not None and target_quantity >= moq_qty else moq_qty
-        
+
         # 2. Obtener precio unitario para el tier correspondiente a qty
         price_tier_unit = quote.get_unit_price_for_quantity(qty)
         unit_price = price_tier_unit if price_tier_unit is not None else (quote.unit_price or Decimal("0"))
-        
+
         purchase_comp = CostComponent.known(
             component_type=CostComponentType.PRODUCT_COST,
             amount=unit_price * Decimal(str(qty)),
@@ -108,7 +108,7 @@ class OperatingModelEvaluator:
             source=f"QUOTE_TIER_QTY_{qty}",
             is_per_unit=False,
         )
-        
+
         # 3. Flete de adquisición por volumen
         chosen_shipping = shipping_option
         if chosen_shipping is None and quote.shipping_cost is not None:
@@ -118,7 +118,7 @@ class OperatingModelEvaluator:
                 confidence=quote.confidence,
                 provenance_type=quote.provenance_type,
             )
-            
+
         if chosen_shipping is not None and chosen_shipping.shipping_cost is not None:
             # Flete escala o tiene costo por lote
             shipping_comp = CostComponent.known(
@@ -147,7 +147,7 @@ class OperatingModelEvaluator:
             shipping_cost=shipping_comp,
             target_currency=quote.currency,
         )
-        
+
         # Precio de venta esperado de la oportunidad
         # Usar precio promedio o actual de mercado
         sale_price_amount = opportunity.listing.price.amount if opportunity.listing and opportunity.listing.price else None
@@ -187,17 +187,17 @@ class OperatingModelEvaluator:
                 currency=quote.currency,
             ),
         )
-        
+
         # 5. Capital Requerido y Exposición de Stock
         # Para inventario, capital requerido = total landed cost del lote de compra
         required_cap = landed_cost.total_landed_cost if landed_cost.total_landed_cost is not None else (unit_price * Decimal(str(qty)))
         stock_exp = required_cap  # Todo el capital invertido en el lote está expuesto en stock físico
-        
+
         # 6. Demanda y Velocidad de Rotación
         demand_signals = opportunity.evidence.demand_signals if opportunity.evidence else []
         demand_sig = demand_signals[0] if demand_signals else None
         demand_sig_type = demand_sig.signal_type if demand_sig else SignalType.INFERRED
-        
+
         # Evaluar velocidad de rotación sólo con evidencia cuantitativa
         velocity = DemandVelocity.UNKNOWN
         estimated_days: Optional[int] = None
@@ -498,7 +498,7 @@ class OperatingModelEvaluator:
         if dropshipping_scenario.supplier_risk_level in (RiskLevel.HIGH, RiskLevel.CRITICAL):
             drop_disadv.append(f"Supplier operational risk is {dropshipping_scenario.supplier_risk_level.value}, making fulfillment unreliable")
             inv_adv.append("Mitigates ongoing supplier fulfillment failures once batch is received")
-        
+
         if not dropshipping_scenario.supplier_sla_compliant:
             drop_disadv.append("Supplier has poor SLA compliance history; direct shipping to clients is high-risk")
 
@@ -553,10 +553,10 @@ class OperatingModelEvaluator:
 class OperatingModelEngine:
     """
     Motor central determinista de decisión y reevaluación de Modelo Operativo (D-03).
-    
+
     Aplica la política OperatingModelPolicy sobre la comparación estructurada
     y la asignación de capital (D-02).
-    
+
     Genera decisiones formales, explicaciones detalladas basadas en datos,
     condiciones explícitas y registros de reevaluación / pivot.
     """
@@ -572,7 +572,7 @@ class OperatingModelEngine:
     ) -> OperatingDecision:
         pol = policy or OperatingModelPolicy()
         dec_id = dec_id = decision_id or f"OPDEC-{comparison.opportunity_id}-{int(datetime.now(timezone.utc).timestamp())}"
-        
+
         inv = comparison.inventory_scenario
         drop = comparison.dropshipping_scenario
         conditions: List[str] = []
@@ -586,7 +586,7 @@ class OperatingModelEngine:
             reason_econ = "Both inventory and dropshipping economics are non-viable or incomplete."
             if "INVENTORY_SHIPPING_UNKNOWN" in unknowns or "DROPSHIPPING_SHIPPING_UNKNOWN" in unknowns:
                 reason_econ += " Missing shipping costs prevent accurate landed cost calculation."
-            
+
             explanation = DecisionExplanation(
                 selected_model=OperatingModelType.NO_DECISION,
                 alternative_model=OperatingModelType.NEEDS_INVESTIGATION,
@@ -617,7 +617,7 @@ class OperatingModelEngine:
         # Verificar si capital allocation permite inventory
         alloc_ok_for_inventory = True
         alloc_reason = ""
-        
+
         if capital_allocation_decision is not None:
             if capital_allocation_decision.decision_status not in (AllocationStatus.APPROVED, AllocationStatus.PARTIALLY_APPROVED):
                 alloc_ok_for_inventory = False
@@ -710,14 +710,14 @@ class OperatingModelEngine:
                 selected_model = OperatingModelType.INVENTORY
                 alternative_model = OperatingModelType.DROPSHIPPING
                 decision_type = OperatingDecisionType.SELECT_INVENTORY
-                
+
                 econ_rationale = (
                     f"Inventory selected due to superior economics: +{margin_adv:.1f}% net margin advantage "
                     f"({inv.expected_margin_pct:.1f}% vs {drop.expected_margin_pct:.1f}%) and higher batch profit."
                 )
                 cap_rationale = f"Allocatable capital ({capital_budget.allocatable_capital} CLP) comfortably covers requirement ({inv.required_capital} CLP)."
                 risk_rationale = f"Stock exposure ({inv.stock_exposure} CLP) is justified by validated rotation ({inv.demand_velocity.value}) and low obsolescence risk."
-                
+
                 invalidation_triggers = [
                     "DEMAND_CONTRACTION",
                     "SUPPLIER_PRICE_INCREASE",
@@ -729,14 +729,14 @@ class OperatingModelEngine:
                 selected_model = OperatingModelType.DROPSHIPPING
                 alternative_model = OperatingModelType.INVENTORY
                 decision_type = OperatingDecisionType.SELECT_DROPSHIPPING
-                
+
                 econ_rationale = (
                     f"Dropshipping selected: inventory margin advantage (+{margin_adv:.1f}%) is below required threshold "
                     f"(+{pol.min_margin_advantage_for_inventory_pct:.1f}%) to justify capital lock-up."
                 )
                 cap_rationale = f"Zero stock lock-up required; requires only {drop.required_operational_capital} CLP operational buffer."
                 risk_rationale = f"Protects capital against stock risk while leveraging reliable supplier ({drop.supplier_risk_level.value} risk)."
-                
+
                 conditions.append("Validate supplier live stock feed prior to publishing")
                 invalidation_triggers = [
                     "SUPPLIER_STOCK_DEPLETION",
@@ -748,22 +748,22 @@ class OperatingModelEngine:
             selected_model = OperatingModelType.INVENTORY
             alternative_model = OperatingModelType.DROPSHIPPING
             decision_type = OperatingDecisionType.SELECT_INVENTORY
-            
+
             econ_rationale = f"Inventory is economically viable ({inv.expected_margin_pct:.1f}% margin), whereas dropshipping is blocked: {'; '.join(dropshipping_blockers)}."
             cap_rationale = f"Capital allocation approved for {inv.required_capital} CLP."
             risk_rationale = "Direct dropshipping rejected due to operational risks; inventory allows local quality & dispatch control."
-            
+
             invalidation_triggers = ["DEMAND_SLOWDOWN", "EXCESSIVE_STOCK_AGING"]
 
         elif dropshipping_viable and not inventory_viable:
             selected_model = OperatingModelType.DROPSHIPPING
             alternative_model = OperatingModelType.INVENTORY
             decision_type = OperatingDecisionType.SELECT_DROPSHIPPING
-            
+
             econ_rationale = f"Dropshipping is economically viable ({drop.expected_margin_pct:.1f}% margin), whereas inventory is blocked: {'; '.join(inventory_blockers)}."
             cap_rationale = f"Avoids inventory capital requirement ({inv.required_capital} CLP) which exceeded constraints."
             risk_rationale = "Eliminates physical inventory risk while operating under strict supplier SLA parameters."
-            
+
             conditions.append("Maintain real-time supplier inventory synchronization")
             invalidation_triggers = ["SUPPLIER_STOCKOUT", "SUPPLIER_LEAD_TIME_INCREASE"]
 
@@ -772,11 +772,11 @@ class OperatingModelEngine:
             selected_model = OperatingModelType.NEEDS_INVESTIGATION
             alternative_model = OperatingModelType.NO_DECISION
             decision_type = OperatingDecisionType.NEEDS_INVESTIGATION
-            
+
             econ_rationale = f"Neither model meets policy standards. Inventory blockers: [{'; '.join(inventory_blockers)}]. Dropshipping blockers: [{'; '.join(dropshipping_blockers)}]."
             cap_rationale = "No capital committed."
             risk_rationale = "Both physical inventory and direct fulfillment present unacceptable risk or economic shortfall."
-            
+
             invalidation_triggers = ["COST_RENEGOTIATION", "SUPPLIER_REPLACEMENT"]
 
         # Evidencia y resumen

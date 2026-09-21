@@ -110,7 +110,7 @@ class TestP6HealthChecksUnit(unittest.TestCase):
             self.assertEqual(result.status, HealthStatus.HEALTHY)
             self.assertTrue(result.is_ready)
             self.assertEqual(result.http_status_code, 200)
-            
+
             data = result.to_dict()
             self.assertEqual(data["status"], "ready")
             self.assertTrue(data.get("storage_writable"))
@@ -248,7 +248,7 @@ class TestP6HealthChecksUnit(unittest.TestCase):
         """9. Respuestas serializadas no contienen credenciales ni secretos en texto plano."""
         secret = "very_secret_pwd_999"
         raw_error = f"FATAL: password authentication failed for user postgres password={secret} dsn=postgresql://user:{secret}@internal.corp:5432/prod"
-        
+
         mock_factory = MagicMock(spec=DatabaseConnectionFactory)
         mock_factory.check_connection.side_effect = RuntimeError(raw_error)
 
@@ -354,7 +354,7 @@ class TestP6HealthChecksUnit(unittest.TestCase):
         import inspect
         import src.domain.health as h_domain
         import src.infrastructure.health as h_infra
-        
+
         # Verificar que los módulos de P.6 no importen P.7+
         h_domain_src = inspect.getsource(h_domain)
         h_infra_src = inspect.getsource(h_infra)

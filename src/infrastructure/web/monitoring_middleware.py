@@ -51,11 +51,11 @@ class ProductionMonitoringMiddleware(BaseHTTPMiddleware):
             raise exc
         finally:
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0
-            
+
             # Extraer template de ruta si está disponible en endpoint de Starlette o sanitizar path
             path = request.url.path
             method = request.method
-            
+
             # Extraer tenant_id si está presente de forma segura en path params
             tenant_id = request.path_params.get("tenant_id") if hasattr(request, "path_params") else None
 

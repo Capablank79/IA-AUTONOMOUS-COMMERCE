@@ -489,7 +489,7 @@ def test_16_no_p9_plus_dependencies() -> None:
     """16. P.8 opera sin importar ni requerir módulos de P.9+ (Log Retention / Capacity Planning)."""
     import src.domain.production_alerting as a_domain
     import src.application.production_alerting as a_app
-    
+
     src_domain = inspect.getsource(a_domain)
     src_app = inspect.getsource(a_app)
 

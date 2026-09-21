@@ -170,7 +170,7 @@ class MercadoLibreInventoryAdapter(InventoryPort):
         try:
             path = f"/items/{listing_id}"
             response_data = client.get(path)
-            
+
             qty_val = response_data.get("available_quantity")
             current_qty = int(qty_val) if qty_val is not None else None
             status_str = response_data.get("status", "unknown")

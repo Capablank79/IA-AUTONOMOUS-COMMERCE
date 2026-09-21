@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 class MercadoLibreFulfillmentAdapter(FulfillmentPort):
     """
     Adaptador de infraestructura de Mercado Libre para envíos, tracking y etiquetas (Hito G.7).
-    
+
     Principios Arquitectónicos:
     - Desacoplamiento total del dominio respecto al formato JSON de Mercado Libre (/shipments/{id}).
     - Normalización determinista de estados: to_be_agreed, pending, handling, ready_to_ship, shipped, delivered, not_delivered, cancelled.

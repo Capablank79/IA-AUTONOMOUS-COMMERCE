@@ -447,7 +447,7 @@ def test_comparator_selects_best_supplier_considering_risk_not_just_price():
     assert result.best_supplier_candidate is not None
     assert result.best_supplier_candidate.supplier_id == "SUP-B"
     assert result.best_supplier_candidate.supplier_name == "Confiable Y Seguro"
-    
+
     # Verificar que SUP-A está en la lista de rechazados
     rejected_ids = [r.supplier.supplier_id for r in result.rejected_candidates]
     assert "SUP-A" in rejected_ids

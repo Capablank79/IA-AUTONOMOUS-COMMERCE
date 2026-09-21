@@ -116,11 +116,11 @@ class ReadinessResult:
     def to_dict(self) -> Dict[str, Any]:
         """Contrato de respuesta estructurado, versionable y seguro."""
         checks_list = [c.to_dict() for c in self.checks]
-        
+
         # Compatibilidad hacia atrás con campos directos esperados por O.13/P.2/P.3
         storage_check = next((c for c in self.checks if c.name == "storage"), None)
         db_check = next((c for c in self.checks if c.name == "database"), None)
-        
+
         data: Dict[str, Any] = {
             "status": "ready" if self.status == HealthStatus.HEALTHY else ("degraded" if self.status == HealthStatus.DEGRADED else "unhealthy"),
             "service": self.service,
@@ -129,14 +129,14 @@ class ReadinessResult:
             "timestamp": self.timestamp.isoformat(),
             "checks": checks_list,
         }
-        
+
         if storage_check and storage_check.status != HealthStatus.HEALTHY:
             data["storage_writable"] = False
             data["reason"] = storage_check.message or "storage_not_writable"
             data["data_dir"] = storage_check.details.get("data_dir")
         elif storage_check:
             data["storage_writable"] = True
-            
+
         if db_check and db_check.status == HealthStatus.HEALTHY and db_check.details:
             data["database"] = {
                 "status": "compatible",

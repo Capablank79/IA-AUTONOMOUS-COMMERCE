@@ -14,17 +14,17 @@ def test_market_intelligence_integration_flow(tmp_path):
     mock_client = MagicMock(spec=MercadoLibreClient)
     adapter = MercadoLibreAdapter(mock_client)
     repository = JsonMarketSnapshotRepository(tmp_path / "data")
-    
+
     # 2. Setup Domain Service
     analysis_service = MarketAnalysisService()
-    
+
     # 3. Setup Application Use Case
     use_case = DiscoverMarketOpportunitiesUseCase(
         data_source=adapter,
         repository=repository,
         analysis_service=analysis_service
     )
-    
+
     # 4. Mock API Response
     mock_client.search.return_value = {
         "results": [
@@ -55,27 +55,27 @@ def test_market_intelligence_integration_flow(tmp_path):
         ],
         "paging": {"total": 2}
     }
-    
+
     # 5. Execute Use Case
     criteria = SearchCriteria(query="laptop", marketplace=Marketplace.MERCADO_LIBRE)
     opportunities = use_case.execute(criteria)
-    
+
     # 6. Verify Results
     # Median price is (50 + 150) / 2 = 100
     # MLC1: price 50, ratio 0.5 (UNDER_MARKET), demand HIGH
     # MLC2: price 150, ratio 1.5 (OVER_MARKET), demand NONE
-    
+
     assert len(opportunities) == 2
-    
+
     opp1 = next(o for o in opportunities if o.listing.external_id == "MLC1")
     assert opp1.demand_signal.label == "HIGH"
     assert opp1.price_signal.position == "UNDER_MARKET"
     assert opp1.listing.shipping_info["free_shipping"] is True
-    
+
     opp2 = next(o for o in opportunities if o.listing.external_id == "MLC2")
     assert opp2.demand_signal.label == "NONE"
     assert opp2.price_signal.position == "OVER_MARKET"
-    
+
     # 7. Verify Persistence
     snapshots = list((tmp_path / "data").glob("*.json"))
     assert len(snapshots) == 1

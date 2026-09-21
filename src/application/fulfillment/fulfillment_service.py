@@ -97,7 +97,7 @@ class FulfillmentService:
         # 3. Llamar al port externo si requiere creación o consulta en marketplace
         shipment_id = f"shp_{uuid.uuid4().hex[:12]}"
         external_shipment_id = f"ext_shp_{order.external_order_id}"
-        
+
         # Consultar si el canal externo ya asignó un shipment_id
         ext_result = self.fulfillment_port.get_shipment_by_external_order_id(
             order.external_order_id,
@@ -154,7 +154,7 @@ class FulfillmentService:
         el historial de tracking sin pérdida de información.
         """
         cid = correlation_id or f"corr_sync_{uuid.uuid4().hex[:12]}"
-        
+
         # 1. Consultar estado externo
         ext_result = self.fulfillment_port.get_shipment_by_external_id(external_shipment_id, channel)
         if not ext_result:
@@ -260,7 +260,7 @@ class FulfillmentService:
         Genera reporte de discrepancias sin sobreescritura ciega ni destructiva.
         """
         local_shipment = self.fulfillment_repository.get_shipment_by_id(shipment_id)
-        
+
         external_id = local_shipment.external_shipment_id if local_shipment else shipment_id
         ext_result = self.fulfillment_port.get_shipment_by_external_id(external_id, channel)
         ext_shipment = ext_result.shipments[0] if isinstance(ext_result, ShipmentQueryResult) and ext_result.shipments else (ext_result if isinstance(ext_result, Shipment) else None)

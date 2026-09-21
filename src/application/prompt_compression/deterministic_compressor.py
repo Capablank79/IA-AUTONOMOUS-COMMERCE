@@ -521,7 +521,7 @@ class DeterministicPromptCompressor(PromptCompressionPort):
         # =========================================================================
         if active_policy.allow_prune_history and self._calculate_total_tokens(items) > target_budget:
             history_items = [it for it in items if it.component_type == ContextComponentType.CONVERSATION_HISTORY and it.priority != PriorityLevel.PROTECTED]
-            
+
             # Si hay más historial del límite o si excedemos presupuesto, podar los más antiguos primero
             if history_items:
                 # Ordenar por sequence_order ascendente (más antiguos primero)
@@ -536,7 +536,7 @@ class DeterministicPromptCompressor(PromptCompressionPort):
                 # Si aún superamos presupuesto, continuar podando de los más antiguos que queden no protegidos
                 remaining_history = history_items_sorted[excess_count:]
                 current_total = self._calculate_total_tokens(items) - sum(it.token_count or 0 for it in to_prune)
-                
+
                 idx = 0
                 while current_total > target_budget and idx < len(remaining_history):
                     # Conservamos al menos el último mensaje de historial si es posible, salvo que sea indispensable podar
@@ -592,7 +592,7 @@ class DeterministicPromptCompressor(PromptCompressionPort):
 
                 current_total = self._calculate_total_tokens(items) - sum(it.token_count or 0 for it in to_prune_ev)
                 remaining_ev = evidence_items_sorted[excess_ev:]
-                
+
                 idx = 0
                 while current_total > target_budget and idx < len(remaining_ev):
                     to_prune_ev.append(remaining_ev[idx])

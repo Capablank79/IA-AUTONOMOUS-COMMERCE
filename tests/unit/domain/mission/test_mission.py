@@ -9,7 +9,7 @@ def test_mission_creation():
         parameters=parameters,
         priority=MissionPriority.HIGH
     )
-    
+
     assert mission.mission_id is not None
     assert mission.type == MissionType.MARKET_DISCOVERY
     assert mission.parameters == parameters
@@ -22,14 +22,14 @@ def test_mission_result_initialization():
     mission_id = "test-id"
     output = {"found_items": 10}
     errors = ["Timeout connecting to marketplace"]
-    
+
     result = MissionResult(
         mission_id=mission_id,
         status=MissionStatus.FAILED,
         output=output,
         errors=errors
     )
-    
+
     assert result.mission_id == mission_id
     assert result.status == MissionStatus.FAILED
     assert result.output == output

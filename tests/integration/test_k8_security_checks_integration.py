@@ -285,7 +285,7 @@ def test_integration_event_bus_safety(tmp_path):
 
     service = SecurityCheckService()
     payload_check = service.validate_payload_safety(unsafe_event.payload, target="event_payload")
-    
+
     assert payload_check.status == SecurityCheckStatus.FAIL
     assert payload_check.code == "PRIVATE_REASONING_LEAK_DETECTED"
 
@@ -308,7 +308,7 @@ def test_integration_e2e_security_pipeline(tmp_path):
     audit_repo = JsonAuditRepository(storage_dir=str(tmp_path / "e2e_audit"))
     audit_service = AuditTrailService(audit_repository=audit_repo)
     engine = PolicyEngine(rules=[AuthorizationPolicyRule()])
-    
+
     security_service = SecurityCheckService(
         policy_engine=engine,
         audit_trail_service=audit_service,

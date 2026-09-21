@@ -18,7 +18,7 @@ from src.domain.supplier_intelligence.models import RiskLevel
 
 def test_pricing_models_creation_and_properties():
     channel = SalesChannel(channel_id="ML-CL", channel_type=SalesChannelType.MARKETPLACE, name="Mercado Libre Chile")
-    
+
     # 1. PricingDecision below floor
     decision = PricingDecision(
         decision_id="dec_001",

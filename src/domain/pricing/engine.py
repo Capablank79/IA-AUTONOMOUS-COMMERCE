@@ -29,7 +29,7 @@ from .models import (
 class PricingDecisionEngine:
     """
     Motor determinista de decisiones de fijación y análisis de precios (G.4 / TASK 07.4).
-    
+
     Principios inquebrantables:
     - No calcula precios en el vacío: utiliza landed cost, comisiones de canal, flete, impuestos y margen mínimo.
     - Calcula el Price Floor determinista: break_even_price o target_floor según el motor de Unit Economics.

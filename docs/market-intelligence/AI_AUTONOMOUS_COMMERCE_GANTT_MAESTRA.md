@@ -43,7 +43,7 @@
 | O | SaaS / Platformization | P2 | 🟢 VALIDADA | 🟢 GATE N |
 | P | Production / Operations | P2 | 🟢 VALIDADA | 🟢 GATE O |
 | Q | Business Intelligence | P2 | 🟢 VALIDADA | 🟢 GATE P |
-| R | Advanced Autonomy | P3 | ⚪ PENDIENTE | ⚪ GATE Q |
+| R | Advanced Autonomy | P3 | 🟢 VALIDADA | 🟢 GATE P |
 | S | Self-Improving Commerce | P3 | ⚪ PENDIENTE | ⚪ GATE — |
 
 \* El Roadmap Maestro presenta Supplier Intelligence como Fase 03 y Profit + Capital Allocation como Fase 04; el control de esta carta utiliza identificadores funcionales para evitar ambigüedad.
@@ -70,7 +70,7 @@ Los bloques son secuenciales/relativos y no representan fechas calendario rígid
 | O | SaaS / Platformization | | | | | | | | 🟢 |
 | P | Production / Operations | | | | | | | | ⚪ |
 | Q | Business Intelligence | | | | | | | | 🟢 |
-| R | Advanced Autonomy | | | | | | | | ⚪ |
+| R | Advanced Autonomy | | | | | | | | 🟢 |
 | S | Self-Improving Commerce | | | | | | | | ⚪ |
 
 ---
@@ -566,21 +566,21 @@ Demostración de No Falsa Certeza (Zero False Certainty):
 
 # 20. Hito R — Advanced Autonomy
 
-**Estado: ⚪ PENDIENTE**
+**Estado: 🟢 VALIDADA**
 
-| ID | Task | Estado |
-|---|---|---|
-| R.1 | Multi-step Planning | ⚪ |
-| R.2 | Sub-missions | ⚪ |
-| R.3 | Specialist Agents | ⚪ |
-| R.4 | Agent Coordination | ⚪ |
-| R.5 | Dynamic Delegation | ⚪ |
-| R.6 | Long-running Missions | ⚪ |
-| R.7 | Self-monitoring | ⚪ |
+| ID | Task | Estado | Reporte / Evidencia |
+|---|---|---|---|
+| R.1 | Multi-step Planning | 🟢 VALIDADA | `R1_MULTI_STEP_PLANNING_EXECUTION_REPORT.md` |
+| R.2 | Sub-missions | 🟢 VALIDADA | `R2_SUB_MISSIONS_EXECUTION_REPORT.md` |
+| R.3 | Specialist Agents | 🟢 VALIDADA | `R3_SPECIALIST_AGENTS_EXECUTION_REPORT.md` |
+| R.4 | Agent Coordination | 🟢 VALIDADA | `R4_AGENT_COORDINATION_EXECUTION_REPORT.md` |
+| R.5 | Dynamic Delegation | 🟢 VALIDADA | `R5_DYNAMIC_DELEGATION_EXECUTION_REPORT.md` |
+| R.6 | Long-running Missions | 🟢 VALIDADA | `R6_LONG_RUNNING_MISSIONS_EXECUTION_REPORT.md` |
+| R.7 | Self-monitoring | 🟢 VALIDADA | `R7_SELF_MONITORING_EXECUTION_REPORT.md` |
 
 ### GATE P
 
-⚪ PENDIENTE.
+🟢 PASSED — Formal Hito R Validation. R.1–R.7 funcionan de extremo a extremo como un sistema autónomo coherente, seguro, trazable y multi-tenant. Validado en `GATE_P_HITO_R_ADVANCED_AUTONOMY_VALIDATION_REPORT.md` con 16 escenarios canónicos E2E, 239 tests R.1–R.7, 84 tests transversales y regresión completa de 2831 passed, 18 skipped, 0 failures, 0 errors; `deploy_validate.py` 5/5.
 
 ---
 
@@ -634,7 +634,7 @@ Actualizar esta tabla cada vez que exista un checkpoint relevante.
 | M | Security/Safety | 🟢 PASSED | 2026-09-07 | E2E Gate M Validation (`test_gate_m_hito_n_e2e.py` - 14 escenarios canónicos PASSED, 1837 passed, 1 skipped, 0 failures) |
 | N | SaaS | 🟢 PASSED | 2026-09-10 | E2E Gate N Validation (`test_gate_n_hito_o_e2e.py` - 16 escenarios, 2215 passed, 1 skipped, 0 failures, deploy_validate 5/5) |
 | O | Production | ⚪ | | |
-| P | Advanced Autonomy | ⚪ | | |
+| P | Advanced Autonomy | 🟢 PASSED | 2026-09-17 | Gate P E2E (16 escenarios), 239 tests R.1–R.7, 84 transversales, 2831 passed / 18 skipped / 0 failures / 0 errors, deploy validation 5/5 |
 
 ---
 
@@ -665,6 +665,11 @@ TRAE debe agregar una entrada por cada task completada:
 | 2026-09-13 | Q.1 | Opportunity Dashboard (Business Intelligence / Visualización consultiva de oportunidades de mercado, ranking multi-criterio, filtros avanzados, vistas resumen/detalle, ordenación determinista, paginación, preservación de UNKNOWN e integración con O.1/O.4/O.10) | 18 passed (11 unit + 7 integ) | Opportunity Dashboard Integration & REST/HTML (`test_q1_opportunity_dashboard_integration.py`) | 🟢 VALIDADA | `tests/unit/test_q1_opportunity_dashboard_unit.py`, `tests/integration/test_q1_opportunity_dashboard_integration.py`, `Q1_OPPORTUNITY_DASHBOARD_EXECUTION_REPORT.md` |
 | 2026-09-13 | Q.2 | Supplier Dashboard (Business Intelligence / Visualización consultiva y comparativa de proveedores validados, filtros multicriterio, enmascaramiento PII N.9, aislamiento multi-tenant O.1, RBAC O.4, Admin Console O.10, preservación de UNKNOWN != 0 y ordenación determinista) | 18 passed (10 unit + 8 integ) | Supplier Dashboard Integration & REST/HTML (`test_q2_supplier_dashboard_integration.py`) | 🟢 VALIDADA | `tests/unit/test_q2_supplier_dashboard_unit.py`, `tests/integration/test_q2_supplier_dashboard_integration.py`, `Q2_SUPPLIER_DASHBOARD_EXECUTION_REPORT.md` |
 | 2026-09-13 | Q.3 | Profit Dashboard (Business Intelligence / Unit Economics, Margen y Rentabilidad, visualización consultiva de facts financieros reales, semántica honesta UNKNOWN != 0 / UNKNOWN != FREE, aritmética Decimal estricta, aislamiento multi-tenant O.1, RBAC O.4, Admin Console O.10, comparación de variantes y desglose explicable) | 26 passed (15 unit + 11 integ) | Profit Dashboard Integration & REST/HTML (`test_q3_profit_dashboard_integration.py`) | 🟢 VALIDADA | `tests/unit/test_q3_profit_dashboard_unit.py`, `tests/integration/test_q3_profit_dashboard_integration.py`, `Q3_PROFIT_DASHBOARD_EXECUTION_REPORT.md` |
+| 2026-09-14 | R.1 | Multi-step Planning (Advanced Autonomy / Descomposición jerárquica de objetivos en sub-objetivos y steps canónicos, grafo acíclico dirigido DAG con detección determinista de ciclos, ordenación topológica reproducible con tie-breaking alfabético de Kahn, cálculo estricto de Step Readiness, validación de capacidades registradas, control estricto de budgets con preservación de UNKNOWN != 0, replanificación acotada de subgrafos afectados por fallos técnicos preservando pasos completados, regla Anti-Policy Bypass que bloquea replanes evasivos ante POLICY_DENIED / Emergency Stop N.11, persistencia hexagonal JSON durable multi-tenant con CrossTenantGuard y emisión de auditoría K.1 y trazas K.2 seguras sin Chain-of-Thought) | 2616 passed, 18 skipped, 0 failures (30 específicos R.1: 20 unit + 10 integ/E2E) | Multi-step Planning Integration & E2E Scenarios A-J (`tests/integration/test_r1_multi_step_planning_integration.py`) | 🟢 VALIDADA | `src/domain/planning/`, `src/application/planning/`, `src/infrastructure/persistence/data/json/execution_plan_repository.py`, `tests/unit/test_r1_multi_step_planning_unit.py`, `tests/integration/test_r1_multi_step_planning_integration.py`, `R1_MULTI_STEP_PLANNING_EXECUTION_REPORT.md` |
+| 2026-09-17 | R.7 | Self-monitoring (Advanced Autonomy / Observación y evaluación de salud operacional en tiempo real, detección determinista de latidos vencidos, stall temporal con ClockPort, fallos técnicos, anomalías de coste en Decimal y paridad monetaria, y despacho acotado de remediaciones seguras R.1/R.5/R.6 con adapter K.1/K.2/P.8) | 2831 passed, 18 skipped, 0 failures (41 específicos R.7: 28 unit + 13 integ; regresión R.1-R.7 integrada en Gate P) | R.7 Integration Scenarios A-M (`tests/integration/test_r7_self_monitoring_integration.py`) | 🟢 VALIDADA | `src/domain/self_monitoring/`, `src/application/self_monitoring/`, `tests/unit/test_r7_self_monitoring_unit.py`, `tests/integration/test_r7_self_monitoring_integration.py`, `R7_SELF_MONITORING_EXECUTION_REPORT.md` |
+| 2026-09-17 | Gate P / Hito R | Validación E2E formal y cierre de Hito R (Advanced Autonomy) integrando R.1 Multi-step Planning, R.2 Sub-missions, R.3 Specialist Agents, R.4 Agent Coordination, R.5 Dynamic Delegation, R.6 Long-running Missions y R.7 Self-monitoring, con aislamiento multi-tenant, Zero-CoT, Anti-Policy Bypass y precedencia de Emergency Stop | 2831 passed, 18 skipped, 0 failures, 0 errors (16 Gate P, 239 R.1–R.7, 84 transversales) | Gate P E2E (`test_gate_p_hito_r_advanced_autonomy_e2e.py` - 16 escenarios canónicos) + deploy validation 5/5 | 🟢 VALIDADA | `tests/integration/test_gate_p_hito_r_advanced_autonomy_e2e.py`, `GATE_P_HITO_R_ADVANCED_AUTONOMY_VALIDATION_REPORT.md` |
+| 2026-09-15 | R.3 | Specialist Agents (Advanced Autonomy / modelo formal de agentes y capabilities, selección determinista capability-first, contratos I/O, disponibilidad y coste fail-safe, allowlists, ejecución protegida, idempotencia concurrente tenant-scoped, sanitización y auditoría/traza, integración R.1/R.2) | 2701 passed, 2 skipped, 0 failures (36 específicos R.3; 63 de regresión R.1/R.2) | Specialist Agents Integration Scenarios A-J con mocks/fakes, sin side effects externos | 🟢 VALIDADA | `src/domain/specialist_agent/`, `src/application/specialist_agent/`, `tests/unit/test_r3_specialist_agents_unit.py`, `tests/integration/test_r3_specialist_agents_integration.py`, `R3_SPECIALIST_AGENTS_EXECUTION_REPORT.md` |
+
 
 ---
 
@@ -734,12 +739,20 @@ Antes de comenzar cada task, comprobar el estado de esta Gantt y del Roadmap Mae
 - **Hito O — SaaS / Platformization (🟢 VALIDADA / GATE N PASSED - O.1 a O.13 + Gate N E2E Validation)**
 - **Hito P — Production Readiness & Resilience (🟢 VALIDADA / GATE O PASSED - P.1 a P.10 + Gate O E2E Validation)**
 - **Hito Q — Business Intelligence (🟢 VALIDADA / GATE P PASSED - Q.1 a Q.6 + Gate P E2E Validation)**
+- **Hito R.1 — Multi-step Planning (🟢 VALIDADA)**
+- **Hito R.2 — Sub-missions (🟢 VALIDADA)**
+- **Hito R.3 — Specialist Agents (🟢 VALIDADA)**
+- **Hito R.4 — Agent Coordination (🟢 VALIDADA)**
+- **Hito R.5 — Dynamic Delegation (🟢 VALIDADA)**
+- **Hito R.6 — Long-running Missions (🟢 VALIDADA)**
+- **Hito R.7 — Self-monitoring (🟢 VALIDADA)**
+- **Hito R — Advanced Autonomy (🟢 VALIDADA / GATE P PASSED - R.1 a R.7 + 16 escenarios Gate P E2E)**
 
 **Fases en progreso activo:**
-- Ninguna fase en progreso activo.
+- Ninguna iniciada tras el cierre de Hito R.
 
 **Próxima acción:**
-- Con **Hito Q 🟢 VALIDADA y Gate P 🟢 PASSED**, la siguiente fase en el Roadmap Maestro es **Hito R — Advanced Autonomy (Task R.1: Multi-step Planning)**. NO iniciar Hito R sin autorización explícita.
+- **Hito S — Self-Improving Commerce** permanece ⚪ PENDIENTE. NO ejecutar sin autorización explícita.
 
 ---
 

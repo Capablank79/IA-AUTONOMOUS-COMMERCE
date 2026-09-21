@@ -22,7 +22,7 @@ def test_get_visits_valid_response_with_visits():
     now = datetime.now(timezone.utc)
     yesterday = (now - timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z")
     day_before = (now - timedelta(days=2)).strftime("%Y-%m-%dT00:00:00Z")
-    
+
     response = {
         "item_id": "MLC123",
         "date_from": day_before,
@@ -33,12 +33,12 @@ def test_get_visits_valid_response_with_visits():
             {"date": yesterday, "visits": 20}
         ]
     }
-    
+
     client = FakeApiClient(response)
     source = MercadoLibreVisitsDataSource(client)
-    
+
     signal = source.get_visits("MLC123", 2)
-    
+
     assert client.path == "/items/MLC123/visits/time_window?last=2&unit=day"
     assert signal.item_id == "MLC123"
     assert signal.window == "2d"
@@ -55,7 +55,7 @@ def test_get_visits_with_incomplete_current_day():
     now = datetime.now(timezone.utc)
     today_str = now.strftime("%Y-%m-%dT12:00:00Z")
     yesterday_str = (now - timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z")
-    
+
     response = {
         "total_visits": 25,
         "results": [
@@ -63,12 +63,12 @@ def test_get_visits_with_incomplete_current_day():
             {"date": today_str, "visits": 5} # Today is incomplete
         ]
     }
-    
+
     client = FakeApiClient(response)
     source = MercadoLibreVisitsDataSource(client)
-    
+
     signal = source.get_visits("MLC123", 2)
-    
+
     assert signal.total_visits == 25
     assert signal.observed_days == 2
     # Average should exclude today's visits and today's day count
@@ -81,12 +81,12 @@ def test_get_visits_with_zero_total_visits_and_no_results():
         "total_visits": 0,
         "results": []
     }
-    
+
     client = FakeApiClient(response)
     source = MercadoLibreVisitsDataSource(client)
-    
+
     signal = source.get_visits("MLC123", 7)
-    
+
     assert signal.total_visits == 0
     assert signal.observed_days == 0
     assert signal.coverage_ratio == 0.0
@@ -102,12 +102,12 @@ def test_get_visits_with_zero_total_visits_and_results():
             {"date": yesterday_str, "visits": 0}
         ]
     }
-    
+
     client = FakeApiClient(response)
     source = MercadoLibreVisitsDataSource(client)
-    
+
     signal = source.get_visits("MLC123", 1)
-    
+
     assert signal.total_visits == 0
     assert signal.observed_days == 1
     assert signal.coverage_ratio == 1.0
@@ -118,12 +118,12 @@ def test_get_visits_missing_total_visits():
     response = {
         "results": []
     }
-    
+
     client = FakeApiClient(response)
     source = MercadoLibreVisitsDataSource(client)
-    
+
     signal = source.get_visits("MLC123", 7)
-    
+
     assert signal.total_visits is None
     assert signal.observed_days == 0
     assert signal.average_daily_visits is None
@@ -132,19 +132,19 @@ def test_get_visits_missing_total_visits():
 def test_get_visits_partial_results():
     now = datetime.now(timezone.utc)
     yesterday_str = (now - timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z")
-    
+
     response = {
         "total_visits": 10,
         "results": [
             {"date": yesterday_str, "visits": 10}
         ]
     }
-    
+
     client = FakeApiClient(response)
     source = MercadoLibreVisitsDataSource(client)
-    
+
     signal = source.get_visits("MLC123", 7)
-    
+
     assert signal.total_visits == 10
     assert signal.observed_days == 1
     assert signal.coverage_ratio == 1 / 7
@@ -154,6 +154,6 @@ def test_get_visits_partial_results():
 def test_get_visits_propagates_api_error():
     client = FakeApiClient({}, should_raise=True)
     source = MercadoLibreVisitsDataSource(client)
-    
+
     with pytest.raises(MercadoLibreApiError):
         source.get_visits("MLC123", 7)

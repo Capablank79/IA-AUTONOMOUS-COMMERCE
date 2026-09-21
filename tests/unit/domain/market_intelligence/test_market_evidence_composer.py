@@ -74,7 +74,7 @@ def sample_demand_signal():
 def test_composition_with_listing_only(sample_listing):
     composer = MarketEvidenceComposer()
     evidence = composer.compose(listing=sample_listing)
-    
+
     assert evidence.listing == sample_listing
     assert evidence.traffic_signals == []
     assert evidence.trend_signals == []
@@ -88,7 +88,7 @@ def test_composition_with_visit_signal(sample_listing, sample_visit_signal):
         listing=sample_listing,
         visit_signal=sample_visit_signal
     )
-    
+
     assert evidence.listing == sample_listing
     assert len(evidence.traffic_signals) == 1
     assert evidence.traffic_signals[0] == sample_visit_signal
@@ -101,7 +101,7 @@ def test_composition_with_visit_and_trend_signal(sample_listing, sample_visit_si
         visit_signal=sample_visit_signal,
         trend_signal=sample_trend_signal
     )
-    
+
     assert len(evidence.traffic_signals) == 1
     assert len(evidence.trend_signals) == 1
     assert evidence.traffic_signals[0] == sample_visit_signal
@@ -115,7 +115,7 @@ def test_composition_with_visit_and_price_signal(sample_listing, sample_visit_si
         visit_signal=sample_visit_signal,
         price_signal=sample_price_signal
     )
-    
+
     assert len(evidence.traffic_signals) == 1
     assert len(evidence.price_signals) == 1
     assert evidence.traffic_signals[0] == sample_visit_signal
@@ -123,10 +123,10 @@ def test_composition_with_visit_and_price_signal(sample_listing, sample_visit_si
 
 
 def test_composition_with_all_signals(
-    sample_listing, 
-    sample_visit_signal, 
-    sample_trend_signal, 
-    sample_price_signal, 
+    sample_listing,
+    sample_visit_signal,
+    sample_trend_signal,
+    sample_price_signal,
     sample_demand_signal
 ):
     composer = MarketEvidenceComposer()
@@ -137,12 +137,12 @@ def test_composition_with_all_signals(
         price_signal=sample_price_signal,
         demand_signal=sample_demand_signal
     )
-    
+
     assert len(evidence.traffic_signals) == 1
     assert len(evidence.trend_signals) == 1
     assert len(evidence.price_signals) == 1
     assert len(evidence.demand_signals) == 1
-    
+
     assert evidence.traffic_signals[0] == sample_visit_signal
     assert evidence.trend_signals[0] == sample_trend_signal
     assert evidence.price_signals[0] == sample_price_signal
@@ -155,7 +155,7 @@ def test_absence_of_visit_signal(sample_listing, sample_trend_signal):
         listing=sample_listing,
         trend_signal=sample_trend_signal
     )
-    
+
     assert len(evidence.traffic_signals) == 0
     assert len(evidence.trend_signals) == 1
 
@@ -163,7 +163,7 @@ def test_absence_of_visit_signal(sample_listing, sample_trend_signal):
 def test_absence_of_all_optional_signals(sample_listing):
     composer = MarketEvidenceComposer()
     evidence = composer.compose(listing=sample_listing)
-    
+
     assert not evidence.traffic_signals
     assert not evidence.trend_signals
     assert not evidence.price_signals
@@ -181,28 +181,28 @@ def test_none_remains_none(sample_listing):
         source="mercadolibre_visits",
         observed_at=datetime.now(timezone.utc),
     )
-    
+
     composer = MarketEvidenceComposer()
     evidence = composer.compose(
         listing=sample_listing,
         visit_signal=visit_signal
     )
-    
+
     assert evidence.traffic_signals[0].total_visits is None
 
 
 def test_market_evidence_does_not_contain_opportunity_score(sample_listing):
     composer = MarketEvidenceComposer()
     evidence = composer.compose(listing=sample_listing)
-    
+
     assert not hasattr(evidence, "opportunity_score")
 
 
 def test_composer_does_not_modify_signals(
-    sample_listing, 
-    sample_visit_signal, 
-    sample_trend_signal, 
-    sample_price_signal, 
+    sample_listing,
+    sample_visit_signal,
+    sample_trend_signal,
+    sample_price_signal,
     sample_demand_signal
 ):
     composer = MarketEvidenceComposer()
@@ -213,7 +213,7 @@ def test_composer_does_not_modify_signals(
         price_signal=sample_price_signal,
         demand_signal=sample_demand_signal
     )
-    
+
     # Check identity and equality to ensure objects are unmodified
     assert evidence.traffic_signals[0] is sample_visit_signal
     assert evidence.trend_signals[0] is sample_trend_signal
@@ -228,7 +228,7 @@ def test_composer_does_not_make_commercial_calculations(sample_listing, sample_v
         listing=sample_listing,
         visit_signal=sample_visit_signal
     )
-    
+
     # Evidence shouldn't have arbitrary attributes added
     assert not hasattr(evidence, "visit_score")
     assert not hasattr(evidence, "sales_estimate")

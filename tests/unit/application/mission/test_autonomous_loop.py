@@ -40,7 +40,7 @@ class RecordingActionExecutor(ActionExecutor):
         self.executed_decisions.append(decision)
         if self.raise_on_action and decision.action == self.raise_on_action:
             raise RuntimeError(f"Simulated execution failure for action {decision.action}")
-        
+
         action_key = decision.action.value
         if action_key in self.responses:
             return self.responses[action_key]

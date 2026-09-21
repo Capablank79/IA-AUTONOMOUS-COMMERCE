@@ -81,6 +81,8 @@ from src.domain.security.sensitive_data_ports import SensitiveDataHandlingServic
 
 
 class AuthorizationGuardedActionExecutor(ActionExecutor):
+    is_guarded_executor = True
+
     """
     Guardián de ejecución que impone autorización previa (Hito N.3), permisos RBAC (Hito N.4),
     políticas de herramientas (Hito N.8), manejo/redacción de datos sensibles (Hito N.9),

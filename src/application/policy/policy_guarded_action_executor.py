@@ -18,9 +18,11 @@ from .policy_enforcement_service import PolicyEnforcementService
 
 
 class PolicyGuardedActionExecutor(ActionExecutor):
+    is_guarded_executor = True
+
     """
     Ejecutor de acciones decorador / guardián que impone la barrera de gobernanza (Hito E.3).
-    
+
     Flujo de control:
     DECISION
     ↓
@@ -192,7 +194,7 @@ class PolicyGuardedActionExecutor(ActionExecutor):
             result = self.delegate_executor.execute(decision, state)
             if context.idempotency_key:
                 self._executed_idempotency_keys.append(context.idempotency_key)
-            
+
             # Enriquecer observación con metadatos de gobernanza
             if isinstance(result, dict):
                 enriched = dict(result)

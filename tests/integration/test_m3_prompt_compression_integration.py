@@ -117,7 +117,7 @@ def test_scenario_a_e2e_m1_m2_m3_reevaluation_pipeline():
         input_breakdown=initial_breakdown,
     )
     initial_budget_decision = budget_service.assess_budget(initial_req, policy=budget_policy)
-    
+
     # Debe ser OVER_BUDGET
     assert initial_budget_decision.status == ContextBudgetStatus.OVER_BUDGET
     assert initial_budget_decision.available_input_tokens == 768

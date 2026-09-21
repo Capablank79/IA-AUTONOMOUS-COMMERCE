@@ -84,7 +84,7 @@ def test_mapping_draft_to_payload(sample_draft):
     assert payload["description"] == {"plain_text": sample_draft.description}
     assert len(payload["pictures"]) == 2
     assert payload["pictures"][0] == {"source": "https://http2.mlstatic.com/D_NQ_NP_1.jpg"}
-    
+
     # Attributes & SKU
     attr_ids = [a["id"] for a in payload["attributes"]]
     assert "BRAND" in attr_ids

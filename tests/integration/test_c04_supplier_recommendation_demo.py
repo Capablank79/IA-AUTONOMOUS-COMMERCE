@@ -210,7 +210,7 @@ def test_marcha_blanca_c04_e2e():
     # =========================================================================
     print("\n>>> FALLBACK E2E: QUIEBRE DE STOCK DE PRIMARIO -> ACTIVACIÓN DETERMINISTA DE FALLBACK")
     print(f"Estado Inicial: Primario={rec_a.primary_supplier.supplier_name}, Fallback={rec_a.fallback_supplier.supplier_name}")
-    
+
     new_rec, pivoted = SupplierRecommendationEngine.reevaluate_and_pivot_fallback(
         recommendation=rec_a,
         trigger=ContingencyTrigger.STOCK_UNAVAILABLE,

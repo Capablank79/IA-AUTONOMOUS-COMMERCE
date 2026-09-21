@@ -6,7 +6,7 @@ from src.domain.market_intelligence.models import SearchCriteria, Marketplace
 def test_adapter_fetch_snapshot():
     client = MagicMock()
     adapter = MercadoLibreAdapter(client)
-    
+
     client.search.return_value = {
         "results": [
             {
@@ -20,10 +20,10 @@ def test_adapter_fetch_snapshot():
         ],
         "paging": {"total": 100}
     }
-    
+
     criteria = SearchCriteria(query="test", marketplace=Marketplace.MERCADO_LIBRE)
     snapshot = adapter.fetch_snapshot(criteria)
-    
+
     assert snapshot.marketplace == Marketplace.MERCADO_LIBRE
     assert len(snapshot.listings) == 1
     assert snapshot.total_results == 100
@@ -33,6 +33,6 @@ def test_adapter_error_handling():
     client = MagicMock()
     adapter = MercadoLibreAdapter(client)
     client.search.side_effect = Exception("Network error")
-    
+
     with pytest.raises(RuntimeError, match="MercadoLibreAdapter failed to fetch snapshot"):
         adapter.fetch_snapshot(SearchCriteria(query="test", marketplace=Marketplace.MERCADO_LIBRE))

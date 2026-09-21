@@ -121,7 +121,7 @@ class TestP5DisasterRecoveryUnit(unittest.TestCase):
         self.assertNotIn("p@ss:w/o?r#d%123!", sanitized)
         self.assertNotIn("p@ss", sanitized)
         self.assertIn("iac_app:***@db.internal.iac:5433/iac_target_db", sanitized)
-        
+
         repr_str = repr(target)
         self.assertNotIn("p@ss", repr_str)
         self.assertIn("password='***'", repr_str)
@@ -191,7 +191,7 @@ class TestP5DisasterRecoveryUnit(unittest.TestCase):
     def test_generate_plan_for_all_scenarios(self) -> None:
         mock_backup_service = MagicMock(spec=DatabaseBackupService)
         mock_backup_service.list_backups.return_value = []
-        
+
         service = DisasterRecoveryService(
             db_config=self.source_config,
             backup_service=mock_backup_service,
@@ -211,7 +211,7 @@ class TestP5DisasterRecoveryUnit(unittest.TestCase):
         policy = DisasterRecoveryPolicy(rpo_max_seconds=1800, rto_max_seconds=600)
         self.assertEqual(policy.rpo_max_seconds, 1800)
         self.assertEqual(policy.rto_max_seconds, 600)
-        
+
         with self.assertRaises(ValueError):
             DisasterRecoveryPolicy(rpo_max_seconds=0)
 

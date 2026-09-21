@@ -79,7 +79,7 @@ def test_autonomous_loop_with_policy_governance_allows_safe_publication(default_
     """
     mock_port = MockPublicationPort()
     base_executor = PublicationActionExecutor(publication_port=mock_port)
-    
+
     budget = CapitalBudget(
         budget_id="b-integ-1",
         total_capital=Decimal("500000"),
@@ -87,7 +87,7 @@ def test_autonomous_loop_with_policy_governance_allows_safe_publication(default_
         committed_capital=Decimal("50000"),
         currency="CLP"
     )
-    
+
     guarded_executor = PolicyGuardedActionExecutor(
         delegate_executor=base_executor,
         capital_budget=budget,
@@ -142,7 +142,7 @@ def test_autonomous_loop_with_policy_governance_blocks_mock_evidence(default_cha
     """
     mock_port = MockPublicationPort()
     base_executor = PublicationActionExecutor(publication_port=mock_port)
-    
+
     guarded_executor = PolicyGuardedActionExecutor(
         delegate_executor=base_executor,
     )
@@ -198,7 +198,7 @@ def test_autonomous_loop_with_policy_governance_blocks_critical_risk(default_cha
     """
     mock_port = MockPublicationPort()
     base_executor = PublicationActionExecutor(publication_port=mock_port)
-    
+
     guarded_executor = PolicyGuardedActionExecutor(
         delegate_executor=base_executor,
     )
@@ -252,7 +252,7 @@ def test_autonomous_loop_with_policy_governance_blocks_unapproved_irreversible_a
     """
     mock_port = MockPublicationPort()
     base_executor = PublicationActionExecutor(publication_port=mock_port)
-    
+
     guarded_executor = PolicyGuardedActionExecutor(
         delegate_executor=base_executor,
     )

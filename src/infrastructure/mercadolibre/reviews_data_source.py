@@ -17,9 +17,9 @@ class MercadoLibreReviewsDataSource(ReviewsDataSource):
     def get_reviews(self, item_id: str, offset: int = 0, limit: int = 50) -> ReviewSignal:
         path = f"/reviews/item/{item_id}?offset={offset}&limit={limit}"
         data = self.api_client.get(path)
-        
+
         now = datetime.now(timezone.utc)
-        
+
         raw_reviews = data.get("reviews", [])
         reviews = []
         for r in raw_reviews:

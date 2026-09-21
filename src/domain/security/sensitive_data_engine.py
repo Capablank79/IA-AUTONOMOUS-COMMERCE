@@ -33,7 +33,12 @@ from src.domain.security.sensitive_data_ports import (
     SensitiveDataClassifierPort,
     SensitiveDataRedactorPort,
 )
-from src.domain.security.models import deep_freeze
+from src.domain.security.models import (
+    PrivateReasoningField,
+    PRIVATE_REASONING_KEYS,
+    SAFE_REASONING_STRUCTURED_FIELDS,
+    deep_freeze,
+)
 
 
 class DeterministicSensitiveDataClassifier(SensitiveDataClassifierPort):
@@ -79,21 +84,46 @@ class DeterministicSensitiveDataClassifier(SensitiveDataClassifierPort):
                     k_lower = k_str.lower()
                     path = f"{current_path}.{k_str}" if current_path else k_str
 
-                    # 1. Match por nombre de campo
+                    # 0. Preservar campos estructurados seguros de razón/causa sin clasificar como Anti-CoT
+                    if k_lower in SAFE_REASONING_STRUCTURED_FIELDS:
+                        if isinstance(v, str):
+                            _inspect_string_value(v, path)
+                        else:
+                            _inspect_node(v, path)
+                        continue
+
+                    # 1. Match por nombre de campo: Anti-CoT exacto contra PRIVATE_REASONING_KEYS
                     matched_field = False
-                    for sens_k, (field_class, field_cat) in SENSITIVE_FIELD_NAMES.items():
-                        if sens_k in k_lower:
-                            descriptor = SensitiveFieldDescriptor(
-                                field_path=path,
-                                classification=field_class,
-                                category=field_cat,
-                                detected_via="FIELD_NAME",
-                            )
-                            detected_fields.append(descriptor)
-                            all_categories.add(field_cat)
-                            _update_highest(field_class)
-                            matched_field = True
-                            break
+                    if k_lower in PRIVATE_REASONING_KEYS:
+                        field_class, field_cat = SENSITIVE_FIELD_NAMES.get(
+                            k_lower, (DataClassification.RESTRICTED, SensitiveCategory.PRIVATE_PROMPT_CONTEXT)
+                        )
+                        descriptor = SensitiveFieldDescriptor(
+                            field_path=path,
+                            classification=field_class,
+                            category=field_cat,
+                            detected_via="FIELD_NAME",
+                        )
+                        detected_fields.append(descriptor)
+                        all_categories.add(field_cat)
+                        _update_highest(field_class)
+                        matched_field = True
+                    else:
+                        for sens_k, (field_class, field_cat) in SENSITIVE_FIELD_NAMES.items():
+                            if sens_k in PRIVATE_REASONING_KEYS:
+                                continue  # Anti-CoT requiere coincidencia exacta
+                            if sens_k in k_lower:
+                                descriptor = SensitiveFieldDescriptor(
+                                    field_path=path,
+                                    classification=field_class,
+                                    category=field_cat,
+                                    detected_via="FIELD_NAME",
+                                )
+                                detected_fields.append(descriptor)
+                                all_categories.add(field_cat)
+                                _update_highest(field_class)
+                                matched_field = True
+                                break
 
                     # 2. Si el valor es primitivo string, inspeccionar por patrón
                     if isinstance(v, str):
@@ -232,6 +262,11 @@ class DeterministicSensitiveDataRedactor(SensitiveDataRedactorPort):
                     k_lower = k_str.lower()
                     path = f"{current_path}.{k_str}" if current_path else k_str
 
+                    # 0. Preservar explícitamente campos estructurados seguros de razón/causa
+                    if k_lower in SAFE_REASONING_STRUCTURED_FIELDS:
+                        cleaned_dict[k_str] = _redact_value(v, key_name=k_str, current_path=path)
+                        continue
+
                     # Regla 1: Secrets técnicos (N.5 overlap) -> SIEMPRE [REDACTED_SECRET]
                     is_technical_secret = any(
                         s in k_lower for s in ("password", "secret", "api_key", "apikey", "api_token", "private_key", "access_token", "refresh_token", "auth_header", "bearer")
@@ -252,8 +287,9 @@ class DeterministicSensitiveDataRedactor(SensitiveDataRedactorPort):
                                 redacted_count += 1
                                 continue
 
-                    # Regla 2: Private prompt context / CoT -> SIEMPRE [REDACTED_COT]
-                    is_cot = any(s in k_lower for s in ("chain_of_thought", "reasoning", "reasoning_tokens", "internal_scratchpad"))
+                    # Regla 2: Private prompt context / Anti-CoT -> SIEMPRE [REDACTED_INTERNAL_REASONING]
+                    # Detección exacta case-insensitive contra PRIVATE_REASONING_KEYS sin substring matching
+                    is_cot = k_lower in PRIVATE_REASONING_KEYS
                     if is_cot:
                         cleaned_dict[k_str] = "[REDACTED_INTERNAL_REASONING]"
                         redacted_paths.append(path)

@@ -174,7 +174,7 @@ class MercadoLibrePricingAdapter(PricingPort):
         try:
             path = f"/items/{listing_id}"
             response_data = client.get(path)
-            
+
             price_val = response_data.get("price")
             current_price = Decimal(str(price_val)) if price_val is not None else None
             status_str = response_data.get("status", "unknown")

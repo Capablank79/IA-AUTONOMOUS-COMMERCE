@@ -88,7 +88,7 @@ def test_enrich_listing_obtains_signal_and_produces_evidence(
 
     # Assert 1: Produce MarketEvidence
     assert isinstance(evidence, MarketEvidence)
-    
+
     # Assert 2: external_id propagado correctamente a get_visits
     # Assert 3 & 4: user_id y window_days propagados
     mock_traffic_service.get_visits.assert_called_once_with(
@@ -159,7 +159,7 @@ def test_enrich_listing_propagates_traffic_service_errors(
     # Act & Assert
     with pytest.raises(RuntimeError) as exc_info:
         enrichment_service.enrich_listing("USER1", dummy_listing, 7)
-    
+
     assert "API Rate Limit" in str(exc_info.value)
 
 def test_enrich_listings_associates_correct_signal_to_each_listing(
@@ -229,7 +229,7 @@ def test_enrich_listing_does_not_modify_visit_signal(
 
     # Assert
     # Check that the signal in evidence is exactly the original object (or identical)
-    # Dataclasses with frozen=True are immutable, so it inherently cannot modify it, 
+    # Dataclasses with frozen=True are immutable, so it inherently cannot modify it,
     # but we assert it's the exact same state/instance.
     assert evidence.traffic_signals[0] is original_signal
     assert evidence.traffic_signals[0].total_visits == 15

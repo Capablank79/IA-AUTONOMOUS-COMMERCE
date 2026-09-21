@@ -707,7 +707,7 @@ class QuoteComparator:
                             res_status = QuoteConflictStatus.UNRESOLVED
                             resolved_id = None
                             conf_order = {Confidence.HIGH: 3, Confidence.MEDIUM: 2, Confidence.LOW: 1, Confidence.UNKNOWN: 0}
-                            
+
                             if qa.currency != qb.currency:
                                 res_status = QuoteConflictStatus.NOT_COMPARABLE
                             elif conf_order.get(qa.confidence, 0) > conf_order.get(qb.confidence, 0):
@@ -1848,7 +1848,7 @@ class SupplierRiskComparator:
 class SupplierRecommendationPolicy:
     """
     Policy determinista de recomendación y evaluación de suficiencia de evidencia de proveedores (C.13).
-    
+
     Principios fundamentales:
     1. NO selecciona únicamente por precio, ni únicamente por commercial score, ni únicamente por risk score.
     2. La recomendación surge de la combinación determinista de:
@@ -2207,11 +2207,11 @@ class SupplierRecommendationEngine:
             second_item = viable_items[1]
             # Verificar si el segundo candidato es genuinamente viable como fallback
             is_sec_sufficient, sec_missing, sec_conds = SupplierRecommendationPolicy.evaluate_evidence_sufficiency(second_item)
-            
+
             # El fallback debe tener al menos precio o disponibilidad no rechazada
             if "OUT_OF_STOCK" not in sec_missing and second_item.risk_profile.overall_risk_level != RiskLevel.CRITICAL:
                 sec_risks = [f"{d.dimension_name}: {d.risk_level.value}" for d in [second_item.risk_profile.operational_risk, second_item.risk_profile.logistics_risk] if d.risk_level in [RiskLevel.HIGH, RiskLevel.MEDIUM]]
-                
+
                 tradeoffs = []
                 if top_item.quote and second_item.quote and top_item.quote.unit_price and second_item.quote.unit_price:
                     if second_item.quote.unit_price > top_item.quote.unit_price:

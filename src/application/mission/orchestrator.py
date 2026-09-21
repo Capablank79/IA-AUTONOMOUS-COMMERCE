@@ -82,7 +82,7 @@ class BasicMissionOrchestrator(MissionOrchestrator):
             final_status = MissionStatus.COMPLETED
             if result.blocks:
                 final_status = MissionStatus.BLOCKED
-            
+
             # Guardar resultado y actualizar misión
             self.repository.save_result(result)
             self._update_status(mission, final_status)
@@ -133,7 +133,7 @@ class BasicMissionOrchestrator(MissionOrchestrator):
         limit = params.get("limit", 10)
         marketplace_str = params.get("marketplace", "MERCADO_LIBRE")
         marketplace = Marketplace(marketplace_str)
-        
+
         # Parámetros para Profit Analysis (opcionales)
         experiment_id = params.get("experiment_id")
         supplier_id = params.get("supplier_id")
@@ -245,12 +245,12 @@ class BasicMissionOrchestrator(MissionOrchestrator):
 
             # D. Profit Analysis (si hay datos suficientes)
             profit_analysis = None
-            if (self.profit_repository and self.profit_engine and 
+            if (self.profit_repository and self.profit_engine and
                 self.supplier_source and experiment_id and supplier_id and sku):
                 try:
                     financial_data = self.profit_repository.get_financial_data(experiment_id)
                     decision_rules = self.profit_repository.get_decision_rules(experiment_id)
-                    
+
                     supplier_evidence = self.supplier_source.get_supplier_evidence(supplier_id, sku)
                     if supplier_evidence:
                         enriched_financial = SupplierFinancialMapper.map_evidence_to_financial_data(
@@ -270,7 +270,7 @@ class BasicMissionOrchestrator(MissionOrchestrator):
 
             # E. Opportunity Evaluation (Nueva arquitectura)
             decision = self.opportunity_engine.evaluate(evidence)
-            
+
             # Formatear resultado para el output
             decisions.append({
                 "listing_id": listing.external_id,

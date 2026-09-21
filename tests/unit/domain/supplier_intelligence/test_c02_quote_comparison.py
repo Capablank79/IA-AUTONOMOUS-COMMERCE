@@ -97,7 +97,7 @@ def test_quote_model_and_immutability():
     moq = MOQInfo(quantity=10, moq_type=MOQType.SKU)
     tier1 = PriceTier(min_quantity=1, max_quantity=9, unit_price=Decimal("20000"), currency="CLP")
     tier2 = PriceTier(min_quantity=10, max_quantity=None, unit_price=Decimal("18000"), currency="CLP")
-    
+
     quote = CommercialQuote(
         quote_id="Q-001",
         supplier_id="SUP-001",
@@ -249,7 +249,7 @@ def test_quote_provenance_preservation():
 # 7. Freshness (CURRENT, EXPIRED, UNKNOWN_FRESHNESS)
 def test_quote_freshness_lifecycle():
     now = datetime.now(timezone.utc)
-    
+
     # 1. Vigente
     quote_valid = CommercialQuote(
         quote_id="Q-V1",
@@ -408,7 +408,7 @@ def test_deterministic_candidate_comparison_and_ranking():
     # Rank 1 debe ser SUP-001
     assert res.ranked_items[0].supplier.supplier_id == "SUP-001"
     assert res.ranked_items[0].rank == 1
-    
+
     # Best commercial candidate
     best = res.best_commercial_candidate
     assert best is not None

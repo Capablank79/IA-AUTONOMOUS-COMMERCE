@@ -22,7 +22,7 @@ def test_i5_supplier_performance_integration_e2e(tmp_path: Path):
     """
     Demostración E2E completa del flujo de Supplier Performance (Task I.5):
     SUPPLIER -> SUPPLIER MEMORY (H.6) -> OUTCOMES (I.1) -> SUPPLIER PERFORMANCE (I.5) -> PERSIST -> RELOAD
-    
+
     Verifica también trazabilidad causal completa:
     MISSION -> DECISION -> ACTION -> RESULT -> OUTCOME -> SUPPLIER PERFORMANCE
     """

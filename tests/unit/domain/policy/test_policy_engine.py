@@ -66,7 +66,7 @@ def test_policy_engine_hierarchy_deny_overrides_approval_and_unknown(policy_engi
     engine, repo = policy_engine
     decision = LoopDecision(action=LoopAction.CONTINUE, reason="Conflicted action")
     state = LoopState(mission_id="m-hierarchy", iteration=1, goal="Test hierarchy")
-    
+
     # Contexto con múltiples conflictos:
     # 1. Prohibida -> DENY
     # 2. Requiere aprobación -> REQUIRE_APPROVAL

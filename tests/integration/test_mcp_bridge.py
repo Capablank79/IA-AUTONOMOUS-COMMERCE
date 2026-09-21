@@ -17,11 +17,11 @@ with patch('src.application.oauth.dependencies.oauth_service', MagicMock()), \
      patch('src.infrastructure.persistence.data.json.profit_repository.JsonProfitDataRepository', MagicMock()), \
      patch('src.infrastructure.persistence.data.json.market_snapshot_repository.JsonMarketSnapshotRepository', MagicMock()), \
      patch('src.infrastructure.suppliers.json_supplier_data_source.JsonSupplierDataSource', MagicMock()):
-    
+
     import server
     from server import (
-        submit_discovery_mission, 
-        get_mission_status, 
+        submit_discovery_mission,
+        get_mission_status,
         get_item_evidence,
         discover_products,
         mission_repository,
@@ -53,7 +53,7 @@ def test_get_mission_status_not_found():
 def test_get_mission_status_found():
     mission = Mission.create(MissionType.MARKET_DISCOVERY, {"query": "test"})
     mission_repository.save(mission)
-    
+
     response = get_mission_status(mission.mission_id)
     assert f"ESTADO DE MISIÓN — {mission.mission_id}" in response
     assert "PENDING" in response
@@ -69,7 +69,7 @@ def test_get_item_evidence(mock_oauth):
             source="ml",
             observed_at=datetime.utcnow()
         )
-        
+
         response = get_item_evidence("item123", "user123")
         assert "ITEM EVIDENCE — item123" in response
         assert "Total Visitas: 100" in response
@@ -78,7 +78,7 @@ def test_discover_products_live_02(mock_oauth):
     with patch("server.UserScopedMarketplaceDataSource") as mock_ds:
         with patch("server.DiscoverMarketOpportunitiesUseCase") as mock_uc:
             mock_uc.return_value.execute.return_value = []
-            
+
             response = discover_products(query="test", user_id="user123")
             assert "No se encontraron oportunidades" in response
             # Verify it used the user scoped data source (LIVE-02)

@@ -20,17 +20,17 @@ class MercadoLibreClient:
         params = {"q": q, "limit": limit}
         if category:
             params["category"] = category
-            
+
         # Default site MLC (Chile), target marketplace
         url = f"{self.BASE_URL}/sites/MLC/search?{urllib.parse.urlencode(params)}"
-        
+
         headers = {
             "Accept": "application/json",
             "User-Agent": "AI-Autonomous-Commerce-Lab/0.1.0"
         }
         if self.access_token:
             headers["Authorization"] = f"Bearer {self.access_token}"
-            
+
         try:
             req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req) as response:

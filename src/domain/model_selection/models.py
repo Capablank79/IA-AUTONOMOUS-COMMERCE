@@ -78,31 +78,31 @@ class StandardTaskType(str, Enum):
     MARKET_ANALYSIS = "MARKET_ANALYSIS"
     EXTRACTION = "EXTRACTION"
     CLASSIFICATION = "CLASSIFICATION"
-    
+
     # Supplier Intelligence
     SUPPLIER_SEARCH = "SUPPLIER_SEARCH"
     SUPPLIER_DISCOVERY = "SUPPLIER_DISCOVERY"
     SUPPLIER_ANALYSIS = "SUPPLIER_ANALYSIS"
-    
+
     # Economics, Operating & Capital
     PROFIT_EVALUATION = "PROFIT_EVALUATION"
     CAPITAL_ALLOCATION = "CAPITAL_ALLOCATION"
     OPERATING_MODEL_EVALUATION = "OPERATING_MODEL_EVALUATION"
     COMMERCIAL_REASONING = "COMMERCIAL_REASONING"
-    
+
     # Publication & Content Generation
     STRUCTURED_GENERATION = "STRUCTURED_GENERATION"
     COMMERCIAL_PUBLICATION = "COMMERCIAL_PUBLICATION"
     LISTING_GENERATION = "LISTING_GENERATION"
-    
+
     # Governance & Policy
     POLICY_SENSITIVE_DECISION = "POLICY_SENSITIVE_DECISION"
     POLICY_EVALUATION = "POLICY_EVALUATION"
-    
+
     # Tool Execution Planning & Vision
     TOOL_EXECUTION_PLANNING = "TOOL_EXECUTION_PLANNING"
     VISION_ANALYSIS = "VISION_ANALYSIS"
-    
+
     # Fallback / Unknown
     UNKNOWN = "UNKNOWN"
 
@@ -130,15 +130,15 @@ class TaskModelProfile:
     def __post_init__(self):
         if not self.task_type or not self.task_type.strip():
             raise ValueError("TaskModelProfile task_type cannot be empty")
-        
+
         # Normalizar tuplas inmutables
         caps = tuple(sorted(list(set(self.required_capabilities)), key=lambda c: c.value))
         object.__setattr__(self, "required_capabilities", caps)
-        
+
         if self.fallback_requirements is not None:
             f_caps = tuple(sorted(list(set(self.fallback_requirements)), key=lambda c: c.value))
             object.__setattr__(self, "fallback_requirements", f_caps)
-            
+
         # Sanitizar y congelar metadata
         sanitized_meta = sanitize_routing_data(dict(self.metadata))
         object.__setattr__(self, "metadata", deep_freeze(sanitized_meta))
@@ -179,11 +179,11 @@ class TaskSelectionPolicy:
             raise ValueError("TaskSelectionPolicy policy_id cannot be empty")
         if not self.version or not self.version.strip():
             raise ValueError("TaskSelectionPolicy version cannot be empty")
-            
+
         # Congelar mapping de perfiles
         profiles_dict = dict(self.profiles)
         object.__setattr__(self, "profiles", MappingProxyType(profiles_dict))
-        
+
         sanitized_meta = sanitize_routing_data(dict(self.metadata))
         object.__setattr__(self, "metadata", deep_freeze(sanitized_meta))
 
@@ -228,10 +228,10 @@ class TaskSelectionRequest:
     def __post_init__(self):
         if not self.task_type or not self.task_type.strip():
             raise ValueError("TaskSelectionRequest task_type cannot be empty")
-            
+
         caps = tuple(sorted(list(set(self.additional_capabilities)), key=lambda c: c.value))
         object.__setattr__(self, "additional_capabilities", caps)
-        
+
         sanitized_meta = sanitize_routing_data(dict(self.task_metadata))
         object.__setattr__(self, "task_metadata", deep_freeze(sanitized_meta))
 

@@ -141,7 +141,7 @@ def test_ranking_composite_ordering(engine, make_listing):
 # --------------------------------------------------------------------------
 def test_evidence_sufficiency_classification(engine, make_listing):
     listing = make_listing(sold=None)
-    
+
     # 3.1 Insufficient: no signals
     ev_insufficient = MarketEvidence(listing=listing, confidence=Confidence.LOW)
     assert engine.evaluate_evidence_sufficiency(ev_insufficient) == EvidenceSufficiency.INSUFFICIENT
@@ -183,7 +183,7 @@ def test_evidence_sufficiency_classification(engine, make_listing):
 # --------------------------------------------------------------------------
 def test_readiness_transitions(engine, make_listing):
     listing = make_listing(sold=100)
-    
+
     # Insufficient evidence -> INSUFFICIENT_EVIDENCE
     ev_none = MarketEvidence(listing=make_listing(sold=None), confidence=Confidence.UNKNOWN)
     readiness_none, _ = engine.determine_readiness(ev_none)
@@ -228,7 +228,7 @@ def test_high_score_with_insufficient_evidence(engine, make_listing):
     # Un listing con sold_quantity muy alto pero sin ninguna otra evidencia ni visitas
     listing = make_listing(sold=500)
     ev = MarketEvidence(listing=listing, confidence=Confidence.LOW)
-    
+
     # Score es relativamente alto debido a sold_quantity
     score = engine.calculate_deterministic_market_score(ev)
     assert score >= Decimal("40.0")
@@ -236,7 +236,7 @@ def test_high_score_with_insufficient_evidence(engine, make_listing):
     # Sin embargo, la suficiencia es parcial y el readiness NO es READY sino NEEDS_INVESTIGATION
     sufficiency = engine.evaluate_evidence_sufficiency(ev)
     readiness, reasons = engine.determine_readiness(ev, score=score, sufficiency=sufficiency)
-    
+
     assert sufficiency in [EvidenceSufficiency.PARTIAL, EvidenceSufficiency.INSUFFICIENT]
     assert readiness == OpportunityReadiness.NEEDS_INVESTIGATION
     assert readiness != OpportunityReadiness.READY
@@ -306,7 +306,7 @@ def test_opportunity_comparison(engine, make_listing):
     assert isinstance(comparison, OpportunityComparisonResult)
     assert comparison.winner_id == "MLC-A"
     assert len(comparison.dimensions) >= 4
-    
+
     dim_names = [d.dimension_name for d in comparison.dimensions]
     assert "Score & Market Traction" in dim_names
     assert "Confidence Level" in dim_names
@@ -460,7 +460,7 @@ def test_opportunity_monitoring_and_history_preservation(engine, make_listing):
     # Verificaciones de monitoreo y temporalidad:
     # 1. Objeto nuevo inmutable
     assert opp_v2 is not opp_v1
-    
+
     # 2. Cambio de score
     assert opp_v2.score > initial_score
     assert opp_v2.score >= Decimal("50.0")

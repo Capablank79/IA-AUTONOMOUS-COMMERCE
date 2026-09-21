@@ -1,8 +1,8 @@
 # Mercado Libre API Discovery — Market Intelligence
 
-**Proyecto:** AI Autonomous Commerce  
-**Área:** Market Intelligence / Product Hunter  
-**Estado:** Discovery experimental  
+**Proyecto:** AI Autonomous Commerce
+**Área:** Market Intelligence / Product Hunter
+**Estado:** Discovery experimental
 **Fecha:** 2026-08-26
 
 ## 1. Objetivo

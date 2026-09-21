@@ -152,7 +152,7 @@ def test_validate_safe_identifier_rejections(malicious_id):
 def test_security_check_service_validate_path_safety():
     """Valida el método de servicio validate_path_safety."""
     service = SecurityCheckService()
-    
+
     # Path seguro
     res_pass = service.validate_path_safety("valid_id_001", field_name="listing_id")
     assert res_pass.status == SecurityCheckStatus.PASS

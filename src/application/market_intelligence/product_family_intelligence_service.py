@@ -22,11 +22,11 @@ class ProductFamilyIntelligenceService:
         """
         # 1. Get main product
         main_product = self.catalog_data_source.get_product(product_id)
-        
+
         parent_product = None
         siblings = []
         related_ids = {product_id}
-        
+
         # 2. Get parent and siblings if applicable
         if main_product.parent_id:
             related_ids.add(main_product.parent_id)
@@ -43,14 +43,14 @@ class ProductFamilyIntelligenceService:
             except Exception:
                 # If parent fails, we continue with what we have
                 pass
-        
+
         # 3. Collect variants from all pickers
         all_variants = []
         for picker in main_product.pickers:
             for variant in picker.variants:
                 all_variants.append(variant)
                 related_ids.add(variant.product_id)
-        
+
         # If there's a parent, also check its pickers
         if parent_product:
             for picker in parent_product.pickers:

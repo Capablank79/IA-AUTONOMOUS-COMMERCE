@@ -25,9 +25,9 @@ def test_get_family_intelligence_simple(service, mock_catalog_source):
         status="active"
     )
     mock_catalog_source.get_product.return_value = main_product
-    
+
     intel = service.get_family_intelligence("MLC123")
-    
+
     assert intel.main_product.product_id == "MLC123"
     assert intel.parent_product is None
     assert intel.siblings == []
@@ -47,7 +47,7 @@ def test_get_family_intelligence_with_parent_and_siblings(service, mock_catalog_
         status="active",
         parent_id="MLCPARENT"
     )
-    
+
     parent_product = CatalogProduct(
         product_id="MLCPARENT",
         marketplace=Marketplace.MERCADO_LIBRE,
@@ -60,7 +60,7 @@ def test_get_family_intelligence_with_parent_and_siblings(service, mock_catalog_
         status="inactive",
         children_ids=["MLC123", "MLC456"]
     )
-    
+
     sibling_product = CatalogProduct(
         product_id="MLC456",
         marketplace=Marketplace.MERCADO_LIBRE,
@@ -72,17 +72,17 @@ def test_get_family_intelligence_with_parent_and_siblings(service, mock_catalog_
         thumbnail=None,
         status="active"
     )
-    
+
     def side_effect(product_id):
         if product_id == "MLC123": return main_product
         if product_id == "MLCPARENT": return parent_product
         if product_id == "MLC456": return sibling_product
         return None
-        
+
     mock_catalog_source.get_product.side_effect = side_effect
-    
+
     intel = service.get_family_intelligence("MLC123")
-    
+
     assert intel.main_product.product_id == "MLC123"
     assert intel.parent_product.product_id == "MLCPARENT"
     assert len(intel.siblings) == 1
@@ -115,9 +115,9 @@ def test_get_family_intelligence_with_variants(service, mock_catalog_source):
         ]
     )
     mock_catalog_source.get_product.return_value = main_product
-    
+
     intel = service.get_family_intelligence("MLC123")
-    
+
     assert intel.main_product.product_id == "MLC123"
     assert len(intel.variants) == 2
     assert "MLC123" in intel.related_catalog_ids

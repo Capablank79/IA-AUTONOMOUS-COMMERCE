@@ -24,6 +24,14 @@ import pytest
 from types import MappingProxyType
 from typing import Dict, Any
 
+from src.domain.security.models import (
+    PrivateReasoningField,
+    PRIVATE_REASONING_KEYS,
+    TECHNICAL_SENSITIVE_KEYS,
+    SENSITIVE_KEYS,
+    SAFE_REASONING_STRUCTURED_FIELDS,
+    sanitize_security_data,
+)
 from src.domain.security.sensitive_data_models import (
     DataClassification,
     SensitiveCategory,
@@ -37,6 +45,7 @@ from src.domain.security.sensitive_data_models import (
     DataHandlingRequest,
     RedactionResult,
     DataHandlingDecision,
+    SENSITIVE_FIELD_NAMES,
     mask_email,
     mask_phone,
     mask_rut_dni,
@@ -396,3 +405,147 @@ def test_no_n10_n11_leakage():
     ]
     for term in forbidden_terms:
         assert term not in n9_symbols, f"N.9 must not implement {term} (reserved for N.10/N.11)"
+
+
+# ==============================================================================
+# 17. Anti-CoT Canonical Tests (PRIVATE_REASONING_KEYS, Safe Fields & Nested Structures)
+# ==============================================================================
+
+def test_anti_cot_canonical_fields_classified_and_redacted():
+    """Valida la clasificación y redacción de campos Anti-CoT canónicos explícitos."""
+    classifier = DeterministicSensitiveDataClassifier()
+    redactor = DeterministicSensitiveDataRedactor()
+    service = SensitiveDataHandlingService(classifier=classifier, redactor=redactor)
+
+    payload = {
+        "item_id": "MLA12345",
+        "chain_of_thought": "Step 1: Check margin. Step 2: Compare price.",
+        "internal_reasoning": "Competitor undercutting strategy.",
+        "scratchpad": "Temporary scratch calculations.",
+        "reasoning_steps": ["Check inventory", "Adjust listing"],
+        "thought": "Single thought string",
+        "thoughts": ["Thought A", "Thought B"],
+        "internal_scratchpad": {"note": "Internal draft note"},
+    }
+
+    req = DataHandlingRequest(payload=payload, purpose=DataHandlingPurpose.AUDIT)
+    decision = service.evaluate(req)
+
+    assert decision.classification.overall_classification == DataClassification.RESTRICTED
+    assert SensitiveCategory.PRIVATE_PROMPT_CONTEXT in decision.classification.all_categories
+    assert decision.logging_allowed is False
+
+    sanitized = decision.redaction_result.sanitized_payload
+    assert sanitized["item_id"] == "MLA12345"
+    assert sanitized["chain_of_thought"] == "[REDACTED_INTERNAL_REASONING]"
+    assert sanitized["internal_reasoning"] == "[REDACTED_INTERNAL_REASONING]"
+    assert sanitized["scratchpad"] == "[REDACTED_INTERNAL_REASONING]"
+    assert sanitized["reasoning_steps"] == "[REDACTED_INTERNAL_REASONING]"
+    assert sanitized["thought"] == "[REDACTED_INTERNAL_REASONING]"
+    assert sanitized["thoughts"] == "[REDACTED_INTERNAL_REASONING]"
+    assert sanitized["internal_scratchpad"] == "[REDACTED_INTERNAL_REASONING]"
+
+
+def test_anti_cot_nested_in_dict_and_list():
+    """Valida que Anti-CoT anidado dentro de dict o list se redacte de manera determinista."""
+    classifier = DeterministicSensitiveDataClassifier()
+    redactor = DeterministicSensitiveDataRedactor()
+    service = SensitiveDataHandlingService(classifier=classifier, redactor=redactor)
+
+    nested_payload = {
+        "execution_context": {
+            "agent_id": "agent-007",
+            "metadata": {
+                "chain_of_thought": {"deep_step": "Hidden internal thought trace"},
+            },
+            "history": [
+                {"action": "lookup", "scratchpad": ["t1", "t2"]},
+                {"action": "decide", "internal_reasoning": {"rationale": "private strategy"}},
+            ],
+        },
+        "safe_field": "public_meta_data",
+    }
+
+    req = DataHandlingRequest(payload=nested_payload, purpose=DataHandlingPurpose.GENERAL)
+    decision = service.evaluate(req)
+
+    sanitized = decision.redaction_result.sanitized_payload
+    assert sanitized["safe_field"] == "public_meta_data"
+    assert sanitized["execution_context"]["metadata"]["chain_of_thought"] == "[REDACTED_INTERNAL_REASONING]"
+    assert sanitized["execution_context"]["history"][0]["scratchpad"] == "[REDACTED_INTERNAL_REASONING]"
+    assert sanitized["execution_context"]["history"][1]["internal_reasoning"] == "[REDACTED_INTERNAL_REASONING]"
+
+
+def test_safe_operational_fields_not_overblocked():
+    """Valida que failure_reason, decision_reason, policy_reason, replan_reason y reason_code no se sobre-bloqueen."""
+    classifier = DeterministicSensitiveDataClassifier()
+    redactor = DeterministicSensitiveDataRedactor()
+    service = SensitiveDataHandlingService(classifier=classifier, redactor=redactor)
+
+    operational_payload = {
+        "reason_code": "PRICE_THRESHOLD_EXCEEDED",
+        "failure_reason": "API timeout when reaching supplier service",
+        "decision_reason": "Margin complies with minimal margin threshold",
+        "policy_reason": "Authorization granted for standard order flow",
+        "replan_reason": "Inventory discrepancy detected at warehouse",
+        "safe_field": "unaltered_value",
+    }
+
+    req = DataHandlingRequest(payload=operational_payload, purpose=DataHandlingPurpose.GENERAL)
+    decision = service.evaluate(req)
+
+    # No debe clasificar como RESTRICTED ni PRIVATE_PROMPT_CONTEXT
+    assert decision.classification.overall_classification == DataClassification.PUBLIC
+    assert SensitiveCategory.PRIVATE_PROMPT_CONTEXT not in decision.classification.all_categories
+    assert decision.is_allowed_for_purpose is True
+
+    sanitized = decision.redaction_result.sanitized_payload
+    assert sanitized["reason_code"] == "PRICE_THRESHOLD_EXCEEDED"
+    assert sanitized["failure_reason"] == "API timeout when reaching supplier service"
+    assert sanitized["decision_reason"] == "Margin complies with minimal margin threshold"
+    assert sanitized["policy_reason"] == "Authorization granted for standard order flow"
+    assert sanitized["replan_reason"] == "Inventory discrepancy detected at warehouse"
+    assert sanitized["safe_field"] == "unaltered_value"
+
+
+def test_sanitize_security_data_strict_anti_cot_structures():
+    """Valida que sanitize_security_data elimine valores estructurados bajo claves Anti-CoT canónicas a [REDACTED]."""
+    payload = {
+        "chain_of_thought": {"step1": "calculate price", "step2": "evaluate margin"},
+        "internal_reasoning": ["plan A", "plan B"],
+        "scratchpad": ("item1", "item2"),
+        "failure_reason": {"detail": "network timeout"},
+        "decision_reason": "approved by rule",
+        "safe_field": "valid_public_data",
+        "api_key": "sec_12345",
+    }
+
+    sanitized = sanitize_security_data(payload)
+
+    # Claves Anti-CoT se redactan estrictamente a [REDACTED] preservando la clave
+    assert sanitized["chain_of_thought"] == "[REDACTED]"
+    assert sanitized["internal_reasoning"] == "[REDACTED]"
+    assert sanitized["scratchpad"] == "[REDACTED]"
+    # Claves de secreto técnico
+    assert sanitized["api_key"] == "[REDACTED]"
+    # Campos operacionales seguros se preservan
+    assert sanitized["failure_reason"] == {"detail": "network timeout"}
+    assert sanitized["decision_reason"] == "approved by rule"
+    assert sanitized["safe_field"] == "valid_public_data"
+
+
+def test_sensitive_field_names_programmatically_includes_private_reasoning_keys():
+    """Valida que SENSITIVE_FIELD_NAMES incluya todas las claves canónicas de PRIVATE_REASONING_KEYS."""
+    for key in PRIVATE_REASONING_KEYS:
+        assert key in SENSITIVE_FIELD_NAMES
+        classification, category = SENSITIVE_FIELD_NAMES[key]
+        assert classification == DataClassification.RESTRICTED
+        assert category == SensitiveCategory.PRIVATE_PROMPT_CONTEXT
+
+
+def test_sensitive_keys_backward_compatibility():
+    """Valida la compatibilidad hacia atrás de SENSITIVE_KEYS y la unión de fuentes canónicas."""
+    for k in PRIVATE_REASONING_KEYS:
+        assert k in SENSITIVE_KEYS
+    for k in TECHNICAL_SENSITIVE_KEYS:
+        assert k in SENSITIVE_KEYS

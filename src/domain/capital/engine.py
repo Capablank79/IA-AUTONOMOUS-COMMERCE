@@ -36,7 +36,7 @@ from .models import (
 class CapitalAllocationEngine:
     """
     Motor determinista, explicable y seguro de asignación de capital (D-02).
-    
+
     Responde formalmente a:
     "Dada una oportunidad económicamente evaluada, ¿cuánto capital puede asignarse de forma
     prudente, cuál es la exposición máxima permitida, cuánto capital debe permanecer protegido
@@ -56,7 +56,7 @@ class CapitalAllocationEngine:
         """
         # Calcular límite porcentual sobre el allocatable capital del budget
         pct_cap = budget.allocatable_capital * policy.max_exposure_per_opportunity_pct
-        
+
         if policy.max_exposure_absolute_amount is not None:
             max_allowed = min(pct_cap, policy.max_exposure_absolute_amount)
         else:
@@ -135,7 +135,7 @@ class CapitalAllocationEngine:
             net_margin_pct = econ.net_margin_pct
             gross_margin_pct = econ.gross_margin_pct
             has_complete_economics = (profit_status == ProfitStatus.PROFIT_COMPLETE)
-            
+
             # Recolectar unknowns económicos
             for u in econ.unknowns:
                 if u not in unknowns:
@@ -318,7 +318,7 @@ class CapitalAllocationEngine:
         downside_unknowns: List[str] = []
         if profit_status != ProfitStatus.PROFIT_COMPLETE:
             downside_unknowns.append("NET_DOWNSIDE_UNCERTAIN_DUE_TO_INCOMPLETE_ECONOMICS")
-        
+
         downside = CapitalDownsideAnalysis(
             capital_at_risk=approved_capital,
             liquidity_constraints=tuple(conditions),
@@ -395,7 +395,7 @@ class CapitalAllocationEngine:
             )
 
         alloc_id = allocation_id or f"ALLOC-{decision.opportunity_id}-{int(datetime.now(timezone.utc).timestamp())}"
-        
+
         # Crear asignación
         allocation = CapitalAllocation(
             allocation_id=alloc_id,
@@ -482,7 +482,7 @@ class CapitalAllocationEngine:
         """
         Reevalúa una asignación activa ante deterioro de profit, aumento de riesgo,
         invalidación de proveedor o reducción de demanda.
-        
+
         Permite el ciclo: ALLOCATED -> INVALIDATED -> REASSESS -> REDUCE / RELEASE / REALLOCATE
         """
         # Calcular el capital liberado temporalmente para evaluar con el presupuesto limpio

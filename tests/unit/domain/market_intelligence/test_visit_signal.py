@@ -14,7 +14,7 @@ def test_visit_signal_valid_with_visits():
         observed_at=now,
         confidence=Confidence.HIGH
     )
-    
+
     assert signal.item_id == "MLC123"
     assert signal.total_visits == 140
     assert signal.daily_average == 10.0
@@ -31,7 +31,7 @@ def test_visit_signal_with_total_visits_none():
         source="mercadolibre_visits",
         observed_at=now
     )
-    
+
     assert signal.total_visits is None
     assert signal.daily_average is None
     assert signal.confidence == Confidence.UNKNOWN
@@ -47,7 +47,7 @@ def test_visit_signal_with_total_visits_zero():
         source="mercadolibre_visits",
         observed_at=now
     )
-    
+
     assert signal.total_visits == 0
     assert signal.daily_average == 0.0
 
@@ -92,7 +92,7 @@ def test_visit_signal_rejects_invalid_coverage_ratio():
 
 def test_visit_signal_daily_average_only_when_data_present():
     now = datetime.utcnow()
-    
+
     # Caso 1: Sin visitas
     signal_no_visits = VisitSignal(
         item_id="MLC123",
@@ -104,7 +104,7 @@ def test_visit_signal_daily_average_only_when_data_present():
         observed_at=now
     )
     assert signal_no_visits.daily_average is None
-    
+
     # Caso 2: Sin días observados
     signal_no_days = VisitSignal(
         item_id="MLC123",
@@ -116,7 +116,7 @@ def test_visit_signal_daily_average_only_when_data_present():
         observed_at=now
     )
     assert signal_no_days.daily_average is None
-    
+
     # Caso 3: Datos completos
     signal_ok = VisitSignal(
         item_id="MLC123",

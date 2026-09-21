@@ -16,7 +16,7 @@ from .models import ReturnStatus, RefundStatus
 class ReturnActionPolicyRule(PolicyRule):
     """
     Regla de gobernanza determinista para acciones postventa, devoluciones y reembolsos (G.8).
-    
+
     Reglas:
     - ISSUE_REFUND requiere que el monto esté definido y sea mayor a cero.
     - ISSUE_REFUND requiere aprobación humana si el monto supera el umbral configurable (default > 100 USD)

@@ -69,6 +69,8 @@ from src.domain.security.sensitive_data_ports import SensitiveDataHandlingServic
 
 
 class SaaSGuardedActionExecutor(ActionExecutor):
+    is_guarded_executor = True
+
     """
     Decorador guardián para ActionExecutor que interpone autorización SaaS multi-tenant O.4
     antes de la ejecución física de acciones.

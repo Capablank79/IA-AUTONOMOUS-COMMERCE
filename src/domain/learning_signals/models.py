@@ -99,7 +99,7 @@ class LearningSignalRecord:
     source_id: str
     evidence_classification: SignalEvidenceClassification = SignalEvidenceClassification.DERIVED
     status: SignalStatus = SignalStatus.VALID
-    
+
     # Causal References
     mission_id: Optional[str] = None
     decision_id: Optional[str] = None
@@ -112,15 +112,15 @@ class LearningSignalRecord:
     product_performance_id: Optional[str] = None
     supplier_performance_id: Optional[str] = None
     strategy_performance_id: Optional[str] = None
-    
+
     # Payload / Value (sin PII/credenciales)
     signal_value: Mapping[str, Any] = field(default_factory=dict)
     summary: str = ""
-    
+
     # Temporalidad
     observed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    
+
     # Provenance y Auditoría
     evidence_reference: Optional[str] = None
     confidence: Confidence = Confidence.MEDIUM

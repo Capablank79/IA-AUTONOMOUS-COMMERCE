@@ -92,7 +92,7 @@ def create_sample_series(
 ) -> list[MetricSample]:
     if base_time is None:
         base_time = datetime(2026, 9, 12, 12, 0, tzinfo=timezone.utc) - timedelta(minutes=len(dimension_values) * interval_minutes)
-    
+
     samples = []
     for i, val in enumerate(dimension_values):
         t = base_time + timedelta(minutes=i * interval_minutes)
@@ -146,7 +146,7 @@ def test_05_moving_average_and_trend():
     # Rising demand from 100 to 200 over 10 samples (1 sample every 6 minutes = 1 hour)
     values = [100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 200.0]
     samples = create_sample_series(values, base_time=now - timedelta(hours=1), interval_minutes=6)
-    
+
     trend = CapacityPlanningService.compute_trend(samples)
     assert trend.direction == "GROWING"
     assert trend.growth_rate_per_hour is not None
@@ -198,11 +198,11 @@ def test_08_spike_considered():
     # Baseline ~100, but has a spike of 900
     values = [100.0, 105.0, 95.0, 100.0, 900.0, 102.0, 98.0, 101.0, 104.0, 99.0]
     samples = create_sample_series(values, base_time=now - timedelta(hours=1), interval_minutes=6)
-    
+
     repo = MockMetricRepository(samples)
     provider = ProductionCapacityDataProvider(repo)
     service = CapacityPlanningService(data_provider=provider)
-    
+
     evaluation = service.evaluate_dimension(
         dimension=ResourceDimension.REQUEST_THROUGHPUT,
         start_time=now - timedelta(hours=2),
@@ -217,7 +217,7 @@ def test_08_spike_considered():
 def test_09_confidence_degradation():
     """9. confidence degradation: confidence decreases when sample count is low."""
     now = datetime(2026, 9, 12, 12, 0, tzinfo=timezone.utc)
-    
+
     # High confidence (>= 10 samples)
     high_samples = create_sample_series([100.0] * 12, base_time=now - timedelta(hours=2))
     repo_high = MockMetricRepository(high_samples)
@@ -252,10 +252,10 @@ def test_10_environment_isolation():
     now = datetime(2026, 9, 12, 12, 0, tzinfo=timezone.utc)
     dev_samples = create_sample_series([9999.0] * 10, environment=ApplicationEnvironment.DEVELOPMENT)
     prod_samples = create_sample_series([200.0] * 10, environment=ApplicationEnvironment.PRODUCTION)
-    
+
     repo = MockMetricRepository(dev_samples + prod_samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo), environment=ApplicationEnvironment.PRODUCTION)
-    
+
     eval_prod = service.evaluate_dimension(ResourceDimension.REQUEST_THROUGHPUT, now - timedelta(hours=2), now)
     assert eval_prod.current_demand == 200.0  # DEV demand 9999.0 is completely excluded
 
@@ -274,10 +274,10 @@ def test_11_tenant_platform_distinction():
         scope=MonitoringScope.PLATFORM,
         base_time=now - timedelta(hours=2),
     )
-    
+
     repo = MockMetricRepository(tenant_a_samples + platform_samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     eval_tenant = service.evaluate_dimension(
         ResourceDimension.REQUEST_THROUGHPUT,
         now - timedelta(hours=2),
@@ -291,7 +291,7 @@ def test_11_tenant_platform_distinction():
         now,
         scope=CapacityScope.PLATFORM,
     )
-    
+
     assert eval_tenant.current_demand == 50.0
     assert eval_platform.current_demand == 500.0
 
@@ -305,14 +305,14 @@ def test_12_quota_distinct_from_capacity():
         scope=QuotaScope.TENANT,
         limit_value=10000,
     )
-    
+
     # P.10 technical infrastructure capacity
     infra_capacity_limit = CapacityResourceLimits(
         dimension=ResourceDimension.REQUEST_THROUGHPUT,
         max_capacity=1000.0,
         unit="req/min",
     )
-    
+
     assert commercial_quota_rule.limit_value != infra_capacity_limit.max_capacity
     assert commercial_quota_rule.quota_type.value == "MAX_REQUESTS"
     assert infra_capacity_limit.dimension.value == "REQUEST_THROUGHPUT"
@@ -325,7 +325,7 @@ def test_13_recommendation_no_action():
     samples = create_sample_series([200.0] * 10, base_time=now - timedelta(hours=2))
     repo = MockMetricRepository(samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     eval_res = service.evaluate_dimension(ResourceDimension.REQUEST_THROUGHPUT, now - timedelta(hours=2), now)
     assert eval_res.recommendation.recommendation_type == CapacityRecommendationType.NO_ACTION
     assert eval_res.overall_risk == CapacityRisk.LOW
@@ -334,7 +334,7 @@ def test_13_recommendation_no_action():
 def test_14_recommendation_scale_soon_and_scale_immediately():
     """14. scale soon / scale immediately: high or saturated utilization triggers scaling recommendation."""
     now = datetime(2026, 9, 12, 12, 0, tzinfo=timezone.utc)
-    
+
     # High demand near critical threshold (750 / 1000 = 75% utilization -> warning is 70%)
     samples_high = create_sample_series([750.0] * 10, base_time=now - timedelta(hours=2))
     repo_high = MockMetricRepository(samples_high)
@@ -380,11 +380,11 @@ def test_16_snapshot_integrity_checksum():
     samples = create_sample_series([300.0] * 10, base_time=now - timedelta(hours=2))
     repo = MockMetricRepository(samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     snapshot = service.generate_capacity_snapshot()
     assert snapshot.checksum != ""
     assert len(snapshot.checksum) == 64  # SHA-256 hex length
-    
+
     # Tampering with snapshot raises integrity error
     with pytest.raises(CapacityPlanningIntegrityError):
         CapacitySnapshot(

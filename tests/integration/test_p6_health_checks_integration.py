@@ -41,7 +41,7 @@ class TestP6HealthChecksIntegration(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.data_dir = Path(self.temp_dir.name)
-        
+
         # Cargar configuración de DB real si existe
         self.db_config = None
         try:
@@ -289,7 +289,7 @@ class TestP6HealthChecksIntegration(unittest.TestCase):
         with patch.object(mock_factory, "check_connection", return_value={"status": "ok"}), \
              patch("src.infrastructure.health.service.check_schema_compatibility") as mock_schema:
             mock_schema.return_value = {"status": "ok", "is_up_to_date": True, "current_revision": "head"}
-            
+
             health_service = HealthCheckService(
                 config=self.deployment_config,
                 db_config=self.db_config or DatabaseConfig.from_env(),

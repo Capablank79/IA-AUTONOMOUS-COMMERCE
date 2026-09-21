@@ -20,7 +20,7 @@ def test_get_reviews_uses_valid_oauth_connection_and_returns_signal():
             return connection
 
     captured = {}
-    
+
     expected_signal = ReviewSignal(
         item_id="MLC123",
         total_reviews=10,

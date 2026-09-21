@@ -5,10 +5,10 @@ from src.infrastructure.mission.repository import InMemoryMissionRepository
 def test_save_and_get_mission():
     repo = InMemoryMissionRepository()
     mission = Mission.create(MissionType.MARKET_DISCOVERY, {"query": "test"})
-    
+
     repo.save(mission)
     saved = repo.get_by_id(mission.mission_id)
-    
+
     assert saved == mission
     assert saved.mission_id == mission.mission_id
 
@@ -20,10 +20,10 @@ def test_save_and_get_result():
         status=MissionStatus.COMPLETED,
         output={"key": "value"}
     )
-    
+
     repo.save_result(result)
     saved_result = repo.get_result(mission_id)
-    
+
     assert saved_result == result
     assert saved_result.output["key"] == "value"
 

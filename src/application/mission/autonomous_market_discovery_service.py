@@ -32,7 +32,7 @@ class AutonomousMarketDiscoveryService:
     Servicio de orquestación para el bucle autónomo de descubrimiento de oportunidades de mercado.
     Integra el AutonomousLoop agnóstico con el MarketDiscoveryActionExecutor, el OpportunityEngine
     y el DecisionProvider (LLM o heurístico/scripted).
-    
+
     Gestiona el ciclo cognitivo:
     MISSION -> OBSERVE -> EVALUATE -> DECIDE -> ACT -> OBSERVE -> UPDATE STATE -> MEASURE PROGRESS -> CONVERGENCE
     """
@@ -95,11 +95,11 @@ class AutonomousMarketDiscoveryService:
         def state_enhancer(state: LoopState, observation: Dict[str, Any]) -> LoopState:
             current_best = executor.get_best_candidate()
             evidences = tuple(executor.get_all_evidences())
-            
+
             # Calcular progreso
             prev_best_score = state.best_known.score if state.best_known and hasattr(state.best_known, "score") else None
             curr_best_score = current_best.score if current_best and hasattr(current_best, "score") else None
-            
+
             improvement = Decimal("0.0")
             if curr_best_score is not None and prev_best_score is not None:
                 improvement = curr_best_score - prev_best_score

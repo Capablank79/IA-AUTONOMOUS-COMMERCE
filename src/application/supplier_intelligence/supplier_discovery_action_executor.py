@@ -162,7 +162,7 @@ class SupplierDiscoveryActionExecutor(ActionExecutor):
                 market_price = self.target_opportunity.listing.price.amount
             elif hasattr(self.target_opportunity, "market_evidence") and hasattr(self.target_opportunity.market_evidence, "market_price"):
                 market_price = self.target_opportunity.market_evidence.market_price
-            
+
             # Extraer sku/brand si existen en provenance o raw_data
             prov = self.target_opportunity.provenance if hasattr(self.target_opportunity, "provenance") else {}
             if isinstance(prov, dict) or hasattr(prov, "get"):

@@ -73,7 +73,7 @@ class AutonomousSupplierDiscoveryService:
             candidates = executor.get_all_candidates()
             if not candidates:
                 return False, "No supplier candidates discovered yet."
-            
+
             # Verificar si hay al menos un candidato evaluado con match válido
             valid_candidates = [
                 c for c in candidates
@@ -129,7 +129,7 @@ class AutonomousSupplierDiscoveryService:
 
         # Mapeo a MissionResult
         mission_status = MissionStatus.COMPLETED if loop_result.status == "COMPLETED" else MissionStatus.FAILED
-        
+
         output_payload = {
             "opportunity_id": opportunity.opportunity_id,
             "opportunity_title": opportunity.title,

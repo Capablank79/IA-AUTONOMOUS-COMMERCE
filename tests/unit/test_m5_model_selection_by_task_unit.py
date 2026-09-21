@@ -131,7 +131,7 @@ def test_1_known_task_profile_resolution(standard_routes):
 def test_2_unknown_task_handling(standard_routes):
     """2. Tarea desconocida nunca asigna modelo default silenciosamente -> UNKNOWN_TASK / NO_PROFILE."""
     service = ModelSelectionByTaskService()
-    
+
     # Caso A: tarea formal UNKNOWN
     req_unknown = TaskSelectionRequest(task_type="UNKNOWN")
     result_unknown = service.select_model_for_task(req_unknown, available_routes=standard_routes)

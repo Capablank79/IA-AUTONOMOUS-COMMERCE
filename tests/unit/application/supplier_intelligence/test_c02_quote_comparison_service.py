@@ -104,7 +104,7 @@ def test_supplier_discovery_action_executor_compare_operation(sample_opportunity
     assert comp_res["operation"] == "COMPARE"
     assert comp_res["candidates_compared"] >= 3
     assert len(comp_res["ranked_items"]) >= 3
-    
+
     # Verificar items rankeados
     top_item = comp_res["ranked_items"][0]
     assert top_item["rank"] == 1
@@ -126,7 +126,7 @@ def test_executor_multi_currency_and_unknowns_handling(sample_opportunity, suppl
         target_opportunity=sample_opportunity,
     )
     state = LoopState(mission_id="M-C02-02", iteration=1, goal="Investigate & Compare", current_target=sample_opportunity.title)
-    
+
     # Descubrir inicial
     executor.execute(
         LoopDecision(action=LoopAction.CONTINUE, target=sample_opportunity.title, reason="Initial discovery"),
@@ -174,7 +174,7 @@ def test_executor_multi_currency_and_unknowns_handling(sample_opportunity, suppl
     assert comp_res["status"] == "SUCCESS"
     assert len(comp_res["non_comparable_reasons"]) > 0
     assert any("Multiple currencies" in r for r in comp_res["non_comparable_reasons"])
-    
+
     usd_item = next(it for it in comp_res["ranked_items"] if it["supplier_id"] == "SUP-USD-EXT")
     assert usd_item["currency"] == "USD"
     assert usd_item["comparability"] == QuoteComparabilityStatus.NOT_COMPARABLE.value

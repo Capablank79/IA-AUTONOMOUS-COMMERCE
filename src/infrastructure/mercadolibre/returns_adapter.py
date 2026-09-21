@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 class MercadoLibreReturnsAdapter(ReturnsPort):
     """
     Adaptador de infraestructura de Mercado Libre para Devoluciones, Reclamos y Excepciones Postventa (G.8).
-    
+
     Principios de Diseño:
     - Normalización de estados de devolución de Mercado Libre (opened, shipping, delivered, closed, cancelled).
     - Normalización de reclamos postventa (/post-purchase/v1/claims o /claims/{id}).

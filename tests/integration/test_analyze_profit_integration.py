@@ -13,15 +13,15 @@ def test_analyze_profit_use_case_integration():
     # Arrange
     repository = JsonProfitDataRepository(REAL_DATA_DIR)
     use_case = AnalyzeProfitUseCase(repository)
-    
+
     experiment_id = "EXP-001"
-    
+
     # Act
     result = use_case.execute(experiment_id)
-    
+
     # Assert
     assert isinstance(result, ProfitAnalysis)
-    
+
     # Assert specific values based on the EXP-001 JSON to ensure full integration correctness
     # The JSON values for EXP-001:
     # price = 99990
@@ -32,10 +32,10 @@ def test_analyze_profit_use_case_integration():
     # net_profit = 99990 - 12998.7 - 4384 = 82607.3
     assert result.net_profit.amount == Decimal("82607.3")
     assert result.net_profit.currency == "CLP"
-    
+
     # net_margin = 82607.3 / 99990 = 82.615...
     # Just checking it's a Decimal and it's positive and > excellent_margin (40%)
     assert result.net_margin_pct > Decimal("40.0")
-    
+
     # Since margin is excellent and demand is ok, it should be STRONG_BUY
     assert result.decision == Decision.STRONG_BUY

@@ -25,17 +25,17 @@ class MercadoLibreAdapter(MarketplaceDataSource):
             }
             if criteria.limit is not None:
                 kwargs["limit"] = criteria.limit
-                
+
             raw_data = self.client.search(**kwargs)
-            
+
             listings = [
                 self.mapper.to_domain(item)
                 for item in raw_data.get("results", [])
             ]
-            
+
             paging = raw_data.get("paging", {})
             total_results = int(paging.get("total", len(listings)))
-            
+
             return MarketSnapshot(
                 snapshot_id=str(uuid.uuid4()),
                 timestamp=datetime.utcnow(),

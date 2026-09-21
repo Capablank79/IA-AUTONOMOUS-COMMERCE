@@ -151,10 +151,10 @@ def sanitize_route_template(path: str) -> str:
     """
     if not path:
         return "/"
-    
+
     # Strip query parameters if present
     path = path.split("?")[0]
-    
+
     # Normalizar UUIDs
     path = re.sub(
         r"/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
@@ -163,10 +163,10 @@ def sanitize_route_template(path: str) -> str:
     )
     # Normalizar IDs numéricos
     path = re.sub(r"/\d+", "/{id}", path)
-    
+
     # Normalizar hashes hex largos (ej. commit hashes, tokens)
     path = re.sub(r"/[0-9a-fA-F]{16,}", "/{hash}", path)
-    
+
     return path
 
 
@@ -194,7 +194,7 @@ def calculate_percentile(sorted_values: Sequence[float], percentile: float) -> O
         return None
     if len(sorted_values) == 1:
         return sorted_values[0]
-    
+
     k = (len(sorted_values) - 1) * percentile
     f = math.floor(k)
     c = math.ceil(k)
@@ -230,7 +230,7 @@ class MetricSample:
             object.__setattr__(self, "timestamp", self.timestamp.replace(tzinfo=timezone.utc))
         if self.tenant_id is not None:
             validate_safe_identifier(self.tenant_id, "tenant_id")
-        
+
         validate_metric_labels(self.labels)
         if not isinstance(self.labels, MappingProxyType):
             object.__setattr__(self, "labels", MappingProxyType(dict(self.labels)))
@@ -283,7 +283,7 @@ class MonitoringMetric:
             object.__setattr__(self, "evaluated_at", self.evaluated_at.replace(tzinfo=timezone.utc))
         if self.tenant_id is not None:
             validate_safe_identifier(self.tenant_id, "tenant_id")
-        
+
         validate_metric_labels(self.labels)
         if not isinstance(self.labels, MappingProxyType):
             object.__setattr__(self, "labels", MappingProxyType(dict(self.labels)))

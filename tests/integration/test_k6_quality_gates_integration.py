@@ -113,7 +113,7 @@ def test_k6_concurrent_evaluations_and_saves(tmp_path):
     repo = JsonQualityGateRepository(tmp_path / "gates-concurrent")
     service = QualityGateService(repo)
     gate = service.register_definition(QualityGateDefinition("concurrent-gate", "Gate", ""))
-    
+
     now = datetime.now(timezone.utc)
     results = [EvaluationResult("r1", "c1", "e1", "x", now, now, EvaluationStatus.PASS)]
 

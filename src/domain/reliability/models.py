@@ -97,7 +97,7 @@ def classify_failure(
 ) -> FailureRecoverability:
     """
     Clasifica de manera determinista la recuperabilidad de un fallo.
-    
+
     Regla fundamental K.7:
     - En operaciones con efectos secundarios (escrituras/mutaciones), TIMEOUT y UNKNOWN
       requieren RECONCILIATION_REQUIRED porque no sabemos si el efecto ocurrió en el destino.
@@ -203,7 +203,7 @@ class RetryPolicy:
         """
         if retry_after_seconds is not None and retry_after_seconds > 0:
             return min(float(retry_after_seconds), self.max_delay_seconds)
-        
+
         # attempt 1 -> initial_delay_seconds
         # attempt 2 -> initial_delay_seconds * backoff_multiplier
         # ...

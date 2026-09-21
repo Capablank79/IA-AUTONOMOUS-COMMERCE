@@ -7,11 +7,11 @@ class MercadoLibreMapper:
         # Extract basic data
         external_id = str(ml_item.get("id", ""))
         title = ml_item.get("title", "No title")
-        
+
         # Money handling
         price_amount = Decimal(str(ml_item.get("price", "0")))
         currency = ml_item.get("currency_id", "CLP")
-        
+
         # Quantities
         raw_sold = ml_item.get("sold_quantity")
         sold_quantity = int(raw_sold) if raw_sold is not None else None
@@ -21,7 +21,7 @@ class MercadoLibreMapper:
         # Seller
         seller_data = ml_item.get("seller", {})
         seller_id = str(seller_data.get("id", "unknown"))
-        
+
         # Additional info
         condition = ml_item.get("condition", "new")
         shipping_info = ml_item.get("shipping", {})

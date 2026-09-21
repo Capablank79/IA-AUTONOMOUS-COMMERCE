@@ -158,11 +158,11 @@ class MarketDiscoveryActionExecutor(ActionExecutor):
         found_listings = []
         for listing in snapshot.listings:
             self._cached_listings[listing.external_id] = listing
-            
+
             # Componer evidencia base inicial
             evidence = self.evidence_composer.compose(listing=listing)
             self._cached_evidences[listing.external_id] = evidence
-            
+
             # Score preliminar
             score = self.opportunity_engine.calculate_deterministic_market_score(evidence)
             self._evaluated_scores[listing.external_id] = score
@@ -265,7 +265,7 @@ class MarketDiscoveryActionExecutor(ActionExecutor):
             review_signals=review_signals,
             confidence=confidence
         )
-        
+
         # Calcular señal de demanda actualizada
         demand_signal = self.demand_intelligence.calculate(enriched_evidence)
         enriched_evidence = self.evidence_composer.compose(
@@ -367,9 +367,9 @@ class MarketDiscoveryActionExecutor(ActionExecutor):
             reason = RejectionReason.OTHER
 
         details = str(params.get("details") or params.get("explanation") or f"Rejected due to {reason.value}")
-        
+
         decision = self.opportunity_engine.reject_opportunity(evidence=evidence, reason=reason, details=details)
-        
+
         # Actualizar o registrar en modelo Opportunity
         opp = self.opportunity_engine.create_opportunity(evidence=evidence)
         self._cached_opportunities[item_id] = opp

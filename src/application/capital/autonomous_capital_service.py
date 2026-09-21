@@ -116,7 +116,7 @@ class CapitalAllocationActionExecutor(ActionExecutor):
 
     def _execute_evaluate_allocation(self, params: Dict[str, Any]) -> Dict[str, Any]:
         req_cap = Decimal(str(params["requested_capital"])) if "requested_capital" in params else self.requested_capital
-        
+
         self.latest_decision = CapitalAllocationEngine.evaluate_allocation(
             opportunity=self.opportunity,
             budget=self.current_budget,

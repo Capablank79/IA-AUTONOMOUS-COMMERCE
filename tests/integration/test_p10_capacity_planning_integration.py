@@ -106,7 +106,7 @@ def build_samples_for_scenario(
 ) -> list[MetricSample]:
     if base_time is None:
         base_time = datetime(2026, 9, 12, 10, 0, tzinfo=timezone.utc)
-    
+
     samples = []
     for i, val in enumerate(values):
         t = base_time + timedelta(minutes=i * interval_minutes)
@@ -135,7 +135,7 @@ def test_scenario_a_stable_low_demand_leads_to_low_risk_no_action():
     )
     repo = MockIntegratedMetricRepository(samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     eval_res = service.evaluate_dimension(
         dimension=ResourceDimension.REQUEST_THROUGHPUT,
         start_time=now - timedelta(hours=3),
@@ -160,7 +160,7 @@ def test_scenario_b_rising_demand_leads_to_scale_soon():
     )
     repo = MockIntegratedMetricRepository(samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     eval_res = service.evaluate_dimension(
         dimension=ResourceDimension.REQUEST_THROUGHPUT,
         start_time=now - timedelta(hours=2),
@@ -185,7 +185,7 @@ def test_scenario_c_demand_exceeds_capacity_leads_to_critical_and_scale_immediat
     )
     repo = MockIntegratedMetricRepository(samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     eval_res = service.evaluate_dimension(
         dimension=ResourceDimension.REQUEST_THROUGHPUT,
         start_time=now - timedelta(hours=2),
@@ -206,7 +206,7 @@ def test_scenario_d_unknown_capacity_leads_to_unknown_risk_and_investigate():
         base_time=now - timedelta(hours=1),
     )
     repo = MockIntegratedMetricRepository(samples)
-    
+
     # Custom config provider with unknown limit for REQUEST_THROUGHPUT
     custom_limits = {
         ApplicationEnvironment.PRODUCTION: {
@@ -222,7 +222,7 @@ def test_scenario_d_unknown_capacity_leads_to_unknown_risk_and_investigate():
         data_provider=ProductionCapacityDataProvider(repo),
         config_provider=config,
     )
-    
+
     eval_res = service.evaluate_dimension(
         dimension=ResourceDimension.REQUEST_THROUGHPUT,
         start_time=now - timedelta(hours=2),
@@ -245,7 +245,7 @@ def test_scenario_e_error_pressure_evaluates_higher_risk():
     )
     repo = MockIntegratedMetricRepository(samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     eval_res = service.evaluate_dimension(
         dimension=ResourceDimension.ERROR_PRESSURE,
         start_time=now - timedelta(hours=2),
@@ -269,7 +269,7 @@ def test_scenario_f_ai_provider_pressure_warning():
     )
     repo = MockIntegratedMetricRepository(samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     eval_res = service.evaluate_dimension(
         dimension=ResourceDimension.AI_PROVIDER_THROUGHPUT,
         start_time=now - timedelta(hours=2),
@@ -290,7 +290,7 @@ def test_scenario_g_database_pressure_recommendation():
     )
     repo = MockIntegratedMetricRepository(samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     eval_res = service.evaluate_dimension(
         dimension=ResourceDimension.DATABASE_QUERY_LATENCY,
         start_time=now - timedelta(hours=2),
@@ -327,7 +327,7 @@ def test_scenario_h_dev_metrics_do_not_affect_prod_snapshot():
         environment=ApplicationEnvironment.PRODUCTION,
         clock=clock,
     )
-    
+
     snapshot_prod = service.generate_capacity_snapshot()
     req_eval = snapshot_prod.evaluations[ResourceDimension.REQUEST_THROUGHPUT]
     assert req_eval.current_demand == 150.0
@@ -355,7 +355,7 @@ def test_scenario_i_tenant_demand_aggregated_safely_without_leak():
     repo = MockIntegratedMetricRepository(tenant_1_samples + tenant_2_samples)
     clock = FixedClock(now)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo), clock=clock)
-    
+
     snapshot_t1 = service.generate_capacity_snapshot(
         scope=CapacityScope.TENANT,
         tenant_id="tenant-acme",
@@ -374,7 +374,7 @@ def test_scenario_j_insufficient_history_results_in_low_confidence():
     )
     repo = MockIntegratedMetricRepository(samples)
     service = CapacityPlanningService(data_provider=ProductionCapacityDataProvider(repo))
-    
+
     eval_res = service.evaluate_dimension(
         dimension=ResourceDimension.REQUEST_THROUGHPUT,
         start_time=now - timedelta(hours=2),

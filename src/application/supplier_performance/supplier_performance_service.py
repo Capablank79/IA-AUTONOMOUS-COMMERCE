@@ -145,7 +145,7 @@ class SupplierPerformanceService:
                 observed_moqs.append(sm.moq)
             if sm.lead_time_days is not None:
                 observed_lead_times.append(sm.lead_time_days)
-            
+
             # Si en la metadata se indica si fue aceptada
             if sm.metadata.get("quote_accepted") is True or sm.metadata.get("status") == "ACCEPTED":
                 accepted_quotes_count += 1

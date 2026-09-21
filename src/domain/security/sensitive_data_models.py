@@ -32,6 +32,8 @@ from types import MappingProxyType
 from typing import Mapping, Optional, Any, Tuple, Sequence, Dict, Union, Set
 
 from src.domain.security.models import (
+    PrivateReasoningField,
+    PRIVATE_REASONING_KEYS,
     sanitize_security_data,
     deep_freeze,
     validate_safe_identifier,
@@ -131,7 +133,7 @@ CREDIT_CARD_REGEX = re.compile(r"\b(?:\d{4}[ -]?){3}\d{4}\b")
 
 
 # Conjunto canónico de nombres de campos sensibles de negocio y PII
-SENSITIVE_FIELD_NAMES: Mapping[str, Tuple[DataClassification, SensitiveCategory]] = {
+_BASE_SENSITIVE_FIELD_NAMES: Dict[str, Tuple[DataClassification, SensitiveCategory]] = {
     # PII & Contact
     "email": (DataClassification.SENSITIVE, SensitiveCategory.CONTACT_DATA),
     "user_email": (DataClassification.SENSITIVE, SensitiveCategory.CONTACT_DATA),
@@ -186,18 +188,21 @@ SENSITIVE_FIELD_NAMES: Mapping[str, Tuple[DataClassification, SensitiveCategory]
     "refresh_token": (DataClassification.RESTRICTED, SensitiveCategory.TECHNICAL_SECRET),
     "auth_header": (DataClassification.RESTRICTED, SensitiveCategory.TECHNICAL_SECRET),
     "bearer": (DataClassification.RESTRICTED, SensitiveCategory.TECHNICAL_SECRET),
-    # AI Scratchpad / Private reasoning (K.2 / M.2)
-    "chain_of_thought": (DataClassification.RESTRICTED, SensitiveCategory.PRIVATE_PROMPT_CONTEXT),
-    "reasoning": (DataClassification.RESTRICTED, SensitiveCategory.PRIVATE_PROMPT_CONTEXT),
-    "reasoning_tokens": (DataClassification.RESTRICTED, SensitiveCategory.PRIVATE_PROMPT_CONTEXT),
-    "internal_scratchpad": (DataClassification.RESTRICTED, SensitiveCategory.PRIVATE_PROMPT_CONTEXT),
+    # Additional prompt context
     "private_prompt": (DataClassification.CONFIDENTIAL, SensitiveCategory.PRIVATE_PROMPT_CONTEXT),
     "raw_prompt": (DataClassification.CONFIDENTIAL, SensitiveCategory.PRIVATE_PROMPT_CONTEXT),
+    "reasoning_tokens": (DataClassification.RESTRICTED, SensitiveCategory.PRIVATE_PROMPT_CONTEXT),
     # Supplier Confidential
     "supplier_cost": (DataClassification.CONFIDENTIAL, SensitiveCategory.SUPPLIER_CONFIDENTIAL),
     "wholesale_discount": (DataClassification.CONFIDENTIAL, SensitiveCategory.SUPPLIER_CONFIDENTIAL),
     "contract_terms": (DataClassification.CONFIDENTIAL, SensitiveCategory.SUPPLIER_CONFIDENTIAL),
     "supplier_contact_direct": (DataClassification.CONFIDENTIAL, SensitiveCategory.SUPPLIER_CONFIDENTIAL),
+}
+
+# Incorporar programáticamente los nombres Anti-CoT canónicos desde PRIVATE_REASONING_KEYS
+SENSITIVE_FIELD_NAMES: Mapping[str, Tuple[DataClassification, SensitiveCategory]] = {
+    **_BASE_SENSITIVE_FIELD_NAMES,
+    **{k: (DataClassification.RESTRICTED, SensitiveCategory.PRIVATE_PROMPT_CONTEXT) for k in PRIVATE_REASONING_KEYS}
 }
 
 

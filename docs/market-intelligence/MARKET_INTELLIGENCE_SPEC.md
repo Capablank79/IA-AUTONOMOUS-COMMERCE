@@ -1,8 +1,8 @@
 # Market Intelligence Specification
 
-**Proyecto:** AI Autonomous Commerce  
-**Estado:** Diseño funcional posterior al API Discovery  
-**Fuente adicional incorporada:** análisis del workflow de scraping y análisis competitivo de Amazon compartido por el usuario.  
+**Proyecto:** AI Autonomous Commerce
+**Estado:** Diseño funcional posterior al API Discovery
+**Fuente adicional incorporada:** análisis del workflow de scraping y análisis competitivo de Amazon compartido por el usuario.
 **Decisión:** incorporar Customer Pain Mining al diseño de Market Intelligence y dejar Visual Competitive Intelligence como capacidad extensible.
 
 ---

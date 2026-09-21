@@ -68,7 +68,7 @@ class AgentTraceService:
         try:
             st = step_type if isinstance(step_type, StepType) else StepType(step_type)
             ts = status if isinstance(status, TraceStatus) else TraceStatus(status)
-            
+
             now = datetime.now(timezone.utc)
             start = started_at or now
             if start.tzinfo is None:

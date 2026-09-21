@@ -6,7 +6,7 @@ from src.domain.mission.models import Mission, MissionType, MissionStatus, Missi
 from src.application.mission.orchestrator import BasicMissionOrchestrator
 from src.infrastructure.mission.repository import InMemoryMissionRepository
 from src.domain.market_intelligence.models import (
-    MarketSnapshot, SearchCriteria, Marketplace, MarketListing, 
+    MarketSnapshot, SearchCriteria, Marketplace, MarketListing,
     Money, VisitSignal, Confidence, MarketEvidence
 )
 from src.domain.opportunity.models import OpportunityDecision, OpportunityReadiness
@@ -44,7 +44,7 @@ def test_mission_observability_trace_and_evidence(orchestrator, repository, mock
         MissionType.MARKET_DISCOVERY,
         {"query": query, "user_id": user_id}
     )
-    
+
     listing = MarketListing(
         external_id="EXT1",
         marketplace=Marketplace.MERCADO_LIBRE,
@@ -57,7 +57,7 @@ def test_mission_observability_trace_and_evidence(orchestrator, repository, mock
         shipping_info={},
         category="Test"
     )
-    
+
     snapshot = MarketSnapshot(
         snapshot_id="snap-1",
         timestamp=datetime.utcnow(),
@@ -79,7 +79,7 @@ def test_mission_observability_trace_and_evidence(orchestrator, repository, mock
         observed_at=datetime.utcnow(),
         confidence=Confidence.HIGH
     )
-    
+
     mock_opportunity_engine.evaluate.return_value = OpportunityDecision(
         evidence=MagicMock(),
         readiness=OpportunityReadiness.SUFFICIENT_EVIDENCE,
@@ -87,46 +87,46 @@ def test_mission_observability_trace_and_evidence(orchestrator, repository, mock
         opportunity_score=Decimal("0.8"),
         confidence=Confidence.HIGH
     )
-    
+
     # Execute
     orchestrator.submit(mission)
-    
+
     # Verify result
     result = orchestrator.get_result(mission.mission_id)
     assert result is not None
     assert result.status == MissionStatus.COMPLETED
-    
+
     # Verify Trace
     assert len(result.trace) >= 3
     assert result.trace[0].step == "INIT_MARKET_DISCOVERY"
     assert result.trace[1].step == "MARKET_SNAPSHOT"
     assert result.trace[-1].step == "OPPORTUNITY_EVALUATION"
     assert all(isinstance(t, MissionTraceEntry) for t in result.trace)
-    
+
     # Verify Evidences
     assert len(result.evidences) == 1
     assert isinstance(result.evidences[0], MarketEvidence)
     assert result.evidences[0].listing.external_id == "EXT1"
-    
+
     # Verify Sufficient Evidence Distinction
     assert result.output["results"][0]["sufficient_evidence"] is True
 
 def test_mission_blocked_status(repository):
     # Orchestrator without market_data_source should be BLOCKED for discovery
     orchestrator = BasicMissionOrchestrator(repository=repository)
-    
+
     mission = Mission.create(
         MissionType.MARKET_DISCOVERY,
         {"query": "blocked test", "user_id": "user1"}
     )
-    
+
     orchestrator.submit(mission)
-    
+
     result = orchestrator.get_result(mission.mission_id)
     assert result.status == MissionStatus.BLOCKED
     assert len(result.blocks) > 0
     assert result.blocks[0]["step"] == "MARKET_SNAPSHOT"
     assert "MarketplaceDataSource es requerido" in result.blocks[0]["reason"]
-    
+
     saved_mission = repository.get_by_id(mission.mission_id)
     assert saved_mission.status == MissionStatus.BLOCKED

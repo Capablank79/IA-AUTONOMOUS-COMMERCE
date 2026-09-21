@@ -16,13 +16,13 @@ def test_discover_market_opportunities_flow():
     data_source = MagicMock()
     repository = MagicMock()
     analysis_service = MarketAnalysisService()
-    
+
     use_case = DiscoverMarketOpportunitiesUseCase(
         data_source=data_source,
         repository=repository,
         analysis_service=analysis_service
     )
-    
+
     criteria = SearchCriteria(query="test", marketplace=Marketplace.MERCADO_LIBRE)
     snapshot = MarketSnapshot(
         snapshot_id="snap-123",
@@ -33,10 +33,10 @@ def test_discover_market_opportunities_flow():
         total_results=0
     )
     data_source.fetch_snapshot.return_value = snapshot
-    
+
     # Act
     opportunities = use_case.execute(criteria)
-    
+
     # Assert
     data_source.fetch_snapshot.assert_called_once_with(criteria)
     repository.save.assert_called_once_with(snapshot)
@@ -46,10 +46,10 @@ def test_discover_market_opportunities_error_propagation():
     data_source = MagicMock()
     repository = MagicMock()
     analysis_service = MagicMock()
-    
+
     use_case = DiscoverMarketOpportunitiesUseCase(data_source, repository, analysis_service)
-    
+
     data_source.fetch_snapshot.side_effect = RuntimeError("API Down")
-    
+
     with pytest.raises(RuntimeError, match="API Down"):
         use_case.execute(SearchCriteria(query="test", marketplace=Marketplace.MERCADO_LIBRE))

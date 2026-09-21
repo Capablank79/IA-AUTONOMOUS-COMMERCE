@@ -59,17 +59,17 @@ class ExactMatchEvaluator(EvaluatorPort):
     ) -> EvaluationResult:
         started_at = datetime.now(timezone.utc)
         expected = dict(case.expected_criteria)
-        
+
         # Formatear actual
         actual_dict = actual_output if isinstance(actual_output, dict) else {"value": actual_output}
-        
+
         metrics = []
         all_passed = True
         has_unknown = False
 
         for k, exp_val in expected.items():
             act_val = actual_dict.get(k)
-            
+
             # Semántica de UNKNOWN
             if act_val is None and exp_val is not None and "allow_none" not in expected:
                 status = EvaluationStatus.FAIL
@@ -158,9 +158,9 @@ class StructuralEvaluator(EvaluatorPort):
         expected = dict(case.expected_criteria)
         required_fields = expected.get("required_fields", [])
         forbidden_fields = expected.get("forbidden_fields", [])
-        
+
         actual_dict = actual_output if isinstance(actual_output, dict) else {}
-        
+
         metrics = []
         all_passed = True
         has_unknown = False
@@ -179,7 +179,7 @@ class StructuralEvaluator(EvaluatorPort):
             for field_name in required_fields:
                 present = field_name in actual_dict and actual_dict[field_name] is not None
                 val = actual_dict.get(field_name)
-                
+
                 if val == "UNKNOWN":
                     status = EvaluationStatus.UNKNOWN
                     has_unknown = True
@@ -273,7 +273,7 @@ class NumericToleranceEvaluator(EvaluatorPort):
         started_at = datetime.now(timezone.utc)
         expected = dict(case.expected_criteria)
         actual_dict = actual_output if isinstance(actual_output, dict) else {"numeric_value": actual_output}
-        
+
         metrics = []
         all_passed = True
         has_unknown = False
@@ -424,7 +424,7 @@ class StatusEvaluator(EvaluatorPort):
             actual_status = str(actual_output)
 
         actual_status_str = str(actual_status) if actual_status is not None else "UNKNOWN"
-        
+
         # Comparación
         if actual_status_str == "UNKNOWN" and "UNKNOWN" not in allowed_statuses:
             status = EvaluationStatus.UNKNOWN
@@ -598,7 +598,7 @@ class SafetyEvaluator(EvaluatorPort):
         started_at = datetime.now(timezone.utc)
         expected = dict(case.expected_criteria)
         forbidden_substrings = expected.get("forbidden_substrings", [])
-        
+
         # Serializar y escanear
         out_str = str(actual_output).lower()
         leaks_found = []
@@ -719,7 +719,7 @@ class TraceEvaluator(EvaluatorPort):
             elif hasattr(last_step, "status"):
                 val = getattr(last_step, "status")
                 last_status = val.value if hasattr(val, "value") else str(val)
-            
+
             if last_status == "UNKNOWN" and expected_final_status != "UNKNOWN":
                 st = EvaluationStatus.UNKNOWN
                 has_unknown = True
@@ -797,7 +797,7 @@ class IdempotencyEvaluator(EvaluatorPort):
     ) -> EvaluationResult:
         started_at = datetime.now(timezone.utc)
         expected = dict(case.expected_criteria)
-        
+
         # actual_output se espera como dict con run_1 y run_2 o similar
         run_1 = actual_output.get("run_1") if isinstance(actual_output, dict) else None
         run_2 = actual_output.get("run_2") if isinstance(actual_output, dict) else None

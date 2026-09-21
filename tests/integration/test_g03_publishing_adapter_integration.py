@@ -87,7 +87,7 @@ def sample_state():
 class TestG03PublishingAdapterIntegration:
     """
     G.3 / TASK 07.3 - Publishing Adapter Integration & Verification Test Suite.
-    
+
     Verifies end-to-end deterministic integration:
     ListingDraft -> G.2 Validation -> Policy Gate -> Publication Action -> ActionExecutor -> PublicationPort -> MercadoLibrePublicationAdapter -> Mercado Libre API -> PublicationResult -> Audit/Trace.
     """
@@ -313,7 +313,7 @@ class TestG03PublishingAdapterIntegration:
         mock_api = MagicMock()
         adapter = MercadoLibrePublicationAdapter(api_client=mock_api)
         base_executor = PublicationActionExecutor(publication_port=adapter)
-        
+
         guarded_executor = PolicyGuardedActionExecutor(
             delegate_executor=base_executor,
             capital_budget=sample_capital_budget,
@@ -359,7 +359,7 @@ class TestG03PublishingAdapterIntegration:
         mock_api = MagicMock()
         adapter = MercadoLibrePublicationAdapter(api_client=mock_api)
         base_executor = PublicationActionExecutor(publication_port=adapter)
-        
+
         guarded_executor = PolicyGuardedActionExecutor(
             delegate_executor=base_executor,
             capital_budget=sample_capital_budget,

@@ -313,7 +313,7 @@ class ProfitEvaluationActionExecutor(ActionExecutor):
                 moq_qty = self.quote.moq.quantity
             elif hasattr(self.quote, "moq_info") and self.quote.moq_info and self.quote.moq_info.moq > 1:
                 moq_qty = self.quote.moq_info.moq
-            
+
             if moq_qty and moq_qty not in qty_scenarios:
                 qty_scenarios.append(moq_qty)
 

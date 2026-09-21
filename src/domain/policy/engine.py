@@ -32,7 +32,7 @@ from .rules import (
 class PolicyEngine(PolicyEnginePort):
     """
     Motor determinista, auditable y desacoplado de gobernanza y políticas (Hito E.3).
-    
+
     Barrera de control entre DECISION y ACTION:
     - Evalúa un conjunto de PolicyRules ordenadas jerárquicamente por prioridad.
     - Aplica la jerarquía de resolución de decisiones:

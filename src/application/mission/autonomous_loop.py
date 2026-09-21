@@ -123,7 +123,7 @@ class AutonomousLoop:
                     break
 
             current_iteration = state.iteration + 1
-            
+
             # 1. Decide
             try:
                 if self.agent_trace_service:
@@ -349,7 +349,7 @@ class AutonomousLoop:
                         cycle_id=cycle_id,
                     )
                     step_counter += 1
-                
+
                 updated_history = tuple(state.decision_history) + (decision,)
                 updated_observations = tuple(state.observations) + (observation,)
                 state = LoopState(
@@ -382,7 +382,7 @@ class AutonomousLoop:
             next_target = decision.target if decision.target is not None else state.current_target
             updated_history = tuple(state.decision_history) + (decision,)
             updated_observations = tuple(state.observations) + (observation,)
-            
+
             # Si hay un state_enhancer configurado, permitir enriquecer evidencias, best_known y progress
             new_state = LoopState(
                 mission_id=state.mission_id,

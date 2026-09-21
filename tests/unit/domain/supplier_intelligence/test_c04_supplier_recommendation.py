@@ -225,7 +225,7 @@ class TestC04SupplierRecommendation:
     def test_06_decision_recommend_unconditional(self):
         """Verifica estado RECOMMEND cuando la evidencia está completa, verificada y el riesgo es bajo."""
         cand = _make_candidate("SUP-01", "Alpha", wholesale_price=Decimal("12000"), stock_available=True, lead_time_days=2, shipping_cost=Decimal("2000"), provenance_type=EvidenceProvenanceType.LIVE)
-        
+
         # Simular historial para dar reliability score
         histories = {
             "SUP-01": [

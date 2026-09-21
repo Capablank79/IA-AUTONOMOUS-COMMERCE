@@ -208,7 +208,7 @@ def test_service_replay_and_idempotency_conflict_detection(service):
     gate = QualityGateDefinition("g", "Gate", "")
     # First evaluation
     first = service.evaluate(gate, [result("a", EvaluationStatus.PASS)], "same-run")
-    
+
     # Replay with identical input -> idempotent return
     replay = service.evaluate(gate, [result("a", EvaluationStatus.PASS)], "same-run")
     assert replay == first
@@ -221,7 +221,7 @@ def test_service_replay_and_idempotency_conflict_detection(service):
 def test_repository_detects_conflict_on_direct_save(service):
     gate = QualityGateDefinition("g", "Gate", "")
     dec1 = service.evaluate(gate, [result("a", EvaluationStatus.PASS)], "run-collision-1")
-    
+
     # Intentionally craft a modified decision with same decision_id but different status
     modified_dec = QualityGateDecision(
         decision_id=dec1.decision_id,

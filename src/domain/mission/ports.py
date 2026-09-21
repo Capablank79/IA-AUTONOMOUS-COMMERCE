@@ -24,7 +24,7 @@ class MissionOrchestrator(ABC):
     Puerto primario para la orquestación de misiones de negocio.
     Define el contrato para iniciar, monitorear y gestionar el ciclo de vida de una misión.
     """
-    
+
     @abstractmethod
     def submit(self, mission: Mission) -> None:
         """
@@ -51,7 +51,7 @@ class MissionRepository(ABC):
     """
     Puerto secundario para la persistencia de misiones.
     """
-    
+
     @abstractmethod
     def save(self, mission: Mission) -> None:
         pass

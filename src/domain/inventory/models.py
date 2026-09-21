@@ -76,7 +76,7 @@ class InventoryError:
 class StockLevel:
     """
     Representación semántica e inmutable de los niveles de stock (Source of Truth).
-    
+
     Aislamiento y Semántica de Stock:
     - supplier_stock: cuánto tiene el proveedor respaldado por evidencia.
     - owned_stock: stock propio/físico disponible en bodega propia.
@@ -84,7 +84,7 @@ class StockLevel:
     - safety_buffer: unidades de amortiguación de riesgo / buffer de seguridad.
     - in_transit_stock: unidades en tránsito desde proveedor o entre bodegas.
     - listed_stock: unidades actualmente publicadas en el canal externo.
-    
+
     Fórmula determinista de Available Stock (Sellable):
     available_stock = max(0, (owned_stock + supplier_stock) - reserved_stock - safety_buffer)
     """
@@ -144,7 +144,7 @@ class StockLevel:
 class InventoryDecision:
     """
     Representación estructurada e inmutable de una decisión de stock/inventario.
-    
+
     Aislamiento y Principios:
     - No guarda sólo un número entero: contiene contexto de inventario, evidencia, justificación y riesgos.
     - Respeta la protección determinista contra overselling (max_allowed_stock = available_to_sell).
@@ -228,11 +228,11 @@ class InventoryAction:
             raise ValueError("action_id cannot be empty")
         if not self.listing_id or not self.listing_id.strip():
             raise ValueError("listing_id cannot be empty")
-        
+
         target_new = self.new_quantity if self.new_quantity is not None else self.proposed_stock
         if target_new is None or target_new < 0:
             raise ValueError("proposed_stock/new_quantity cannot be negative or None")
-            
+
         if self.new_quantity is None and self.proposed_stock is not None:
             object.__setattr__(self, "new_quantity", self.proposed_stock)
         if self.proposed_stock is None and self.new_quantity is not None:

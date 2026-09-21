@@ -198,7 +198,7 @@ class ReliabilityEngine(ReliabilityEnginePort):
                         causation_id=causation_id,
                         metadata=meta,
                     )
-                
+
                 # Mismo payload -> Retornar resultado existente sin ejecutar de nuevo
                 return ReliabilityResult(
                     operation_id=operation_id,

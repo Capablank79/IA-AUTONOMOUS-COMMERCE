@@ -5,7 +5,7 @@ from src.domain.mission.models import Mission, MissionType, MissionStatus, Missi
 from src.application.mission.orchestrator import BasicMissionOrchestrator
 from src.infrastructure.mission.repository import InMemoryMissionRepository
 from src.domain.market_intelligence.models import (
-    MarketSnapshot, SearchCriteria, Marketplace, MarketListing, 
+    MarketSnapshot, SearchCriteria, Marketplace, MarketListing,
     Money, MarketOpportunity, TrendSignal, DemandSignal, PriceSignal,
     VisitSignal, Confidence
 )
@@ -44,8 +44,8 @@ def mock_opportunity_engine():
     return MagicMock()
 
 @pytest.fixture
-def orchestrator(repository, mock_product_hunter, mock_data_source, 
-                 mock_traffic_intelligence, mock_supplier_source, 
+def orchestrator(repository, mock_product_hunter, mock_data_source,
+                 mock_traffic_intelligence, mock_supplier_source,
                  mock_profit_repository, mock_profit_engine, mock_opportunity_engine):
     return BasicMissionOrchestrator(
         repository=repository,
@@ -65,7 +65,7 @@ def test_submit_mission_success(orchestrator, repository, mock_data_source, mock
         MissionType.MARKET_DISCOVERY,
         {"query": query, "user_id": "user123"}
     )
-    
+
     mock_snapshot = MarketSnapshot(
         snapshot_id="snap-123",
         timestamp=datetime.utcnow(),
@@ -75,14 +75,14 @@ def test_submit_mission_success(orchestrator, repository, mock_data_source, mock
         total_results=0
     )
     mock_data_source.fetch_snapshot.return_value = mock_snapshot
-    
+
     # Execute
     orchestrator.submit(mission)
-    
+
     # Verify state transitions
     saved_mission = repository.get_by_id(mission.mission_id)
     assert saved_mission.status == MissionStatus.COMPLETED
-    
+
     # Verify result
     result = repository.get_result(mission.mission_id)
     assert result is not None
@@ -97,32 +97,32 @@ def test_mission_failed_on_exception(orchestrator, repository, mock_data_source)
         {"query": "fail", "user_id": "user123"}
     )
     mock_data_source.fetch_snapshot.side_effect = Exception("Connection error")
-    
+
     # Execute
     orchestrator.submit(mission)
-    
+
     # Verify status is FAILED
     saved_mission = repository.get_by_id(mission.mission_id)
     assert saved_mission.status == MissionStatus.FAILED
-    
+
     # Verify result contains error
     result = repository.get_result(mission.mission_id)
     assert result.status == MissionStatus.FAILED
     assert "Connection error" in result.errors[0]
 
-def test_market_discovery_sequence(orchestrator, mock_product_hunter, mock_data_source, 
+def test_market_discovery_sequence(orchestrator, mock_product_hunter, mock_data_source,
                                  mock_traffic_intelligence, mock_opportunity_engine):
     from src.domain.opportunity.models import OpportunityDecision, OpportunityReadiness
-    
+
     query = "camera"
     mission = Mission.create(
         MissionType.MARKET_DISCOVERY,
         {"query": query, "user_id": "user123", "limit": 5}
     )
-    
+
     # Setup mocks for full sequence
     mock_product_hunter.search.return_value = [MagicMock(), MagicMock()]
-    
+
     listing = MarketListing(
             external_id="MLA1",
             marketplace=Marketplace.MERCADO_LIBRE,
@@ -135,7 +135,7 @@ def test_market_discovery_sequence(orchestrator, mock_product_hunter, mock_data_
             shipping_info={},
             category="Cam"
         )
-    
+
     snapshot = MarketSnapshot(
         snapshot_id="snap-1",
         timestamp=datetime.utcnow(),
@@ -154,7 +154,7 @@ def test_market_discovery_sequence(orchestrator, mock_product_hunter, mock_data_
         source="ml",
         observed_at=datetime.utcnow()
     )
-    
+
     mock_opportunity_engine.evaluate.return_value = OpportunityDecision(
         evidence=MagicMock(),
         readiness=OpportunityReadiness.SUFFICIENT_EVIDENCE,
@@ -162,16 +162,16 @@ def test_market_discovery_sequence(orchestrator, mock_product_hunter, mock_data_
         opportunity_score=None,
         confidence=Confidence.HIGH
     )
-    
+
     # Execute
     orchestrator.submit(mission)
-    
+
     # Verify calls
     mock_product_hunter.search.assert_called_once()
     mock_data_source.fetch_snapshot.assert_called_once()
     mock_traffic_intelligence.get_visits.assert_called_once()
     mock_opportunity_engine.evaluate.assert_called_once()
-    
+
     # Verify result output
     result = orchestrator.get_result(mission.mission_id)
     assert result.output["catalog_products_found"] == 2

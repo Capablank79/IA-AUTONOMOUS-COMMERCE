@@ -46,7 +46,7 @@ class ObservedSupplierMetrics:
     total_delivered_on_time: int = 0
     total_cancelled_orders: int = 0
     total_defective_returns: int = 0
-    
+
     observed_lead_times_days: Tuple[int, ...] = field(default_factory=tuple)
     observed_quoted_costs: Tuple[Decimal, ...] = field(default_factory=tuple)
     observed_moqs: Tuple[int, ...] = field(default_factory=tuple)

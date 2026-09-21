@@ -98,7 +98,7 @@ class ObsolescenceRisk(str, Enum):
 class InventoryScenario:
     """
     Escenario operativo de compra y mantenimiento de inventario propio.
-    
+
     Características clave:
     - Compra por volumen / MOQ.
     - Requiere compromiso de capital por adelantado (stock_exposure = purchase_cost * quantity + shipping + taxes).
@@ -167,7 +167,7 @@ class InventoryScenario:
 class DropshippingScenario:
     """
     Escenario operativo de despacho directo por parte del proveedor bajo demanda.
-    
+
     Características clave:
     - Compra unidad a unidad (QTY=1 por orden). MOQ=1.
     - No requiere inmovilizar capital en stock anticipado (stock_exposure = 0 o buffer operativo mínimo).
@@ -264,7 +264,7 @@ class OperatingModelComparison:
 class OperatingModelPolicy:
     """
     Política determinista y configurable de decisión de modelo operativo.
-    
+
     Reglas:
     - minimum_margin_inventory_pct: Margen mínimo exigido para asumir riesgo de inventario.
     - minimum_margin_dropshipping_pct: Margen mínimo exigido para dropshipping.
@@ -327,7 +327,7 @@ class DecisionExplanation:
 class OperatingDecision:
     """
     Decisión determinista, inmutable y explicable de modelo operativo (D-03).
-    
+
     Representa la respuesta definitiva a:
     "INVENTORY vs DROPSHIPPING vs NEEDS_INVESTIGATION vs NO_DECISION"
     """

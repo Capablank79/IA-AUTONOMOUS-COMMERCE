@@ -59,7 +59,7 @@ class AuditTrailService:
         """Registra la creación de una misión comercial."""
         act = actor or AuditActor(actor_type=AuditActorType.USER, actor_id="commercial-operator")
         corr = correlation_id or f"mission-{mission.mission_id}"
-        
+
         # Determinar fecha con timezone aware
         occ_at = mission.created_at
         if occ_at.tzinfo is None:
@@ -381,7 +381,7 @@ class AuditTrailService:
     ) -> AuditRecord:
         """Registra la detección de una oportunidad de mercado."""
         act = actor or AuditActor(actor_type=AuditActorType.AGENT, actor_id="opportunity-engine")
-        
+
         causation = None
         if hasattr(opportunity, "source_observation_ids") and opportunity.source_observation_ids:
             causation = opportunity.source_observation_ids[0]

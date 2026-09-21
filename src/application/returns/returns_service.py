@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 class ReturnsService:
     """
     Servicio de aplicación para la gestión integral de Devoluciones, Reclamos, Reembolsos y Excepciones Postventa (G.8 / TASK 07.8).
-    
+
     Principios de Diseño:
     - Pipeline Postventa: ORDER / SHIPMENT -> RETURN / CLAIM / EXCEPTION -> OBSERVE -> NORMALIZE -> VALIDATE -> POLICY -> ACTION -> RESULT -> RECONCILE -> RE-OBSERVE.
     - Ciclos desacoplados: ReturnStatus != ClaimStatus != RefundStatus != OrderStatus != PaymentStatus != ShipmentStatus.

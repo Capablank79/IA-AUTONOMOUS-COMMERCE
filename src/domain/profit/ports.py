@@ -7,7 +7,7 @@ class ProfitDataRepository(Protocol):
     """
     Port that defines the contract to obtain the necessary data
     for the ProfitEngine to perform its analysis.
-    
+
     This repository is read-only according to current business needs.
     """
 

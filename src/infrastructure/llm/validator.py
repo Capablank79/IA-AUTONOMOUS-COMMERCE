@@ -34,7 +34,7 @@ def parse_and_validate_decision(raw_text: str) -> LoopDecision:
     raw_action = data["action"]
     if not isinstance(raw_action, str):
         raise OmniRouteContractValidationError(f"'action' must be a string, got {type(raw_action).__name__}")
-    
+
     try:
         action_enum = LoopAction(raw_action)
     except ValueError:

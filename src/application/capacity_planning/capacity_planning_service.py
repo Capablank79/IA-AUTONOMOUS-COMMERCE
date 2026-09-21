@@ -153,7 +153,7 @@ class DefaultCapacityConfiguration(CapacityConfigurationPort):
         # Inicializar default
         for env, dims in self.DEFAULT_LIMITS.items():
             self._limits[env] = dict(dims)
-        
+
         if custom_limits:
             for env, dims in custom_limits.items():
                 resolved_env = resolve_environment(env)
@@ -177,7 +177,7 @@ class DefaultCapacityConfiguration(CapacityConfigurationPort):
         env_limits = self._limits.get(resolved_env, {})
         if dimension in env_limits:
             return env_limits[dimension]
-        
+
         # Si no existe configuración explícita, la capacidad es UNKNOWN
         return CapacityResourceLimits(
             dimension=dimension,
@@ -380,7 +380,7 @@ class CapacityPlanningService:
         # Ordenar por timestamp
         sorted_samples = sorted(samples, key=lambda s: s.timestamp)
         t0 = sorted_samples[0].timestamp.timestamp()
-        
+
         points: List[Tuple[float, float]] = []
         for s in sorted_samples:
             val = _extract_numeric_value(s)
@@ -413,7 +413,7 @@ class CapacityPlanningService:
 
         baseline = round(intercept, 4)
         growth_per_hour = round(slope * 3600.0, 4)
-        
+
         # Determinar dirección
         if abs(growth_per_hour) < 0.001:
             direction = "STABLE"
@@ -458,7 +458,7 @@ class CapacityPlanningService:
         delta_seconds = float(horizon.seconds)
         slope = trend.slope or 0.0
         projected = max(0.0, current_demand + (slope * delta_seconds))
-        
+
         # Picos proyectados manteniendo ratio peak / demand
         peak_ratio = 1.0
         if peak_demand is not None and current_demand > 0:

@@ -38,9 +38,9 @@ def test_evidence_without_visit_signal_returns_unknown_demand(service, base_list
         listing=base_listing,
         traffic_signals=[],
     )
-    
+
     demand = service.calculate(evidence)
-    
+
     assert demand.score is None
     assert demand.label == "UNKNOWN"
 
@@ -59,9 +59,9 @@ def test_unknown_visit_signal_does_not_become_zero_demand(service, base_listing)
         listing=base_listing,
         traffic_signals=[visit],
     )
-    
+
     demand = service.calculate(evidence)
-    
+
     assert demand.score is None
     assert demand.label == "UNKNOWN"
 
@@ -80,9 +80,9 @@ def test_zero_visits_is_distinguished_from_unknown(service, base_listing):
         listing=base_listing,
         traffic_signals=[visit],
     )
-    
+
     demand = service.calculate(evidence)
-    
+
     assert demand.score is None
     assert demand.label == "NO_TRAFFIC"
 
@@ -101,9 +101,9 @@ def test_positive_visits_produce_valid_demand_signal(service, base_listing):
         listing=base_listing,
         traffic_signals=[visit],
     )
-    
+
     demand = service.calculate(evidence)
-    
+
     assert demand.score is None
     assert demand.label == "OBSERVED_TRAFFIC"
 
@@ -122,9 +122,9 @@ def test_partial_coverage_is_preserved(service, base_listing):
         listing=base_listing,
         traffic_signals=[visit],
     )
-    
+
     demand = service.calculate(evidence)
-    
+
     # Just verify the component doesn't fail and behaves correctly
     assert demand.label == "OBSERVED_TRAFFIC"
     assert evidence.traffic_signals[0].coverage_ratio == 0.5
@@ -144,9 +144,9 @@ def test_full_coverage_is_preserved(service, base_listing):
         listing=base_listing,
         traffic_signals=[visit],
     )
-    
+
     demand = service.calculate(evidence)
-    
+
     assert demand.label == "OBSERVED_TRAFFIC"
     assert evidence.traffic_signals[0].coverage_ratio == 1.0
 
@@ -166,9 +166,9 @@ def test_confidence_is_not_artificially_increased(service, base_listing):
         traffic_signals=[visit],
         confidence=Confidence.LOW
     )
-    
+
     _ = service.calculate(evidence)
-    
+
     assert evidence.confidence == Confidence.LOW
     assert evidence.traffic_signals[0].confidence == Confidence.LOW
 
@@ -187,12 +187,12 @@ def test_original_market_evidence_is_not_mutated(service, base_listing):
         listing=base_listing,
         traffic_signals=[visit],
     )
-    
+
     original_traffic_count = len(evidence.traffic_signals)
     original_listing = evidence.listing
-    
+
     _ = service.calculate(evidence)
-    
+
     assert len(evidence.traffic_signals) == original_traffic_count
     assert evidence.listing is original_listing
 
@@ -211,9 +211,9 @@ def test_original_visit_signal_is_not_mutated(service, base_listing):
         listing=base_listing,
         traffic_signals=[visit],
     )
-    
+
     _ = service.calculate(evidence)
-    
+
     assert visit.total_visits == 150
     assert visit.observed_days == 30
     assert visit.coverage_ratio == 1.0
@@ -245,9 +245,9 @@ def test_service_is_marketplace_agnostic(service):
         listing=generic_listing,
         traffic_signals=[visit],
     )
-    
+
     demand = service.calculate(evidence)
-    
+
     assert demand.label == "OBSERVED_TRAFFIC"
     assert demand.score is None
 
@@ -266,9 +266,9 @@ def test_no_opportunity_score_is_calculated(service, base_listing):
         listing=base_listing,
         traffic_signals=[visit],
     )
-    
+
     demand = service.calculate(evidence)
-    
+
     # We assert that the returned object is a DemandSignal and not a MarketOpportunity
     assert isinstance(demand, DemandSignal)
     assert not hasattr(demand, "opportunity_score")
@@ -288,9 +288,9 @@ def test_no_sales_are_inferred_from_visits(service, base_listing):
         listing=base_listing,
         traffic_signals=[visit],
     )
-    
+
     demand = service.calculate(evidence)
-    
+
     # The score should remain None because there is no specific sales/conversion rule
     assert demand.score is None
     assert demand.label == "OBSERVED_TRAFFIC"

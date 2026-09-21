@@ -190,7 +190,7 @@ def rbac_setup(temp_dir):
         tenant_id="tenant-alpha",
         status=SessionStatus.ACTIVE,
         created_at=datetime(2026, 9, 14, 10, 0, 0, tzinfo=timezone.utc),
-        expires_at=datetime(2026, 9, 14, 22, 0, 0, tzinfo=timezone.utc),
+        expires_at=datetime(2026, 9, 30, 22, 0, 0, tzinfo=timezone.utc),
     )
     session_repo.save(session)
 
@@ -201,7 +201,7 @@ def rbac_setup(temp_dir):
         tenant_id="tenant-beta",
         status=SessionStatus.ACTIVE,
         created_at=datetime(2026, 9, 14, 10, 0, 0, tzinfo=timezone.utc),
-        expires_at=datetime(2026, 9, 14, 22, 0, 0, tzinfo=timezone.utc),
+        expires_at=datetime(2026, 9, 30, 22, 0, 0, tzinfo=timezone.utc),
     )
     session_repo.save(session_beta)
 

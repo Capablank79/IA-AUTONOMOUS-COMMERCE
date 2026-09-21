@@ -230,7 +230,7 @@ def test_e2e_fulfillment_unknown_preservation_on_external_failure():
     channel = SalesChannel(channel_id="ML-CL", channel_type=SalesChannelType.MARKETPLACE, name="ML Chile")
     repo = InMemoryFulfillmentRepository()
     api_client = MagicMock(spec=MercadoLibreApiClient)
-    
+
     # Simular fallo de red 500
     api_client.get.side_effect = Exception("HTTP 500 Internal Server Error")
 

@@ -68,7 +68,7 @@ class PolicyViolation:
 class PolicyEvaluationContext:
     """
     Contexto de entrada estructurado para la evaluación de políticas.
-    
+
     Aislamiento y Seguridad:
     - NO contiene objetos HTTP, SDKs externos, ni credenciales.
     - Preserva correlation_id, idempotency_key, request_id, mission_id.

@@ -1,11 +1,11 @@
 # GATE O — VALIDATION AND FORMAL CLOSURE REPORT
 ## HITO P: PRODUCTION / OPERATIONS
 
-**Date:** 2026-09-13  
-**Status:** 🟢 PASSED  
-**Hito P Status:** 🟢 VALIDADA / COMPLETO  
-**Baseline Test Count:** 2471 passed, 2 skipped, 0 failures (100% clean)  
-**Security & Git Policy:** NO commit, NO push, ZERO secrets tracked, ZERO unmanaged temporary artifacts  
+**Date:** 2026-09-13
+**Status:** 🟢 PASSED
+**Hito P Status:** 🟢 VALIDADA / COMPLETO
+**Baseline Test Count:** 2471 passed, 2 skipped, 0 failures (100% clean)
+**Security & Git Policy:** NO commit, NO push, ZERO secrets tracked, ZERO unmanaged temporary artifacts
 
 ---
 
@@ -60,29 +60,29 @@ Every invariant across this chain was asserted and proved in [test_gate_o_hito_p
 
 ## 4. ARCHITECTURAL AUDIT & INVARIANT CHECK
 
-1. **Did P.1 reuse O.13 deployment contracts?**  
+1. **Did P.1 reuse O.13 deployment contracts?**
    *Yes.* `scripts/deploy_validate.py` executes 5/5 structured checks verifying Docker non-root users, configuration constraints, and ASGI startup probes.
-2. **Does P.2 strictly isolate secrets and data per environment?**  
+2. **Does P.2 strictly isolate secrets and data per environment?**
    *Yes.* Different environments reject shared roots, prohibit loopback configurations in production, and strictly isolate configuration namespaces.
-3. **Can production fallback to unmanaged JSON storage?**  
+3. **Can production fallback to unmanaged JSON storage?**
    *No.* Schema verification and database connections in production require relational PostgreSQL with `001_initial_saas_schema` HEAD.
-4. **Does real backup restoration function without data loss?**  
+4. **Does real backup restoration function without data loss?**
    *Yes.* Real backups were created with custom binary dump format (`-F c`), verified via SHA-256 streaming, and test-restored in ephemeral isolated schemas with guaranteed cleanup.
-5. **Does DR simulate full application and database recovery?**  
+5. **Does DR simulate full application and database recovery?**
    *Yes.* `scripts/disaster_recovery.py simulate` proved target connectivity, valid restoration, and compliant RTO (< 1s vs 300s SLA) and RPO (11.74s).
-6. **Are Liveness and Readiness probes decoupled?**  
+6. **Are Liveness and Readiness probes decoupled?**
    *Yes.* When the database is unavailable, `/health` returns 200 OK (process alive), while `/ready` immediately returns 503 Service Unavailable (`is_ready=False`).
-7. **Does monitoring maintain `UNKNOWN != ZERO`?**  
+7. **Does monitoring maintain `UNKNOWN != ZERO`?**
    *Yes.* Missing or insufficient time series data are preserved as `UNKNOWN` rather than reporting false zeros.
-8. **Does alerting prevent automated destructive actions?**  
+8. **Does alerting prevent automated destructive actions?**
    *Yes.* Alerting follows the invariant `ALERT != ACTION`, generating deduplicated notifications and requiring explicit human acknowledgment/resolution.
-9. **Does log retention protect audit records and active incidents?**  
+9. **Does log retention protect audit records and active incidents?**
    *Yes.* In compliance with K.1 and N.10, immutable audit logs and unresolved alerts are strictly protected from purge operations.
-10. **Does capacity planning avoid fabricating metrics?**  
+10. **Does capacity planning avoid fabricating metrics?**
     *Yes.* Headroom is computed strictly from observable P.7 time series data, reporting `INSUFFICIENT_DATA` when limits are undefined.
-11. **Does rate limiting prevent TOCTOU race conditions and oversubscription?**  
+11. **Does rate limiting prevent TOCTOU race conditions and oversubscription?**
     *Yes.* Multi-threaded contention tests proved that exactly 1 slot remains available under concurrent requests protected by `RLock`.
-12. **Were Hito Q files or features modified?**  
+12. **Were Hito Q files or features modified?**
     *No.* Scope was strictly bounded to Hito P and Gate O validation.
 
 ---
@@ -167,5 +167,5 @@ A rigorous security and hygiene review was performed prior to closure:
 
 ## 8. FINAL DECISION
 
-**GATE O IS FORMALLY PASSED.**  
+**GATE O IS FORMALLY PASSED.**
 **HITO P (PRODUCTION / OPERATIONS) IS FORMALLY CLOSED AND MARKED COMPLETED (🟢).**

@@ -972,19 +972,19 @@ class ProfitEngine:
         """
         Interfaz legacy para compatibilidad con código existente y tests de regresión.
         """
-        if len({data.price.currency, data.supplier_price.currency, 
+        if len({data.price.currency, data.supplier_price.currency,
                 data.shipping.currency, data.other_costs.currency}) > 1:
             raise ValueError("All money values must have the same currency")
-        
+
         currency = data.price.currency
         market_demand_ok = data.visible_sales >= rules.minimum_sales
         commission_amount = data.price.amount * (data.commission_pct / Decimal('100'))
-        
+
         net_profit_amount = (
-            data.price.amount 
-            - commission_amount 
-            - data.supplier_price.amount 
-            - data.shipping.amount 
+            data.price.amount
+            - commission_amount
+            - data.supplier_price.amount
+            - data.shipping.amount
             - data.other_costs.amount
         )
 

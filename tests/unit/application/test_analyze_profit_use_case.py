@@ -18,7 +18,7 @@ class FakeProfitDataRepository(ProfitDataRepository):
         if self.should_fail:
             raise ValueError("Repository error fetching financial data")
         self.financial_data_called_with = experiment_id
-        
+
         # We simulate some currency mismatch to test Domain errors if we want,
         # but let's provide correct data by default
         return FinancialData(
@@ -34,7 +34,7 @@ class FakeProfitDataRepository(ProfitDataRepository):
         if self.should_fail:
             raise ValueError("Repository error fetching decision rules")
         self.decision_rules_called_with = experiment_id
-        
+
         return DecisionRules(
             minimum_margin_pct=Decimal('15'),
             excellent_margin_pct=Decimal('30'),
@@ -45,13 +45,13 @@ class FakeProfitDataRepository(ProfitDataRepository):
 def test_analyze_profit_use_case_success():
     repository = FakeProfitDataRepository()
     use_case = AnalyzeProfitUseCase(repository)
-    
+
     experiment_id = "EXP-TEST"
     result = use_case.execute(experiment_id)
-    
+
     assert repository.financial_data_called_with == experiment_id
     assert repository.decision_rules_called_with == experiment_id
-    
+
     assert isinstance(result, ProfitAnalysis)
     assert result.net_profit.amount == Decimal('30') # 100 - 15 - 40 - 10 - 5 = 30
     assert result.net_margin_pct == Decimal('30')
@@ -61,7 +61,7 @@ def test_analyze_profit_use_case_success():
 def test_analyze_profit_use_case_repository_error_propagates():
     repository = FakeProfitDataRepository(should_fail=True)
     use_case = AnalyzeProfitUseCase(repository)
-    
+
     with pytest.raises(ValueError, match="Repository error fetching financial data"):
         use_case.execute("EXP-TEST")
 
@@ -78,10 +78,10 @@ def test_analyze_profit_use_case_domain_error_propagates():
                 other_costs=Money(amount=Decimal('5'), currency="USD"),
                 visible_sales=150
             )
-            
+
     repository = DomainErrorFakeRepository()
     use_case = AnalyzeProfitUseCase(repository)
-    
+
     with pytest.raises(ValueError, match="All money values must have the same currency"):
         use_case.execute("EXP-TEST")
 

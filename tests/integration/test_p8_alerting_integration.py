@@ -113,7 +113,7 @@ class TestP8AlertingIntegration(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.data_dir = Path(self.temp_dir.name)
-        
+
         self.metric_repo = InMemoryMetricRepository()
         self.monitoring_service = ProductionMonitoringService(
             repository=self.metric_repo,
@@ -123,7 +123,7 @@ class TestP8AlertingIntegration(unittest.TestCase):
             alerts_base_dir=self.data_dir / "alerts"
         )
         self.notifier = MockNotificationAdapter(channel_name="ops_channel")
-        
+
         self.alerting_service = ProductionAlertingService(
             repository=self.alert_repo,
             monitoring_service=self.monitoring_service,
@@ -183,7 +183,7 @@ class TestP8AlertingIntegration(unittest.TestCase):
         # Segunda evaluación repetida en la misma ventana
         second_eval = self.alerting_service.evaluate_all_rules()
         active_alerts = self.alerting_service.list_alerts(state=AlertState.ACTIVE)
-        
+
         # Debe haber exactamente 1 alerta activa, sin duplicados
         self.assertEqual(len(active_alerts), 1)
         self.assertEqual(active_alerts[0].alert_id, first_eval[0].alert_id)

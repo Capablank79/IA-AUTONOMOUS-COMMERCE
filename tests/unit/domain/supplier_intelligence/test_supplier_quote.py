@@ -21,10 +21,10 @@ def test_confirmed_quote_creation():
 def test_confirmed_quote_invalid_values():
     with pytest.raises(ValueError, match="wholesale_price must be greater than zero"):
         ConfirmedQuote("Q-1", Decimal("0"), Decimal("100"), 1)
-    
+
     with pytest.raises(ValueError, match="shipping_cost cannot be negative"):
         ConfirmedQuote("Q-1", Decimal("100"), Decimal("-1"), 1)
-        
+
     with pytest.raises(ValueError, match="lead_time_days cannot be negative"):
         ConfirmedQuote("Q-1", Decimal("100"), Decimal("100"), -1)
 
@@ -54,7 +54,7 @@ def test_mapper_completes_missing_shipping_from_quote():
         other_costs=Money(Decimal("0"), "CLP"),
         visible_sales=100
     )
-    
+
     quote = ConfirmedQuote("Q-123", Decimal("4000"), Decimal("500"), 2)
     evidence = SupplierEvidence(
         supplier_id="SUP-001",
@@ -68,9 +68,9 @@ def test_mapper_completes_missing_shipping_from_quote():
         confidence=Confidence.HIGH,
         quote=quote
     )
-    
+
     result = SupplierFinancialMapper.map_evidence_to_financial_data(base_financial, evidence)
-    
+
     assert result.shipping.amount == Decimal("500")
     assert result.supplier_price.amount == Decimal("4000")
 
@@ -83,7 +83,7 @@ def test_mapper_still_fails_if_no_shipping_and_no_quote():
         other_costs=Money(Decimal("0"), "CLP"),
         visible_sales=100
     )
-    
+
     evidence = SupplierEvidence(
         supplier_id="SUP-001",
         sku="SKU-1",
@@ -96,7 +96,7 @@ def test_mapper_still_fails_if_no_shipping_and_no_quote():
         confidence=Confidence.HIGH,
         quote=None
     )
-    
+
     with pytest.raises(ValueError, match="shipping_cost es desconocido"):
         SupplierFinancialMapper.map_evidence_to_financial_data(base_financial, evidence)
 
@@ -109,7 +109,7 @@ def test_mapper_fails_on_quote_currency_mismatch():
         other_costs=Money(Decimal("0"), "CLP"),
         visible_sales=100
     )
-    
+
     quote = ConfirmedQuote("Q-123", Decimal("4000"), Decimal("500"), 2, currency="USD")
     evidence = SupplierEvidence(
         supplier_id="SUP-001",
@@ -123,6 +123,6 @@ def test_mapper_fails_on_quote_currency_mismatch():
         confidence=Confidence.HIGH,
         quote=quote
     )
-    
+
     with pytest.raises(ValueError, match="Moneda de cotización USD no coincide con evidencia CLP"):
         SupplierFinancialMapper.map_evidence_to_financial_data(base_financial, evidence)

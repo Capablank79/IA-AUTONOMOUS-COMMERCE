@@ -98,7 +98,7 @@ def compute_request_fingerprint(
     sanitized_prompt = sanitize_routing_data(normalized_prompt_or_payload)
     sanitized_tools = sanitize_routing_data(tool_schemas) if tool_schemas else None
     sanitized_params = sanitize_routing_data(parameters) if parameters else None
-    
+
     canonical_dict = {
         "payload": sanitized_prompt,
         "system_instructions": system_instructions or "",

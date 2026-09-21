@@ -154,7 +154,7 @@ class AgentCostDashboardService(AgentCostDashboardServicePort):
         if self.authorization_service is not None:
             if not session_id:
                 raise AgentCostAuthenticationError("Authentication required: missing session_id")
-            
+
             # Verificar permiso primario o fallback general de BI
             auth_req = SaaSAuthorizationRequest(
                 action=action,
@@ -209,12 +209,12 @@ class AgentCostDashboardService(AgentCostDashboardServicePort):
     def _convert_usage_event_to_item(self, event: UsageEvent) -> AgentCostDashboardItem:
         """Proyecta un UsageEvent a un AgentCostDashboardItem seguro."""
         details_clean = _sanitize_dict(dict(event.details))
-        
+
         # Atribución
         mission_id = details_clean.get("mission_id") or event.details.get("mission_id")
         agent_type = details_clean.get("agent_type") or details_clean.get("agent_name") or event.details.get("agent_type") or event.details.get("agent_name")
         execution_id = details_clean.get("execution_id") or event.details.get("execution_id")
-        
+
         # Validar identificador de mission_id si viene
         safe_mission_id = None
         if mission_id and isinstance(mission_id, str):
@@ -237,7 +237,7 @@ class AgentCostDashboardService(AgentCostDashboardServicePort):
         # Costo y certeza
         total_cost = event.actual_cost if event.actual_cost is not None else event.estimated_cost
         is_known_cost = total_cost is not None
-        
+
         if event.actual_cost is not None:
             cost_source = CostConfidenceSource.ACTUAL_RECORDED
         elif event.estimated_cost is not None:
@@ -320,7 +320,7 @@ class AgentCostDashboardService(AgentCostDashboardServicePort):
     def _convert_cost_record_to_item(self, record: CostRecord, tenant_id: str) -> AgentCostDashboardItem:
         """Proyecta un CostRecord de K.3 a un AgentCostDashboardItem seguro."""
         details_clean = _sanitize_dict(dict(record.metadata or {}))
-        
+
         agent_type = details_clean.get("agent_type") or details_clean.get("agent_name") or record.metadata.get("agent_type") or record.metadata.get("agent_name")
         task_type = details_clean.get("task_type") or (record.cost_type.value if hasattr(record.cost_type, "value") else str(record.cost_type))
 
@@ -827,7 +827,7 @@ class AgentCostDashboardService(AgentCostDashboardServicePort):
         validate_safe_identifier(mission_id, field_name="mission_id")
 
         items = self._collect_items_for_tenant(context, mission_id=mission_id)
-        
+
         request_count = 0
         total_tokens = 0
         has_tokens = False

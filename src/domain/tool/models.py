@@ -150,7 +150,7 @@ class ToolVersion:
 class ToolDescriptor:
     """
     Descriptor inmutable y fuertemente tipado de una herramienta en el Tool Registry.
-    
+
     Aislamiento y Seguridad:
     - CERO credenciales, API keys, tokens o secretos.
     - CERO callables arbitrarios o instancias de SDK dentro del dominio.

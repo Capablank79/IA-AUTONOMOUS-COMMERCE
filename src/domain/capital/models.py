@@ -57,7 +57,7 @@ class AllocationDecisionReason(str, Enum):
 class CapitalBudget:
     """
     Presupuesto de capital determinista e inmutable.
-    
+
     Reglas:
     - total_capital >= 0
     - reserved_capital >= 0 (capital protegido / de reserva que NUNCA se asigna a oportunidades)
@@ -173,7 +173,7 @@ class CapitalBudget:
 class CapitalExposure:
     """
     Representa el estado y límites de exposición de capital por oportunidad y agregado.
-    
+
     Reglas:
     - current_exposure: exposición actual antes de nueva asignación
     - maximum_allowed_exposure: límite absoluto permitido por política para la oportunidad
@@ -232,7 +232,7 @@ class CapitalDownsideAnalysis:
 class AllocationPolicy:
     """
     Política determinista, parametrizable y explicable para la asignación de capital.
-    
+
     No asume porcentajes mágicos: todos los umbrales son configurables con defaults transparentes.
     """
     max_exposure_per_opportunity_pct: Decimal = Decimal("0.25")  # Max 25% del allocatable capital por oportunidad

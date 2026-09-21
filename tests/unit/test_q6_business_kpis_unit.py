@@ -594,7 +594,7 @@ def test_15_sensitive_data_excluded_n9(base_environment):
 
     # Verificar que no existen secretos ni CoT en serialización
     forbidden_keys = {"secret", "password", "token", "chain_of_thought", "private_key", "api_key"}
-    
+
     def check_keys(d):
         if isinstance(d, dict):
             for k, v in d.items():

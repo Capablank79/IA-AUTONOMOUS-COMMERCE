@@ -26,10 +26,10 @@ class MarketEvidenceEnrichmentService:
     ) -> MarketEvidence:
         """
         Enriches a single listing with traffic signals to produce MarketEvidence.
-        
+
         Error Policy:
         Any exception raised by TrafficIntelligenceService (e.g. API errors, rate limits)
-        is deliberately propagated to the caller (Option A). This avoids silently 
+        is deliberately propagated to the caller (Option A). This avoids silently
         converting errors into VisitSignal(None), preserving explicit error handling.
         """
         # 1. Obtener la señal de visitas usando el external_id del listing como item_id

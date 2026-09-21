@@ -279,7 +279,7 @@ def test_scenario_g_pipeline_m5_to_m1_to_m2_to_m3_to_m4(enterprise_routes):
         default_reserved_output_tokens=2000,
         safety_margin_tokens=500,
     )
-    
+
     # Supongamos una entrada con histórico extenso
     breakdown = InputTokensBreakdown(
         system_instructions=500,
@@ -337,7 +337,7 @@ def test_scenario_g_pipeline_m5_to_m1_to_m2_to_m3_to_m4(enterprise_routes):
     # 4. M.4 Caching lookup & store
     cache_repo = InMemoryCacheRepository()
     cache_service = InferenceCacheService(repository=cache_repo)
-    
+
     cache_lookup_req = CacheLookupRequest(
         normalized_prompt_or_payload="Analyze category wireless audio.",
         route_or_model_id=selected_route.route_id,
@@ -369,7 +369,7 @@ def test_e2e_mission_orchestration_flow(enterprise_routes):
     """
     # 1. Simulación de Mission Type real
     mission_type = MissionType.PROFIT_EVALUATION.value
-    
+
     # 2. Invocación de M.5
     selection_service = ModelSelectionByTaskService()
     req = TaskSelectionRequest(

@@ -122,6 +122,7 @@ class AlertRuleType(str, Enum):
     QUOTA_EXHAUSTION = "QUOTA_EXHAUSTION"
     PROVIDER_FAILURE_RATE = "PROVIDER_FAILURE_RATE"
     EMERGENCY_STOP_ACTIVE = "EMERGENCY_STOP_ACTIVE"
+    MISSION_HEALTH_DEGRADED = "MISSION_HEALTH_DEGRADED"
 
 
 class ProductionAlertScope(str, Enum):
@@ -174,7 +175,7 @@ def generate_deduplication_key(
     scope_str = scope.value if isinstance(scope, ProductionAlertScope) else str(scope)
     rule_str = rule_type.value if isinstance(rule_type, AlertRuleType) else str(rule_type)
     target_str = str(target_resource).strip().lower() or "default"
-    
+
     parts = [env_str, scope_str, rule_str, target_str]
     if tenant_id:
         validate_safe_identifier(tenant_id, "tenant_id")
@@ -252,7 +253,7 @@ class ProductionAlertInstance:
             object.__setattr__(self, "environment", resolve_environment(self.environment))
         if not isinstance(self.scope, ProductionAlertScope):
             object.__setattr__(self, "scope", ProductionAlertScope(self.scope))
-        
+
         if self.triggered_at.tzinfo is None:
             object.__setattr__(self, "triggered_at", self.triggered_at.replace(tzinfo=timezone.utc))
         if self.updated_at.tzinfo is None:

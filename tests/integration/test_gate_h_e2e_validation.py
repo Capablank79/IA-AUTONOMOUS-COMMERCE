@@ -103,7 +103,7 @@ def test_gate_h_e2e_full_validation_suite(tmp_dir):
 
     # A & E — Decision & Policy boundaries
     policy_engine = PolicyEngine()
-    
+
     loop_dec = LoopDecision(action=LoopAction.CONTINUE, reason="Evaluating price change")
     ctx_deny = PolicyEvaluationContext(
         action_type="FORBIDDEN_ACTION",

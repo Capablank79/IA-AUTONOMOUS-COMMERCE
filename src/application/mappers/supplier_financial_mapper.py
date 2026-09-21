@@ -6,7 +6,7 @@ class SupplierFinancialMapper:
     Componente de Application que conecta la evidencia del proveedor con el modelo
     de entrada de ProfitEngine.
     """
-    
+
     @staticmethod
     def map_evidence_to_financial_data(
         base_financial_data: FinancialData,
@@ -14,7 +14,7 @@ class SupplierFinancialMapper:
     ) -> FinancialData:
         """
         Combina datos financieros base del mercado con la evidencia real del proveedor.
-        
+
         Reglas de Negocio:
         - SupplierEvidence es la fuente de verdad para los costos del proveedor.
         - Si faltan datos en la evidencia base (None), se intenta completar con una cotización confirmada.
@@ -29,7 +29,7 @@ class SupplierFinancialMapper:
         if evidence.quote:
             if shipping_cost is None:
                 shipping_cost = evidence.quote.shipping_cost
-            
+
             # Si la cotización tiene una moneda distinta, debemos validar o manejar la conversión
             # Por ahora, exigimos coincidencia de moneda según las reglas existentes
             if evidence.quote.currency != currency:
@@ -37,13 +37,13 @@ class SupplierFinancialMapper:
 
         if shipping_cost is None:
             raise ValueError("No se puede calcular el Profit: el shipping_cost es desconocido (None)")
-            
+
         if wholesale_price <= 0:
             raise ValueError("El wholesale_price debe ser mayor a 0")
-            
+
         if base_financial_data.price.currency != currency:
             raise ValueError(f"Las monedas no coinciden: mercado {base_financial_data.price.currency} vs proveedor {currency}")
-            
+
         return FinancialData(
             price=base_financial_data.price,
             supplier_price=Money(amount=wholesale_price, currency=currency),

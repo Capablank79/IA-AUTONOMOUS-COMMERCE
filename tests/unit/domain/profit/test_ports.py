@@ -32,10 +32,10 @@ def test_profit_data_repository_protocol():
     correctly by a class providing the required methods.
     """
     repo: ProfitDataRepository = DummyProfitDataRepository()
-    
+
     financial_data = repo.get_financial_data("exp-123")
     rules = repo.get_decision_rules("exp-123")
-    
+
     assert isinstance(financial_data, FinancialData)
     assert isinstance(rules, DecisionRules)
     assert financial_data.price.amount == Decimal('100')

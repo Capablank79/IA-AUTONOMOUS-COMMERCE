@@ -214,7 +214,7 @@ def test_inventory_scenario_build_known_values():
     opp = create_sample_opportunity()
     quote, ship_unit, ship_bulk = create_sample_quote()
     risk = create_sample_risk_profile()
-    
+
     scenario = OperatingModelEvaluator.build_inventory_scenario(
         opportunity=opp,
         quote=quote,
@@ -223,7 +223,7 @@ def test_inventory_scenario_build_known_values():
         target_quantity=20,
         shipping_option=ship_bulk,
     )
-    
+
     assert scenario.opportunity_id == "PROD-001"
     assert scenario.target_quantity == 20
     assert scenario.moq == 20

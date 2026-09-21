@@ -126,7 +126,7 @@ class BusinessKPIValue:
             object.__setattr__(self, "inputs_present", tuple(self.inputs_present))
         if not isinstance(self.inputs_missing, tuple):
             object.__setattr__(self, "inputs_missing", tuple(self.inputs_missing))
-        
+
         sanitized_meta = sanitize_security_data(dict(self.metadata))
         object.__setattr__(self, "metadata", deep_freeze(sanitized_meta))
 
@@ -237,7 +237,7 @@ class BusinessKPISummary:
             object.__setattr__(self, "kpis", tuple(self.kpis))
         if not isinstance(self.data_quality_notes, tuple):
             object.__setattr__(self, "data_quality_notes", tuple(self.data_quality_notes))
-        
+
         sanitized_curr = sanitize_security_data(dict(self.currency_breakdown))
         sanitized_links = sanitize_security_data(dict(self.drill_down_links))
         object.__setattr__(self, "currency_breakdown", deep_freeze(sanitized_curr))

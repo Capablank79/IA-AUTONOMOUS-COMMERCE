@@ -96,7 +96,7 @@ class ProductionMonitoringService:
             target_env = resolve_environment(environment) if environment else self._environment
             safe_route = sanitize_route_template(path)
             now = self._now()
-            
+
             # Clasificación de status
             status_class = f"{status_code // 100}xx"
             is_success = 200 <= status_code < 400

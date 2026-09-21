@@ -46,7 +46,7 @@ from src.domain.golden_dataset.baseline_datasets import (
 def clean_env(tmp_path):
     eval_dir = tmp_path / "k5_integration_eval"
     dataset_dir = tmp_path / "k5_integration_dataset"
-    
+
     eval_repo = JsonEvaluationRepository(base_dir=eval_dir)
     dataset_repo = JsonGoldenDatasetRepository(base_dir=dataset_dir)
     harness = EvaluationHarnessService(repository=eval_repo)

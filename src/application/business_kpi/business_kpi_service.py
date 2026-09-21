@@ -469,7 +469,7 @@ class BusinessKPIService(BusinessKPIServicePort):
 
             if is_verified and risk not in {"HIGH", "CRITICAL"}:
                 verified_count += 1
-            
+
             s_score = getattr(s, "supplier_score", None)
             if s_score is None and hasattr(s, "metadata") and isinstance(s.metadata, (dict, MappingProxyType)):
                 s_score = s.metadata.get("supplier_score")
